@@ -289,7 +289,60 @@
             border-left: 4px solid #dc3545;
         }
 
-        .stats {
+        .edit-form {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .edit-member-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .edit-name-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+            color: #212529;
+            font-size: 0.9rem;
+            padding: 8px 15px;
+        }
+
+        .btn-edit:hover {
+            background: #e0a800;
+        }
+
+        .btn-save-edit {
+            background: #28a745;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .btn-cancel-edit {
+            background: #6c757d;
+            color: white;
+            font-size: 0.9rem;
+        }
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
@@ -867,14 +920,19 @@
                 <div class="group-card">
                     <div class="group-header">
                         <div class="group-name">${group.name}</div>
-                        <button class="btn btn-danger" onclick="deleteGroup(${group.id})">🗑️ Löschen</button>
-                    </div>
-                    ${group.members.map(member => `
-                        <div class="member-card">
-                            <div class="member-name">${member.name}</div>
-                            ${member.signature ? `<img src="${member.signature}" class="member-signature" alt="Unterschrift">` : '<span style="color: #6c757d; font-style: italic;">Keine Unterschrift</span>'}
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-edit" onclick="editGroup(${group.id})">✏️ Bearbeiten</button>
+                            <button class="btn btn-danger" onclick="deleteGroup(${group.id})">🗑️ Löschen</button>
                         </div>
-                    `).join('')}
+                    </div>
+                    <div id="group-content-${group.id}">
+                        ${group.members.map(member => `
+                            <div class="member-card">
+                                <div class="member-name">${member.name}</div>
+                                ${member.signature ? `<img src="${member.signature}" class="member-signature" alt="Unterschrift">` : '<span style="color: #6c757d; font-style: italic;">Keine Unterschrift</span>'}
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
             `).join('');
         }
@@ -886,6 +944,209 @@
                 displayGroups();
                 showMessage('Gruppe erfolgreich gelöscht!', 'success');
             }
+        }
+
+        function editGroup(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            const contentDiv = document.getElementById(`group-content-${groupId}`);
+            
+            // Bearbeitungsformular erstellen
+            const editForm = document.createElement('div');
+            editForm.className = 'edit-form';
+            editForm.innerHTML = `
+                <h4 style="margin-bottom: 15px; color: #856404;">✏️ ${group.name} bearbeiten</h4>
+                <div id="edit-members-${groupId}">
+                    ${group.members.map((member, index) => `
+                        <div class="edit-member-input">
+                            <input type="text" class="edit-name-input" value="${member.name}" placeholder="Name des Mitglieds">
+                            <input type="file" class="file-input" accept=".png,.jpg,.jpeg" id="edit-file-${groupId}-${index}" style="display: none;">
+                            <label for="edit-file-${groupId}-${index}" class="file-label">📎 ${member.signature ? 'Unterschrift ändern' : 'Unterschrift hinzufügen'}</label>
+                            ${member.signature ? `<img src="${member.signature}" class="signature-preview" alt="Aktuelle Unterschrift">` : ''}
+                            ${group.members.length > 1 ? `<button type="button" class="remove-member" onclick="removeEditMember(this, ${groupId})">❌</button>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="edit-actions">
+                    ${group.members.length < 3 ? `<button type="button" class="btn btn-secondary" onclick="addEditMember(${groupId})">➕ Mitglied hinzufügen</button>` : ''}
+                    <button type="button" class="btn btn-save-edit" onclick="saveGroupEdit(${groupId})">💾 Änderungen speichern</button>
+                    <button type="button" class="btn btn-cancel-edit" onclick="cancelGroupEdit(${groupId})">❌ Abbrechen</button>
+                </div>
+            `;
+
+            // Originalen Inhalt ausblenden und Bearbeitungsformular anzeigen
+            contentDiv.style.display = 'none';
+            contentDiv.parentNode.appendChild(editForm);
+
+            // Event Listener für Datei-Uploads hinzufügen
+            const fileInputs = editForm.querySelectorAll('.file-input');
+            fileInputs.forEach(input => {
+                input.addEventListener('change', handleEditFileUpload);
+            });
+        }
+
+        function addEditMember(groupId) {
+            const container = document.getElementById(`edit-members-${groupId}`);
+            const memberInputs = container.querySelectorAll('.edit-member-input');
+            
+            if (memberInputs.length >= 3) {
+                showMessage('Maximal 3 Mitglieder pro Gruppe erlaubt!', 'error');
+                return;
+            }
+
+            const newIndex = memberInputs.length;
+            const memberDiv = document.createElement('div');
+            memberDiv.className = 'edit-member-input';
+            memberDiv.innerHTML = `
+                <input type="text" class="edit-name-input" value="" placeholder="Name des Mitglieds">
+                <input type="file" class="file-input" accept=".png,.jpg,.jpeg" id="edit-file-${groupId}-${newIndex}" style="display: none;">
+                <label for="edit-file-${groupId}-${newIndex}" class="file-label">📎 Unterschrift hinzufügen</label>
+                <button type="button" class="remove-member" onclick="removeEditMember(this, ${groupId})">❌</button>
+            `;
+            
+            container.appendChild(memberDiv);
+            
+            // Event Listener für neuen Datei-Upload hinzufügen
+            const fileInput = memberDiv.querySelector('.file-input');
+            fileInput.addEventListener('change', handleEditFileUpload);
+
+            // "Mitglied hinzufügen" Button ausblenden wenn 3 Mitglieder erreicht
+            const addButton = document.querySelector(`[onclick="addEditMember(${groupId})"]`);
+            if (container.querySelectorAll('.edit-member-input').length >= 3 && addButton) {
+                addButton.style.display = 'none';
+            }
+        }
+
+        function removeEditMember(button, groupId) {
+            const memberInput = button.parentElement;
+            const container = document.getElementById(`edit-members-${groupId}`);
+            
+            memberInput.remove();
+            
+            // "Mitglied hinzufügen" Button wieder anzeigen wenn unter 3 Mitglieder
+            const addButton = document.querySelector(`[onclick="addEditMember(${groupId})"]`);
+            if (container.querySelectorAll('.edit-member-input').length < 3 && addButton) {
+                addButton.style.display = 'inline-block';
+            }
+        }
+
+        function handleEditFileUpload(event) {
+            const file = event.target.files[0];
+            const memberInput = event.target.parentElement;
+            
+            // Vorherige Vorschau entfernen
+            const existingPreview = memberInput.querySelector('.signature-preview');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            
+            if (file) {
+                // Dateigröße prüfen (max 2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showMessage('Datei zu groß! Maximal 2MB erlaubt.', 'error');
+                    event.target.value = '';
+                    return;
+                }
+                
+                // Bildvorschau erstellen
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'signature-preview';
+                    img.alt = 'Unterschrift Vorschau';
+                    memberInput.appendChild(img);
+                    
+                    // Label Text aktualisieren
+                    const label = memberInput.querySelector('.file-label');
+                    label.textContent = '📎 Unterschrift ändern';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveGroupEdit(groupId) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+
+            const container = document.getElementById(`edit-members-${groupId}`);
+            const memberInputs = container.querySelectorAll('.edit-member-input');
+            
+            if (memberInputs.length < 1) {
+                showMessage('Mindestens 1 Mitglied erforderlich!', 'error');
+                return;
+            }
+            
+            const newMembers = [];
+            let hasEmptyName = false;
+            let processedFiles = 0;
+            const totalFiles = Array.from(memberInputs).filter(div => div.querySelector('.file-input').files[0]).length;
+            
+            memberInputs.forEach((memberDiv, index) => {
+                const nameInput = memberDiv.querySelector('.edit-name-input');
+                const fileInput = memberDiv.querySelector('.file-input');
+                
+                if (!nameInput.value.trim()) {
+                    hasEmptyName = true;
+                    return;
+                }
+                
+                const member = {
+                    name: nameInput.value.trim(),
+                    signature: group.members[index] ? group.members[index].signature : null
+                };
+                
+                if (fileInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        member.signature = e.target.result;
+                        processedFiles++;
+                        
+                        if (processedFiles === totalFiles || totalFiles === 0) {
+                            finalizeGroupEdit(groupId, newMembers);
+                        }
+                    };
+                    reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    // Kein neues Bild, also vorhandenes beibehalten oder null
+                    const existingPreview = memberDiv.querySelector('.signature-preview');
+                    if (existingPreview && existingPreview.src.startsWith('data:')) {
+                        member.signature = existingPreview.src;
+                    }
+                }
+                
+                newMembers.push(member);
+            });
+            
+            if (hasEmptyName) {
+                showMessage('Alle Mitglieder müssen einen Namen haben!', 'error');
+                return;
+            }
+            
+            if (totalFiles === 0) {
+                finalizeGroupEdit(groupId, newMembers);
+            }
+        }
+
+        function finalizeGroupEdit(groupId, newMembers) {
+            const group = groups.find(g => g.id === groupId);
+            if (!group) return;
+            
+            group.members = newMembers;
+            saveGroups();
+            displayGroups();
+            showMessage(`${group.name} erfolgreich aktualisiert!`, 'success');
+        }
+
+        function cancelGroupEdit(groupId) {
+            const contentDiv = document.getElementById(`group-content-${groupId}`);
+            const editForm = contentDiv.parentNode.querySelector('.edit-form');
+            
+            if (editForm) {
+                editForm.remove();
+            }
+            contentDiv.style.display = 'block';
         }
 
         function deleteAllGroups() {
