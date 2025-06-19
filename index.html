@@ -419,7 +419,7 @@
     <script>
         let groups = [];
         let memberCounter = 2;
-        let groupCounter = 30; // Startet bei 30, da bereits 29 Gruppen vorhanden sind
+        let groupCounter = 30; // Start bei 30, da bereits 29 Gruppen vorhanden
 
         // Beim Laden der Seite gespeicherte Gruppen laden
         window.onload = function() {
@@ -428,10 +428,9 @@
             displayGroups();
         };
 
-        // Gruppen aus JavaScript-Variable laden (ersetzt localStorage)
-        function loadGroups() {
-            // Vordefinierte Gruppen laden
-            groups = [
+        // Vorgefertigte Gruppen laden
+        function loadPredefinedGroups() {
+            const predefinedGroups = [
                 {
                     id: 1,
                     name: "Gruppe 1",
@@ -455,7 +454,8 @@
                     name: "Gruppe 3",
                     members: [
                         { name: "Theresa Heine", signature: null },
-                        { name: "Pia Setzer", signature: null }
+                        { name: "Pia Setzer", signature: null },
+                        { name: "Liselotte Arnold", signature: null }
                     ]
                 },
                 {
@@ -471,7 +471,6 @@
                     id: 5,
                     name: "Gruppe 5",
                     members: [
-                        { name: "Liselotte Arnold", signature: null },
                         { name: "Isabel Petrick", signature: null }
                     ]
                 },
@@ -677,6 +676,14 @@
                     ]
                 }
             ];
+
+            return predefinedGroups;
+        }
+
+        // Gruppen aus JavaScript-Variable laden (ersetzt localStorage)
+        function loadGroups() {
+            // Vorgefertigte Gruppen laden
+            groups = loadPredefinedGroups();
         }
 
         // Gruppen in JavaScript-Variable speichern
@@ -888,7 +895,7 @@
                 saveGroups();
                 displayGroups();
                 document.getElementById('classesSection').style.display = 'none';
-                showMessage('Alle Gruppen erfolgreich gelöscht!', 'success');
+                showMessage('Alle Gruppen erfolgreich gelöscht! Die vordefinierten Gruppen wurden ebenfalls entfernt.', 'success');
             }
         }
 
