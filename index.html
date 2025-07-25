@@ -3,32 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GerKino - KI-Streaming Plattform</title>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap">
+    <title>Snake.io - Ultimate Edition</title>
     <style>
-        :root {
-            --primary: #3a86ff;
-            --primary-dark: #2667cc;
-            --secondary: #8338ec;
-            --dark: #212529;
-            --light: #f8f9fa;
-            --gray: #6c757d;
-            --danger: #ff006e;
-            --success: #06d6a0;
-            --background: #ffffff;
-            --card-bg: #ffffff;
-            --text: #212529;
-            --border: #e9ecef;
-        }
-
-        .dark-mode {
-            --background: #121212;
-            --card-bg: #1e1e1e;
-            --text: #e0e0e0;
-            --border: #333333;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -36,2286 +14,1846 @@
         }
 
         body {
-            font-family: 'Be Vietnam Pro', 'Noto Sans', sans-serif;
-            line-height: 1.6;
-            color: var(--text);
-            background-color: var(--background);
-            transition: all 0.3s ease;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0d1421, #1a2332, #0f1419);
+            color: white;
+            font-family: 'Orbitron', monospace;
+            user-select: none;
+            cursor: none;
         }
 
-        /* Header Styles */
-        header {
-            background-color: var(--card-bg);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: var(--primary);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logo-icon {
-            font-size: 2rem;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: color 0.3s;
+        #gameCanvas {
+            display: block;
+            background: radial-gradient(ellipse at center, #0f1922, #0a1217, #050b0f);
+            border: 3px solid transparent;
+            background-clip: padding-box;
             position: relative;
         }
 
-        nav a:hover {
-            color: var(--primary);
-        }
-
-        nav a::after {
+        #gameCanvas::before {
             content: '';
             position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -5px;
-            left: 0;
-            background-color: var(--primary);
-            transition: width 0.3s;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #00d4ff, #ff6b35, #7b68ee, #00d4ff);
+            background-size: 400% 400%;
+            animation: gradientShift 3s ease infinite;
+            z-index: -1;
+            border-radius: 8px;
         }
 
-        nav a:hover::after {
-            width: 100%;
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
-        .auth-buttons {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .user-menu {
-            position: relative;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .dropdown-menu {
+        .ui {
             position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            width: 200px;
+            top: 25px;
+            left: 25px;
             z-index: 100;
-            display: none;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .dropdown-menu.show {
-            display: block;
-        }
-
-        .dropdown-menu a {
-            display: block;
-            padding: 0.8rem 1rem;
-            text-decoration: none;
-            color: var(--text);
-            transition: background-color 0.3s;
-        }
-
-        .dropdown-menu a:hover {
-            background-color: rgba(58, 134, 255, 0.1);
-        }
-
-        /* Button Styles */
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 5px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(58, 134, 255, 0.3);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-outline:hover {
-            background-color: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .btn-icon {
-            font-size: 1.2rem;
-        }
-
-        /* Hero Section */
-        .hero {
-            padding: 5rem 0;
-            text-align: center;
-            background: linear-gradient(135deg, rgba(245, 247, 250, 0.9) 0%, rgba(195, 207, 226, 0.9) 100%);
+        .game-stats {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             position: relative;
             overflow: hidden;
         }
 
-        .dark-mode .hero {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(45, 45, 45, 0.9) 100%);
-        }
-
-        .hero::before {
+        .game-stats::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('https://source.unsplash.com/random/1920x1080/?cinema,movie') no-repeat center center;
-            background-size: cover;
-            z-index: -1;
-            opacity: 0.2;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
         }
 
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
-        .hero h1 {
-            font-size: 3.2rem;
-            margin-bottom: 1.5rem;
-            line-height: 1.2;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            margin: 0 auto 2.5rem;
-            color: var(--gray);
-            max-width: 600px;
-        }
-
-        .hero-buttons {
+        .stat-item {
             display: flex;
-            gap: 1rem;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 16px;
+            font-weight: 700;
         }
 
-        /* Features Section */
-        .section {
-            padding: 5rem 0;
+        .stat-label {
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
-        .section-title {
-            text-align: center;
-            margin-bottom: 3rem;
+        .stat-value {
+            color: #ffffff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
         }
 
-        .section-title h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        #boostBtn {
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
             position: relative;
-            display: inline-block;
+            overflow: hidden;
+            font-family: 'Orbitron', monospace;
         }
 
-        .section-title h2::after {
+        #boostBtn::before {
             content: '';
             position: absolute;
-            width: 50%;
-            height: 4px;
-            bottom: -10px;
-            left: 25%;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            border-radius: 2px;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
 
-        .section-title p {
-            color: var(--gray);
-            max-width: 700px;
-            margin: 0 auto;
-            font-size: 1.1rem;
+        #boostBtn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.6);
         }
 
-        .features-grid {
+        #boostBtn:hover::before {
+            left: 100%;
+        }
+
+        #boostBtn:active {
+            transform: translateY(-1px);
+        }
+
+        #boostBtn.boosting {
+            background: linear-gradient(135deg, #ff4757, #ff6b7a, #ff8a95);
+            animation: boostPulse 0.6s infinite alternate;
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.8);
+        }
+
+        @keyframes boostPulse {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.05) rotate(1deg); }
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #ff4757;
+            display: none;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .game-over.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .game-over h2 {
+            color: #ff4757;
+            margin: 0 0 20px 0;
+            font-size: 32px;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 71, 87, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 71, 87, 0.8), 0 0 40px rgba(255, 71, 87, 0.3); }
+        }
+
+        .final-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
         }
 
-        .feature-card {
-            background-color: var(--card-bg);
+        .final-stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
             border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .restart-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #2ed573, #17c0eb);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 20px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 213, 115, 0.4);
+        }
+
+        .leaderboard {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(123, 104, 238, 0.3);
+            max-width: 300px;
+        }
+
+        .leaderboard h3 {
+            color: #7b68ee;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .score-entry {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            border-color: var(--primary);
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #00d4ff, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1000;
+            mix-blend-mode: difference;
+            transition: transform 0.1s;
         }
 
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-            background: linear-gradient(135deg, rgba(58, 134, 255, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%);
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: particleFloat 2s linear forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-100px);
+            }
+        }
+
+        .minimap {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 200px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ability-container {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .ability-btn {
             width: 60px;
             height: 60px;
             border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 212, 255, 0.5);
+            color: white;
+            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .feature-card h3 {
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .feature-card p {
-            color: var(--gray);
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-
-        .feature-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: auto;
-        }
-
-        .feature-link:hover {
-            text-decoration: underline;
-        }
-
-        /* Video Player Section */
-        .video-section {
-            background-color: var(--card-bg);
-            padding: 5rem 0;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .video-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            overflow: hidden;
-        }
-
-        #video-player {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-        }
-
-        .video-controls {
-            padding: 1rem;
-            background-color: #222;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .control-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 5px;
-            transition: all 0.2s;
-        }
-
-        .control-btn:hover {
-            background-color: rgba(255,255,255,0.1);
-        }
-
-        .progress-container {
-            flex-grow: 1;
-            height: 5px;
-            background-color: #444;
-            border-radius: 5px;
-            margin: 0 1rem;
-            cursor: pointer;
-            position: relative;
-        }
-
-        #progress-bar {
-            height: 100%;
-            background-color: var(--primary);
-            border-radius: 5px;
-            width: 0%;
-        }
-
-        .time-display {
-            color: white;
-            font-size: 0.9rem;
-            font-family: monospace;
-        }
-
-        .speed-btn, .quality-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .speed-btn.active, .quality-btn.active {
-            background-color: var(--primary);
-        }
-
-        .video-info {
-            padding: 2rem;
-            background-color: var(--card-bg);
-        }
-
-        .video-info h3 {
-            margin-bottom: 0.5rem;
-            font-size: 1.5rem;
-        }
-
-        .video-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            color: var(--gray);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .video-meta span {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .video-description {
-            margin-bottom: 1.5rem;
-            line-height: 1.7;
-        }
-
-        .video-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .action-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background-color: rgba(58, 134, 255, 0.1);
-            color: var(--primary);
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
             cursor: pointer;
             transition: all 0.3s;
-        }
-
-        .action-btn:hover {
-            background-color: rgba(58, 134, 255, 0.2);
-        }
-
-        /* Categories Section */
-        .categories-section {
-            padding: 5rem 0;
-        }
-
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .category-card {
             position: relative;
-            border-radius: 8px;
             overflow: hidden;
-            height: 180px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .category-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s;
-        }
-
-        .category-card:hover img {
+        .ability-btn:hover {
             transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
 
-        .category-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 1rem;
-            color: white;
-        }
-
-        .category-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .category-count {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
-        /* Upload Section */
-        .upload-section {
-            padding: 5rem 0;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border);
-        }
-
-        .upload-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: 8px;
-            padding: 3rem 2rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .upload-area:hover {
-            border-color: var(--primary);
-            background-color: rgba(58, 134, 255, 0.05);
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .upload-text {
-            margin-bottom: 1rem;
-        }
-
-        .upload-text h3 {
-            margin-bottom: 0.5rem;
-        }
-
-        .upload-text p {
-            color: var(--gray);
-        }
-
-        .upload-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background-color: var(--card-bg);
-            color: var(--text);
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
-        }
-
-        .select-control {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .checkbox-group input {
-            width: auto;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            margin-top: 0.5rem;
-            overflow: hidden;
-        }
-
-        .progress {
-            height: 100%;
-            background-color: var(--primary);
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        /* Community Section */
-        .community-section {
-            padding: 5rem 0;
-        }
-
-        .testimonials {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .testimonial-card {
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .testimonial-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .testimonial-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .testimonial-author {
-            font-weight: 700;
-        }
-
-        .testimonial-role {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        .testimonial-text {
-            line-height: 1.7;
-            font-style: italic;
-            position: relative;
-        }
-
-        .testimonial-text::before,
-        .testimonial-text::after {
-            content: '"';
-            font-size: 2rem;
-            color: var(--primary);
-            opacity: 0.3;
-            position: absolute;
-        }
-
-        .testimonial-text::before {
-            top: -10px;
-            left: -10px;
-        }
-
-        .testimonial-text::after {
-            bottom: -20px;
-            right: -10px;
-        }
-
-        /* Comments Section */
-        .comments-section {
-            margin-top: 3rem;
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 2rem;
-            border: 1px solid var(--border);
-        }
-
-        .comments-section h3 {
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .comment-input {
-            flex-grow: 1;
-            padding: 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background-color: var(--card-bg);
-            color: var(--text);
-        }
-
-        .comment-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .comment {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .comment:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .comment-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .comment-content {
-            flex-grow: 1;
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .comment-author {
-            font-weight: bold;
-        }
-
-        .comment-time {
-            color: var(--gray);
-            font-size: 0.8rem;
-        }
-
-        .comment-text {
-            line-height: 1.5;
-        }
-
-        /* Legal Section */
-        .legal-section {
-            padding: 5rem 0;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border);
-        }
-
-        .legal-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .legal-content {
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-        }
-
-        .legal-content h3 {
-            margin-bottom: 1.5rem;
-            color: var(--primary);
-        }
-
-        .legal-item {
-            margin-bottom: 2rem;
-        }
-
-        .legal-item h4 {
-            margin-bottom: 0.8rem;
-            font-size: 1.2rem;
-        }
-
-        .legal-item p {
-            margin-bottom: 0.8rem;
-            line-height: 1.7;
-        }
-
-        .legal-item ul {
-            margin-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .legal-item li {
-            margin-bottom: 0.5rem;
-        }
-
-        /* Footer */
-        footer {
-            background-color: var(--card-bg);
-            padding: 4rem 0 2rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .footer-col h3 {
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-            position: relative;
-            display: inline-block;
-        }
-
-        .footer-col h3::after {
+        .ability-btn::after {
             content: '';
             position: absolute;
-            width: 50%;
-            height: 2px;
-            bottom: -5px;
-            left: 0;
-            background-color: var(--primary);
-        }
-
-        .footer-links {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.8rem;
-        }
-
-        .footer-links a {
-            text-decoration: none;
-            color: var(--gray);
-            transition: color 0.3s;
-            display: inline-block;
-            padding: 0.2rem 0;
-        }
-
-        .footer-links a:hover {
-            color: var(--primary);
-            transform: translateX(5px);
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .social-link {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(58, 134, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            transition: all 0.3s;
-        }
-
-        .social-link:hover {
-            background-color: var(--primary);
-            color: white;
-            transform: translateY(-3px);
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        /* Cookie Banner */
-        .cookie-banner {
-            position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
-            background-color: var(--card-bg);
-            padding: 1.5rem;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: none;
-            border-top: 1px solid var(--border);
+            width: 100%;
+            height: 0%;
+            background: rgba(0, 212, 255, 0.3);
+            transition: height 0.3s;
         }
 
-        .cookie-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-            justify-content: space-between;
+        .ability-btn.cooldown::after {
+            height: 100%;
+            background: rgba(255, 0, 0, 0.3);
         }
 
-        .cookie-text {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .cookie-actions {
-            display: flex;
-            gap: 1rem;
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
+        .enemy-health {
+            position: absolute;
+            top: -15px;
             left: 0;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
+            height: 3px;
+            background: rgba(255, 0, 0, 0.3);
         }
 
-        .modal-content {
-            background-color: var(--card-bg);
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .enemy-health-bar {
+            height: 100%;
+            background: #ff4757;
+            transition: width 0.2s;
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .xp-bar {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 5px;
             overflow: hidden;
         }
 
-        .modal-header {
-            padding: 1.5rem;
-            background-color: var(--primary);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        .form-group-modal {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group-modal label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-control-modal {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 5px;
-            background-color: var(--card-bg);
-            color: var(--text);
-        }
-
-        .modal-footer {
-            padding: 1rem 1.5rem;
-            background-color: rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-
-        /* Utility Classes */
-        .text-primary {
-            color: var(--primary);
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .mt-1 { margin-top: 1rem; }
-        .mt-2 { margin-top: 2rem; }
-        .mt-3 { margin-top: 3rem; }
-        .mt-4 { margin-top: 4rem; }
-        .mt-5 { margin-top: 5rem; }
-
-        .mb-1 { margin-bottom: 1rem; }
-        .mb-2 { margin-bottom: 2rem; }
-        .mb-3 { margin-bottom: 3rem; }
-        .mb-4 { margin-bottom: 4rem; }
-        .mb-5 { margin-bottom: 5rem; }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            nav ul {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .hero-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .video-controls {
-                padding: 0.5rem;
-            }
-
-            .progress-container {
-                margin: 0.5rem 0;
-                width: 100%;
-                order: 1;
-            }
-
-            .time-display {
-                order: 2;
-            }
-
-            .cookie-content {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .cookie-actions {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .comment-form {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .section-title h2 {
-                font-size: 1.8rem;
-            }
-
-            .categories-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            }
-
-            .category-card {
-                height: 140px;
-            }
+        .xp-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7b68ee);
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
-    <!-- Cookie Banner -->
-    <div class="cookie-banner">
-        <div class="cookie-content">
-            <div class="cookie-text">
-                <p>Wir verwenden Cookies, um Ihnen das beste Erlebnis auf unserer Website zu bieten. Durch die Nutzung unserer Dienste erklären Sie sich damit einverstanden, dass wir Cookies verwenden.</p>
+    <div class="custom-cursor" id="customCursor"></div>
+    
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="ui">
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-label">Länge:</span>
+                <span class="stat-value" id="score">10</span>
             </div>
-            <div class="cookie-actions">
-                <button id="cookie-accept" class="btn btn-primary">Akzeptieren</button>
-                <button id="cookie-decline" class="btn btn-outline">Ablehnen</button>
-                <a href="#" class="btn btn-outline">Mehr erfahren</a>
+            <div class="stat-item">
+                <span class="stat-label">Geschwindigkeit:</span>
+                <span class="stat-value" id="speed-display">2.0</span>
             </div>
+            <div class="stat-item">
+                <span class="stat-label">Futter:</span>
+                <span class="stat-value" id="food-counter">0/75</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Punkte:</span>
+                <span class="stat-value" id="points">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Level:</span>
+                <span class="stat-value" id="level">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">XP:</span>
+                <span class="stat-value" id="xp">0%</span>
+            </div>
+        </div>
+        <button id="boostBtn">🚀 Boost (Halten)</button>
+    </div>
+
+    <div class="level-indicator">
+        <div>Level <span id="current-level">1</span></div>
+        <div class="xp-bar">
+            <div class="xp-progress" id="xp-progress"></div>
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <div class="modal" id="login-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Anmelden</h3>
-                <button class="close-btn" id="close-login">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group-modal">
-                    <label for="login-email">E-Mail</label>
-                    <input type="email" id="login-email" class="form-control-modal" required>
-                </div>
-                <div class="form-group-modal">
-                    <label for="login-password">Passwort</label>
-                    <input type="password" id="login-password" class="form-control-modal" required>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="remember-me">
-                    <label for="remember-me">Angemeldet bleiben</label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="register-toggle">Registrieren</button>
-                <button class="btn btn-primary" id="login-btn">Anmelden</button>
-            </div>
-        </div>
+    <div class="leaderboard">
+        <h3>🏆 Bestenliste</h3>
+        <div id="leaderboardList"></div>
     </div>
 
-    <!-- Register Modal -->
-    <div class="modal" id="register-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Registrieren</h3>
-                <button class="close-btn" id="close-register">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group-modal">
-                    <label for="register-name">Name</label>
-                    <input type="text" id="register-name" class="form-control-modal" required>
-                </div>
-                <div class="form-group-modal">
-                    <label for="register-email">E-Mail</label>
-                    <input type="email" id="register-email" class="form-control-modal" required>
-                </div>
-                <div class="form-group-modal">
-                    <label for="register-password">Passwort</label>
-                    <input type="password" id="register-password" class="form-control-modal" required>
-                </div>
-                <div class="form-group-modal">
-                    <label for="register-confirm">Passwort bestätigen</label>
-                    <input type="password" id="register-confirm" class="form-control-modal" required>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="terms-agree" required>
-                    <label for="terms-agree">Ich akzeptiere die Nutzungsbedingungen</label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" id="login-toggle">Anmelden</button>
-                <button class="btn btn-primary" id="register-btn">Registrieren</button>
-            </div>
-        </div>
+    <canvas class="minimap" id="minimap"></canvas>
+
+    <div class="ability-container">
+        <div class="ability-btn" id="blastAbility" title="Energieblast (Q)">💥</div>
+        <div class="ability-btn" id="shieldAbility" title="Schild (W)">🛡️</div>
+        <div class="ability-btn" id="healAbility" title="Heilung (E)">❤️</div>
     </div>
 
-    <!-- Header -->
-    <header>
-        <div class="container header-container">
-            <a href="#" class="logo">
-                <span class="logo-icon">🎬</span>
-                <span>GerKino</span>
-            </a>
-            <nav>
-                <ul>
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#categories">Kategorien</a></li>
-                    <li><a href="#upload">Upload</a></li>
-                    <li><a href="#community">Community</a></li>
-                    <li><a href="#legal">Rechtliches</a></li>
-                </ul>
-            </nav>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" id="login-button">
-                    <span class="btn-icon">👤</span>
-                    <span>Anmelden</span>
-                </button>
-                <button class="btn btn-primary" id="register-button">
-                    <span class="btn-icon">✍️</span>
-                    <span>Registrieren</span>
-                </button>
-                <div class="user-menu" id="user-menu" style="display: none;">
-                    <div class="user-avatar" id="user-avatar">U</div>
-                    <div class="dropdown-menu" id="dropdown-menu">
-                        <a href="#" id="user-profile">Mein Profil</a>
-                        <a href="#" id="user-videos">Meine Videos</a>
-                        <a href="#" id="user-settings">Einstellungen</a>
-                        <a href="#" id="logout-btn">Abmelden</a>
-                    </div>
-                </div>
-                <button id="darkModeToggle" class="btn btn-outline">🌙</button>
+    <div id="gameOver" class="game-over">
+        <h2>💀 Game Over!</h2>
+        <div class="final-stats">
+            <div class="final-stat">
+                <strong>Finale Länge</strong>
+                <div id="finalScore">0</div>
+            </div>
+            <div class="final-stat">
+                <strong>Max Speed</strong>
+                <div id="maxSpeed">0</div>
+            </div>
+            <div class="final-stat">
+                <strong>Punkte</strong>
+                <div id="finalPoints">0</div>
+            </div>
+            <div class="final-stat">
+                <strong>Zeit</strong>
+                <div id="gameTime">0s</div>
+            </div>
+            <div class="final-stat">
+                <strong>Level</strong>
+                <div id="finalLevel">1</div>
+            </div>
+            <div class="final-stat">
+                <strong>Gegner besiegt</strong>
+                <div id="enemiesDefeated">0</div>
             </div>
         </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container hero-content">
-            <h1>Deine KI-gestützte <span class="text-primary">Streaming-Plattform</span></h1>
-            <p>GerKino bietet intelligente Funktionen, starke Community-Interaktion und rechtlich abgesicherte Inhalte in einer modernen Umgebung.</p>
-            <div class="hero-buttons">
-                <button class="btn btn-primary btn-lg">
-                    <span class="btn-icon">🎥</span>
-                    <span>Jetzt entdecken</span>
-                </button>
-                <button class="btn btn-outline btn-lg">
-                    <span class="btn-icon">🔍</span>
-                    <span>Mehr erfahren</span>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="section">
-        <div class="container">
-            <div class="section-title">
-                <h2>🔧 Funktionale Highlights</h2>
-                <p>Entdecke die innovativen Features, die GerKino einzigartig machen</p>
-            </div>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📤</div>
-                    <h3>Video-Upload</h3>
-                    <p>Hochladen direkt von lokalen Geräten mit Unterstützung für große Dateien (bis zu 50 GB), Drag & Drop und Mehrfach-Uploads.</p>
-                    <a href="#upload" class="feature-link">
-                        <span>Mehr erfahren</span>
-                        <span>→</span>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🎬</div>
-                    <h3>Intelligente Wiedergabe</h3>
-                    <p>Videoplayer mit einstellbarer Geschwindigkeit, KI-generierten Untertiteln und Echtzeitübersetzung.</p>
-                    <a href="#" class="feature-link">
-                        <span>Mehr erfahren</span>
-                        <span>→</span>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Mächtige Suche</h3>
-                    <p>Suchleiste mit Auto-Vervollständigung und Filterung nach Genre, Jahr, Bewertung und mehr.</p>
-                    <a href="#" class="feature-link">
-                        <span>Mehr erfahren</span>
-                        <span>→</span>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>KI-Moderation</h3>
-                    <p>Automatisierte Prüfung auf Urheberrechtsverletzungen und Altersfreigabe für sichere Inhalte.</p>
-                    <a href="#" class="feature-link">
-                        <span>Mehr erfahren</span>
-                        <span>→</span>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Hochleistungs-Streaming</h3>
-                    <p>HLS-Streaming mit adaptiver Qualität und schneller Reaktionszeit trotz großer Datenmengen.</p>
-                    <a href="#" class="feature-link">
-                        <span>Mehr erfahren</span>
-                        <span>→</span>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3>Community</h3>
-                    <p>Nutzerprofile, Freundeslisten, zeitbasierte Kommentare und Genre-Foren für maximale Interaktion.</p>
-                    <a href="#community" class="feature-link">
-                        <span>Mehr erfahren</span>
-                        <span>→</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Video Player Section -->
-    <section class="video-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>🎥 Moderne Wiedergabe</h2>
-                <p>Erlebe Videos mit intelligenten Funktionen</p>
-            </div>
-            
-            <div class="video-container">
-                <div class="video-wrapper">
-                    <video id="video-player" poster="https://source.unsplash.com/random/800x450/?movie,cinema">
-                        <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
-                        Ihr Browser unterstützt das Video-Tag nicht.
-                    </video>
-                </div>
-                <div class="video-controls">
-                    <button class="control-btn" id="play-pause">⏯️</button>
-                    <button class="control-btn" id="mute">🔊</button>
-                    <div class="progress-container">
-                        <div id="progress-bar"></div>
-                    </div>
-                    <span class="time-display" id="time-display">0:00 / 0:00</span>
-                    <button class="speed-btn active" data-speed="1">1x</button>
-                    <button class="speed-btn" data-speed="1.5">1.5x</button>
-                    <button class="speed-btn" data-speed="2">2x</button>
-                    <button class="control-btn" id="subtitle">📝</button>
-                    <button class="control-btn" id="fullscreen">🖥️</button>
-                </div>
-                <div class="video-info">
-                    <h3>Beispielvideo: Die Zukunft des Streamings</h3>
-                    <div class="video-meta">
-                        <span>📅 2023</span>
-                        <span>⏱️ 12:34</span>
-                        <span>⭐ 4.5/5 (1.2K Bewertungen)</span>
-                        <span>👁️ 25.4K Aufrufe</span>
-                    </div>
-                    <p class="video-description">Dieses Video demonstriert die KI-Funktionen von GerKino, einschließlich automatischer Untertitelung und intelligenter Empfehlungen. Erfahren Sie, wie unsere Plattform das Streaming-Erlebnis revolutioniert.</p>
-                    <div class="video-actions">
-                        <button class="action-btn" id="like-btn">
-                            <span>👍</span>
-                            <span>Bewerten</span>
-                        </button>
-                        <button class="action-btn">
-                            <span>💬</span>
-                            <span>Kommentieren</span>
-                        </button>
-                        <button class="action-btn">
-                            <span>➕</span>
-                            <span>Playlist</span>
-                        </button>
-                        <button class="action-btn">
-                            <span>🔗</span>
-                            <span>Teilen</span>
-                        </button>
-                        <button class="action-btn">
-                            <span>⬇️</span>
-                            <span>Download</span>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Kommentarbereich -->
-                <div class="comments-section">
-                    <h3>Kommentare (24)</h3>
-                    <div class="comment-form">
-                        <input type="text" class="comment-input" id="comment-input" placeholder="Schreibe einen Kommentar...">
-                        <button class="btn btn-primary" id="submit-comment">Kommentieren</button>
-                    </div>
-                    <div class="comment-list" id="comment-list">
-                        <!-- Kommentare werden dynamisch hinzugefügt -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Categories Section -->
-    <section id="categories" class="categories-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>🎭 Kategorien & Genres</h2>
-                <p>Entdecke eine vielfältige Auswahl an Inhalten</p>
-            </div>
-            
-            <div class="categories-grid">
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?action,film" alt="Action">
-                    <div class="category-overlay">
-                        <div class="category-title">Action</div>
-                        <div class="category-count">1.234 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?drama,film" alt="Drama">
-                    <div class="category-overlay">
-                        <div class="category-title">Drama</div>
-                        <div class="category-count">876 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?comedy,film" alt="Comedy">
-                    <div class="category-overlay">
-                        <div class="category-title">Comedy</div>
-                        <div class="category-count">1.542 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?documentary" alt="Dokumentation">
-                    <div class="category-overlay">
-                        <div class="category-title">Dokumentation</div>
-                        <div class="category-count">654 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?scifi,space" alt="Sci-Fi">
-                    <div class="category-overlay">
-                        <div class="category-title">Sci-Fi</div>
-                        <div class="category-count">789 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?horror,scary" alt="Horror">
-                    <div class="category-overlay">
-                        <div class="category-title">Horror</div>
-                        <div class="category-count">567 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?romance,love" alt="Romanze">
-                    <div class="category-overlay">
-                        <div class="category-title">Romanze</div>
-                        <div class="category-count">432 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?animation,cartoon" alt="Animation">
-                    <div class="category-overlay">
-                        <div class="category-title">Animation</div>
-                        <div class="category-count">345 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?thriller,suspense" alt="Thriller">
-                    <div class="category-overlay">
-                        <div class="category-title">Thriller</div>
-                        <div class="category-count">678 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?music,concert" alt="Musikvideos">
-                    <div class="category-overlay">
-                        <div class="category-title">Musikvideos</div>
-                        <div class="category-count">2.345 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?sports,football" alt="Sport">
-                    <div class="category-overlay">
-                        <div class="category-title">Sport</div>
-                        <div class="category-count">456 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?shortfilm,indie" alt="Kurzfilme">
-                    <div class="category-overlay">
-                        <div class="category-title">Kurzfilme</div>
-                        <div class="category-count">1.234 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?independent,art" alt="Independent">
-                    <div class="category-overlay">
-                        <div class="category-title">Independent</div>
-                        <div class="category-count">2.109 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?fantasy,dragon" alt="Fantasy">
-                    <div class="category-overlay">
-                        <div class="category-title">Fantasy</div>
-                        <div class="category-count">876 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?history,castle" alt="Historisch">
-                    <div class="category-overlay">
-                        <div class="category-title">Historisch</div>
-                        <div class="category-count">543 Videos</div>
-                    </div>
-                </div>
-                <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?family,children" alt="Familie">
-                    <div class="category-overlay">
-                        <div class="category-title">Familie</div>
-                        <div class="category-count">789 Videos</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Upload Section -->
-    <section id="upload" class="upload-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>📤 Video-Upload</h2>
-                <p>Lade deine Videos hoch und teile sie mit der Community</p>
-            </div>
-            
-            <div class="upload-container">
-                <div class="upload-area" id="upload-area">
-                    <div class="upload-icon">📤</div>
-                    <div class="upload-text">
-                        <h3>Dateien zum Hochladen auswählen</h3>
-                        <p>Ziehe deine Video-Dateien hierher oder klicke zum Durchsuchen</p>
-                    </div>
-                    <button class="btn btn-primary upload-btn">
-                        <span class="btn-icon">📁</span>
-                        <span>Dateien auswählen</span>
-                    </button>
-                    <input type="file" id="file-input" accept="video/*" multiple style="display: none;">
-                </div>
-                
-                <form id="upload-form">
-                    <div class="form-group">
-                        <label for="video-title">Titel</label>
-                        <input type="text" id="video-title" class="form-control" placeholder="Titel deines Videos" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="video-description">Beschreibung</label>
-                        <textarea id="video-description" class="form-control" rows="4" placeholder="Beschreibe dein Video..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="video-genre">Genre</label>
-                        <select id="video-genre" class="form-control select-control" required>
-                            <option value="">Wähle ein Genre</option>
-                            <option value="action">Action</option>
-                            <option value="drama">Drama</option>
-                            <option value="comedy">Comedy</option>
-                            <option value="documentary">Dokumentation</option>
-                            <option value="scifi">Sci-Fi</option>
-                            <option value="horror">Horror</option>
-                            <option value="romance">Romanze</option>
-                            <option value="animation">Animation</option>
-                            <option value="thriller">Thriller</option>
-                            <option value="music">Musikvideos</option>
-                            <option value="sports">Sport</option>
-                            <option value="shortfilm">Kurzfilme</option>
-                            <option value="independent">Independent</option>
-                            <option value="fantasy">Fantasy</option>
-                            <option value="historical">Historisch</option>
-                            <option value="family">Familie</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Metadaten</label>
-                        <input type="text" id="video-director" class="form-control mt-1" placeholder="Regie">
-                        <input type="text" id="video-cast" class="form-control mt-1" placeholder="Schauspieler (durch Kommas getrennt)">
-                        <input type="number" id="video-year" class="form-control mt-1" placeholder="Jahr" min="1900" max="2099">
-                        <input type="text" id="video-runtime" class="form-control mt-1" placeholder="Laufzeit (z.B. 1h 23m)">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Thumbnail</label>
-                        <div class="upload-area thumbnail-upload" style="padding: 1.5rem; margin-top: 0.5rem;">
-                            <div class="upload-icon">🖼️</div>
-                            <div class="upload-text">
-                                <p>Thumbnail auswählen (optional)</p>
-                            </div>
-                            <button class="btn btn-outline upload-btn" style="padding: 0.4rem 0.8rem;">
-                                <span class="btn-icon">📁</span>
-                                <span>Bild auswählen</span>
-                            </button>
-                            <input type="file" id="thumbnail-input" accept="image/*" style="display: none;">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Upload-Fortschritt</label>
-                        <div class="progress-bar">
-                            <div class="progress" id="upload-progress"></div>
-                        </div>
-                        <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="terms-agree" required>
-                            <label for="terms-agree">Ich bestätige, dass ich alle notwendigen Rechte an den hochgeladenen Inhalten besitze und akzeptiere die Nutzungsbedingungen.</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="age-restriction">
-                            <label for="age-restriction">Dieser Inhalt ist nur für Erwachsene geeignet (18+)</label>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">
-                        <span class="btn-icon">🚀</span>
-                        <span>Video hochladen</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <!-- Community Section -->
-    <section id="community" class="community-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>💬 Unsere Community</h2>
-                <p>Was unsere Nutzer über GerKino sagen</p>
-            </div>
-            
-            <div class="testimonials">
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah M." class="testimonial-avatar">
-                        <div>
-                            <div class="testimonial-author">Sarah M.</div>
-                            <div class="testimonial-role">Filmemacherin</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">
-                        "GerKino hat mir geholfen, meine Independent-Filme einem breiteren Publikum zu präsentieren. Die KI-Untertitelung ist ein Game-Changer für internationale Zuschauer!"
-                    </div>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Thomas K." class="testimonial-avatar">
-                        <div>
-                            <div class="testimonial-author">Thomas K.</div>
-                            <div class="testimonial-role">Film-Enthusiast</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">
-                        "Die Empfehlungsalgorithmen sind unglaublich genau. Ich entdecke ständig neue Filme, die genau meinem Geschmack entsprechen. Viel besser als andere Plattformen!"
-                    </div>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="testimonial-header">
-                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Julia P." class="testimonial-avatar">
-                        <div>
-                            <div class="testimonial-author">Julia P.</div>
-                            <div class="testimonial-role">Content Creator</div>
-                        </div>
-                    </div>
-                    <div class="testimonial-text">
-                        "Als kleiner Creator schätze ich die faire Monetarisierung und die aktive Community. Die zeitbasierten Kommentare machen das Feedback so viel wertvoller!"
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Legal Section -->
-    <section id="legal" class="legal-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>⚖️ Rechtliche Hinweise</h2>
-                <p>Transparent und sicher - unsere Verpflichtung an dich</p>
-            </div>
-            
-            <div class="legal-container">
-                <div class="legal-content">
-                    <h3>📌 Haftungsausschluss & Nutzungsbedingungen</h3>
-                    
-                    <div class="legal-item">
-                        <h4>1. Urheberrecht und Inhalte</h4>
-                        <p>Die Plattform stellt lediglich die technische Infrastruktur zum Teilen von Inhalten bereit. GerKino haftet nicht für Inhalte, die von Nutzern hochgeladen werden.</p>
-                        <p>Sie als Nutzer/in sind allein verantwortlich für sämtliche hochgeladenen Inhalte. Es dürfen keine urheberrechtlich geschützten Inhalte wie Filme, Serien, Musik, Bilder oder sonstige Werke hochgeladen werden, wenn Sie nicht im Besitz der dafür notwendigen Rechte oder Lizenzen sind.</p>
-                        <p>Inhalte, die gegen geltendes Recht oder Rechte Dritter verstoßen, werden nach Hinweis unverzüglich entfernt.</p>
-                    </div>
-                    
-                    <div class="legal-item">
-                        <h4>2. Haftungsbeschränkung</h4>
-                        <p>Die Nutzung von GerKino erfolgt auf eigene Verantwortung. Die Plattform wird „wie sie ist" bereitgestellt – es besteht kein Anspruch auf Verfügbarkeit oder Fehlerfreiheit.</p>
-                        <p>GerKino übernimmt keine Haftung für Schäden, Verluste oder rechtliche Konsequenzen, die aus dem Hochladen, Teilen oder Konsumieren von Inhalten resultieren. Lediglich bei grober Fahrlässigkeit oder Vorsatz durch GerKino selbst besteht eine mögliche Haftung.</p>
-                    </div>
-                    
-                    <div class="legal-item">
-                        <h4>3. Verantwortung der Nutzer</h4>
-                        <p>Nutzer garantieren, dass sie alle Rechte an den hochgeladenen Inhalten besitzen. Sie verpflichten sich, GerKino im Falle von rechtlichen Ansprüchen Dritter vollständig freizustellen und schadlos zu halten.</p>
-                        <p>Für sämtliche rechtlichen Verstöße durch eigene Inhalte haftet ausschließlich der jeweilige Nutzer – nicht die Plattform.</p>
-                    </div>
-                    
-                    <div class="legal-item">
-                        <h4>4. Meldung von Verstößen</h4>
-                        <p>GerKino ermöglicht die Meldung rechtsverletzender Inhalte (z.B. durch Urheber oder Rechteinhaber). Nach erfolgter Prüfung wird der betreffende Inhalt umgehend entfernt oder gesperrt.</p>
-                        <p>Nutzer können bei fehlerhafter Entfernung einen Nachweis erbringen, dass sie berechtigt sind, die Inhalte zu verwenden.</p>
-                    </div>
-                    
-                    <div class="legal-item">
-                        <h4>5. Datenschutz</h4>
-                        <p>Wir verarbeiten Ihre Daten gemäß der DSGVO. Dies umfasst:</p>
-                        <ul>
-                            <li>SSL-Verschlüsselung aller Datenübertragungen</li>
-                            <li>Hosting auf sicheren EU-Servern</li>
-                            <li>Keine Weitergabe an Dritte ohne Einwilligung</li>
-                            <li>Ihre Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch</li>
-                        </ul>
-                        <p>Ausführliche Informationen finden Sie in unserer <a href="#" style="color: var(--primary);">Datenschutzerklärung</a>.</p>
-                    </div>
-                    
-                    <div class="legal-item">
-                        <h4>6. Geltendes Recht</h4>
-                        <p>Es gilt das Recht der Bundesrepublik Deutschland. Gerichtsstand ist der Sitz von GerKino, sofern gesetzlich nichts anderes vorgeschrieben ist.</p>
-                    </div>
-                    
-                    <div class="mt-4" style="text-align: center;">
-                        <button class="btn btn-primary">
-                            <span class="btn-icon">📝</span>
-                            <span>Vollständige AGB anzeigen</span>
-                        </button>
-                        <button class="btn btn-outline">
-                            <span class="btn-icon">🔒</span>
-                            <span>Datenschutzerklärung</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <h3>GerKino</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Über uns</a></li>
-                        <li><a href="#">Karriere</a></li>
-                        <li><a href="#">Presse</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Hilfe Center</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-col">
-                    <h3>Rechtliches</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Nutzungsbedingungen</a></li>
-                        <li><a href="#">Datenschutz</a></li>
-                        <li><a href="#">Cookie-Richtlinie</a></li>
-                        <li><a href="#">Impressum</a></li>
-                        <li><a href="#">Community-Richtlinien</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-col">
-                    <h3>Entdecken</h3>
-                    <ul class="footer-links">
-                        <li><a href="#">Beliebte Videos</a></li>
-                        <li><a href="#">Trending</a></li>
-                        <li><a href="#">Neu hochgeladen</a></li>
-                        <li><a href="#">Kategorien</a></li>
-                        <li><a href="#">Creator Programm</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-col">
-                    <h3>Kontakt</h3>
-                    <ul class="footer-links">
-                        <li><a href="mailto:support@gerkino.com">support@gerkino.com</a></li>
-                        <li><a href="mailto:datenschutz@gerkino.com">datenschutz@gerkino.com</a></li>
-                        <li><a href="#">Presseanfragen</a></li>
-                        <li><a href="#">Rechtliche Anfragen</a></li>
-                    </ul>
-                    
-                    <div class="social-links">
-                        <a href="#" class="social-link">📱</a>
-                        <a href="#" class="social-link">🐦</a>
-                        <a href="#" class="social-link">📸</a>
-                        <a href="#" class="social-link">💻</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>© 2023 GerKino - Eine moderne, KI-gestützte Video-Streaming-Plattform. Alle Rechte vorbehalten.</p>
-                <p class="mt-1">Geplante Domain: <a href="https://www.gerkino.com" style="color: var(--primary);">www.gerkino.com</a></p>
-            </div>
-        </div>
-    </footer>
+        <button class="restart-btn" onclick="restartGame()">🔄 Neu starten</button>
+    </div>
 
     <script>
-        // Datenbank-Simulation
-        const db = {
-            users: [],
-            videos: [],
-            comments: [],
-            categories: [
-                { id: 1, name: "Action", videos: 1234 },
-                { id: 2, name: "Drama", videos: 876 },
-                { id: 3, name: "Comedy", videos: 1542 },
-                { id: 4, name: "Dokumentation", videos: 654 },
-                { id: 5, name: "Sci-Fi", videos: 789 },
-                { id: 6, name: "Horror", videos: 567 },
-                { id: 7, name: "Romanze", videos: 432 },
-                { id: 8, name: "Animation", videos: 345 },
-                { id: 9, name: "Thriller", videos: 678 },
-                { id: 10, name: "Musikvideos", videos: 2345 },
-                { id: 11, name: "Sport", videos: 456 },
-                { id: 12, name: "Kurzfilme", videos: 1234 },
-                { id: 13, name: "Independent", videos: 2109 },
-                { id: 14, name: "Fantasy", videos: 876 },
-                { id: 15, name: "Historisch", videos: 543 },
-                { id: 16, name: "Familie", videos: 789 }
-            ]
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const minimap = document.getElementById("minimap");
+        const minimapCtx = minimap.getContext("2d");
+
+        // Canvas-Größe anpassen
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+
+        // Erweiterte Spielvariablen
+        let gameState = {
+            snake: [{ x: canvas.width / 2, y: canvas.height / 2 }],
+            direction: { x: 1, y: 0 },
+            size: 10,
+            baseSpeed: 2.5,
+            currentSpeed: 2.5,
+            maxSpeed: 2.5,
+            food: [],
+            powerUps: [],
+            particles: [],
+            enemies: [],
+            obstacles: [],
+            boost: false,
+            gameRunning: true,
+            lastTime: 0,
+            startTime: Date.now(),
+            points: 0,
+            camera: { x: 0, y: 0 },
+            world: { width: 3000, height: 2000 },
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            abilities: {
+                blast: { cooldown: 0, maxCooldown: 10000, active: false },
+                shield: { cooldown: 0, maxCooldown: 15000, active: false, duration: 5000, endTime: 0 },
+                heal: { cooldown: 0, maxCooldown: 20000, active: false }
+            },
+            enemiesDefeated: 0,
+            shieldActive: false,
+            shieldEndTime: 0
         };
 
-        // Aktueller Benutzer
-        let currentUser = null;
+        const CONFIG = {
+            maxFood: 75,
+            foodRadius: 8,
+            snakeRadius: 10,
+            boostMultiplier: 2.8,
+            speedIncrease: 0.025,
+            maxSpeedLimit: 10,
+            boostShrinkRate: 0.2,
+            particleCount: 15,
+            cameraSmoothing: 0.1,
+            enemySpawnRate: 5000, // ms zwischen Spawns
+            enemySpeed: 1.5,
+            enemyHealth: 100,
+            enemyDamage: 10,
+            enemySize: 8,
+            obstacleCount: 20,
+            powerUpTypes: ['speed', 'growth', 'invincibility', 'points'],
+            powerUpDuration: 10000,
+            powerUpSpawnRate: 15000,
+            blastRadius: 100,
+            blastDamage: 50,
+            healAmount: 20
+        };
 
-        // Beispielkommentare
-        const sampleComments = [
-            { id: 1, videoId: 1, userId: 1, text: "Tolles Video! Die KI-Untertitel sind wirklich beeindruckend.", time: "2:15", author: "Max M.", date: "Vor 2 Tagen" },
-            { id: 2, videoId: 1, userId: 2, text: "Kann jemand erklären, wie die KI die Untertitel generiert?", time: "5:42", author: "Sarah K.", date: "Gestern" },
-            { id: 3, videoId: 1, userId: 3, text: "Ich liebe diese Plattform! Viel besser als die Konkurrenz.", time: "8:30", author: "Thomas B.", date: "Heute" },
-            { id: 4, videoId: 1, userId: 4, text: "Die Übersetzungsfunktion hat mir geholfen, das Video mit meinen internationalen Freunden zu teilen.", time: "10:15", author: "Julia R.", date: "Vor 3 Stunden" }
-        ];
+        // Lokale Bestenliste
+        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
 
-        // Initialisiere Kommentare
-        db.comments = [...sampleComments];
-
-        // DOM-Elemente
-        const loginButton = document.getElementById('login-button');
-        const registerButton = document.getElementById('register-button');
-        const userMenu = document.getElementById('user-menu');
-        const userAvatar = document.getElementById('user-avatar');
-        const dropdownMenu = document.getElementById('dropdown-menu');
-        const logoutBtn = document.getElementById('logout-btn');
-        const loginModal = document.getElementById('login-modal');
-        const registerModal = document.getElementById('register-modal');
-        const closeLogin = document.getElementById('close-login');
-        const closeRegister = document.getElementById('close-register');
-        const loginToggle = document.getElementById('login-toggle');
-        const registerToggle = document.getElementById('register-toggle');
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const body = document.body;
-        const commentList = document.getElementById('comment-list');
-        const commentInput = document.getElementById('comment-input');
-        const submitComment = document.getElementById('submit-comment');
-        const likeBtn = document.getElementById('like-btn');
-
-        // Dark Mode Toggle
-        darkModeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                darkModeToggle.textContent = '☀️';
-                localStorage.setItem('darkMode', 'enabled');
-            } else {
-                darkModeToggle.textContent = '🌙';
-                localStorage.setItem('darkMode', 'disabled');
+        // Custom Cursor
+        const cursor = document.getElementById('customCursor');
+        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
+        
+        document.addEventListener('mousemove', (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+            
+            if (!gameState.gameRunning) return;
+            
+            const head = gameState.snake[0];
+            const worldMouseX = e.clientX + gameState.camera.x;
+            const worldMouseY = e.clientY + gameState.camera.y;
+            
+            const dx = worldMouseX - head.x;
+            const dy = worldMouseY - head.y;
+            const distance = Math.hypot(dx, dy);
+            
+            if (distance > 30) {
+                gameState.direction = { 
+                    x: dx / distance, 
+                    y: dy / distance 
+                };
             }
         });
 
-        // Check for saved dark mode preference
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            body.classList.add('dark-mode');
-            darkModeToggle.textContent = '☀️';
+        // Erweiterte Boost-Steuerung
+        const boostBtn = document.getElementById("boostBtn");
+        
+        function startBoost() {
+            if (gameState.gameRunning && gameState.size > 8) {
+                gameState.boost = true;
+                boostBtn.classList.add("boosting");
+                createBoostParticles();
+            }
+        }
+        
+        function stopBoost() {
+            gameState.boost = false;
+            boostBtn.classList.remove("boosting");
         }
 
-        // Modale Fenster
-        loginButton.addEventListener('click', () => loginModal.style.display = 'flex');
-        registerButton.addEventListener('click', () => registerModal.style.display = 'flex');
-        closeLogin.addEventListener('click', () => loginModal.style.display = 'none');
-        closeRegister.addEventListener('click', () => registerModal.style.display = 'none');
-        loginToggle.addEventListener('click', () => {
-            registerModal.style.display = 'none';
-            loginModal.style.display = 'flex';
+        boostBtn.addEventListener("mousedown", startBoost);
+        boostBtn.addEventListener("mouseup", stopBoost);
+        boostBtn.addEventListener("mouseleave", stopBoost);
+        
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "Space" || e.key === "Shift") {
+                e.preventDefault();
+                startBoost();
+            }
+            
+            // Fähigkeiten
+            if (e.key === 'q' || e.key === 'Q') useBlastAbility();
+            if (e.key === 'w' || e.key === 'W') useShieldAbility();
+            if (e.key === 'e' || e.key === 'E') useHealAbility();
         });
-        registerToggle.addEventListener('click', () => {
-            loginModal.style.display = 'none';
-            registerModal.style.display = 'flex';
+        
+        window.addEventListener("keyup", (e) => {
+            if (e.code === "Space" || e.key === "Shift") {
+                stopBoost();
+            }
         });
 
-        // Klick außerhalb des Modals schließt es
-        window.addEventListener('click', (e) => {
-            if (e.target === loginModal) loginModal.style.display = 'none';
-            if (e.target === registerModal) registerModal.style.display = 'none';
-        });
-
-        // Benutzerregistrierung
-        registerBtn.addEventListener('click', () => {
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const confirm = document.getElementById('register-confirm').value;
+        // Gegner-System
+        function spawnEnemy() {
+            if (!gameState.gameRunning || Math.random() > 0.7) return;
             
-            if (!name || !email || !password || !confirm) {
-                alert('Bitte füllen Sie alle Felder aus');
-                return;
+            let x, y;
+            const margin = 300;
+            
+            // Spawn außerhalb des Sichtbereichs
+            if (Math.random() > 0.5) {
+                x = Math.random() > 0.5 ? 
+                    gameState.camera.x - margin : 
+                    gameState.camera.x + canvas.width + margin;
+                y = gameState.camera.y + Math.random() * canvas.height;
+            } else {
+                x = gameState.camera.x + Math.random() * canvas.width;
+                y = Math.random() > 0.5 ? 
+                    gameState.camera.y - margin : 
+                    gameState.camera.y + canvas.height + margin;
             }
             
-            if (password !== confirm) {
-                alert('Passwörter stimmen nicht überein');
-                return;
-            }
+            // Begrenzung auf Welt
+            x = Math.max(0, Math.min(gameState.world.width, x));
+            y = Math.max(0, Math.min(gameState.world.height, y));
             
-            // Überprüfen, ob Benutzer bereits existiert
-            if (db.users.some(user => user.email === email)) {
-                alert('Ein Benutzer mit dieser E-Mail existiert bereits');
-                return;
-            }
-            
-            // Neuen Benutzer erstellen
-            const newUser = {
-                id: db.users.length + 1,
-                name,
-                email,
-                password, // In der Praxis würde man das Passwort hashen
-                joined: new Date().toISOString()
+            const enemy = {
+                x: x,
+                y: y,
+                segments: [{x: x, y: y}],
+                size: CONFIG.enemySize + Math.random() * 5,
+                speed: CONFIG.enemySpeed * (0.8 + Math.random() * 0.4),
+                direction: {x: 0, y: 0},
+                health: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
+                maxHealth: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
+                lastDirectionChange: 0,
+                directionChangeInterval: 1000 + Math.random() * 2000,
+                color: `hsl(${Math.random() * 60}, 100%, 50%)`,
+                damage: CONFIG.enemyDamage
             };
             
-            db.users.push(newUser);
-            currentUser = newUser;
-            
-            // UI aktualisieren
-            updateUserUI();
-            registerModal.style.display = 'none';
-            alert('Registrierung erfolgreich! Willkommen bei GerKino');
-        });
-
-        // Benutzeranmeldung
-        loginBtn.addEventListener('click', () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            const user = db.users.find(u => u.email === email && u.password === password);
-            
-            if (user) {
-                currentUser = user;
-                updateUserUI();
-                loginModal.style.display = 'none';
-            } else {
-                alert('Ungültige Anmeldedaten');
-            }
-        });
-
-        // Abmelden
-        logoutBtn.addEventListener('click', () => {
-            currentUser = null;
-            updateUserUI();
-        });
-
-        // Benutzer-UI aktualisieren
-        function updateUserUI() {
-            if (currentUser) {
-                loginButton.parentElement.style.display = 'none';
-                userMenu.style.display = 'block';
-                userAvatar.textContent = currentUser.name.charAt(0);
-                userAvatar.setAttribute('title', currentUser.name);
-            } else {
-                loginButton.parentElement.style.display = 'flex';
-                userMenu.style.display = 'none';
-            }
+            gameState.enemies.push(enemy);
         }
 
-        // Dropdown-Menü
-        userAvatar.addEventListener('click', () => {
-            dropdownMenu.classList.toggle('show');
-        });
-
-        // Dropdown schließen, wenn außerhalb geklickt wird
-        window.addEventListener('click', (e) => {
-            if (!e.target.matches('.user-avatar')) {
-                if (dropdownMenu.classList.contains('show')) {
-                    dropdownMenu.classList.remove('show');
+        function updateEnemies(deltaTime) {
+            const head = gameState.snake[0];
+            
+            gameState.enemies.forEach(enemy => {
+                // Richtung aktualisieren
+                enemy.lastDirectionChange += deltaTime * 16.67;
+                
+                if (enemy.lastDirectionChange > enemy.directionChangeInterval) {
+                    enemy.lastDirectionChange = 0;
+                    
+                    // Entscheidung: Spieler verfolgen oder zufällige Richtung
+                    if (Math.random() > 0.3) {
+                        // Spieler verfolgen
+                        const dx = head.x - enemy.segments[0].x;
+                        const dy = head.y - enemy.segments[0].y;
+                        const dist = Math.hypot(dx, dy);
+                        
+                        if (dist > 0) {
+                            enemy.direction = {
+                                x: dx / dist,
+                                y: dy / dist
+                            };
+                        }
+                    } else {
+                        // Zufällige Richtung
+                        const angle = Math.random() * Math.PI * 2;
+                        enemy.direction = {
+                            x: Math.cos(angle),
+                            y: Math.sin(angle)
+                        };
+                    }
                 }
-            }
-        });
-
-        // Kommentare laden und anzeigen
-        function loadComments() {
-            commentList.innerHTML = '';
-            db.comments.forEach(comment => {
-                const commentElement = document.createElement('div');
-                commentElement.className = 'comment';
-                commentElement.innerHTML = `
-                    <div class="comment-avatar">${comment.author.charAt(0)}</div>
-                    <div class="comment-content">
-                        <div class="comment-header">
-                            <div class="comment-author">${comment.author}</div>
-                            <div class="comment-time">${comment.date} · ${comment.time}</div>
-                        </div>
-                        <div class="comment-text">${comment.text}</div>
-                    </div>
-                `;
-                commentList.appendChild(commentElement);
+                
+                // Bewegung
+                const newHead = {
+                    x: enemy.segments[0].x + enemy.direction.x * enemy.speed * deltaTime,
+                    y: enemy.segments[0].y + enemy.direction.y * enemy.speed * deltaTime
+                };
+                
+                enemy.segments.unshift(newHead);
+                
+                // Länge anpassen
+                while (enemy.segments.length > Math.floor(enemy.size)) {
+                    enemy.segments.pop();
+                }
+                
+                // Weltgrenzen
+                if (newHead.x < 0 || newHead.x > gameState.world.width || 
+                    newHead.y < 0 || newHead.y > gameState.world.height) {
+                    // Umkehren bei Grenzen
+                    enemy.direction.x *= -1;
+                    enemy.direction.y *= -1;
+                }
+                
+                // Kollision mit Spieler
+                if (!gameState.shieldActive && Math.hypot(
+                    newHead.x - head.x, 
+                    newHead.y - head.y
+                ) < CONFIG.snakeRadius + CONFIG.enemySize) {
+                    // Schaden nehmen
+                    gameState.size = Math.max(5, gameState.size - (enemy.damage / 10));
+                    
+                    // Explosionspartikel
+                    for (let i = 0; i < 10; i++) {
+                        gameState.particles.push({
+                            x: (newHead.x + head.x) / 2,
+                            y: (newHead.y + head.y) / 2,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            life: 1,
+                            decay: 0.05,
+                            color: '#ff4757'
+                        });
+                    }
+                }
             });
         }
 
-        // Kommentar hinzufügen
-        submitComment.addEventListener('click', () => {
-            const text = commentInput.value.trim();
-            if (!text) return;
-            
-            if (!currentUser) {
-                alert('Bitte melden Sie sich an, um einen Kommentar zu schreiben');
-                return;
-            }
-            
-            const newComment = {
-                id: db.comments.length + 1,
-                videoId: 1, // Aktuelles Video
-                userId: currentUser.id,
-                text,
-                time: '0:00', // Zeitstempel simulieren
-                author: currentUser.name,
-                date: 'Gerade eben'
-            };
-            
-            db.comments.unshift(newComment);
-            commentInput.value = '';
-            loadComments();
-        });
-
-        // Video-Player-Funktionalität
-        const videoPlayer = document.getElementById('video-player');
-        const playPauseBtn = document.getElementById('play-pause');
-        const muteBtn = document.getElementById('mute');
-        const progressBar = document.getElementById('progress-bar');
-        const progressContainer = document.querySelector('.progress-container');
-        const timeDisplay = document.getElementById('time-display');
-        const speedBtns = document.querySelectorAll('.speed-btn');
-        const subtitleBtn = document.getElementById('subtitle');
-        const fullscreenBtn = document.getElementById('fullscreen');
-        
-        // Play/Pause toggle
-        playPauseBtn.addEventListener('click', () => {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-                playPauseBtn.textContent = '⏸️';
-            } else {
-                videoPlayer.pause();
-                playPauseBtn.textContent = '⏯️';
-            }
-        });
-        
-        // Mute toggle
-        muteBtn.addEventListener('click', () => {
-            videoPlayer.muted = !videoPlayer.muted;
-            muteBtn.textContent = videoPlayer.muted ? '🔇' : '🔊';
-        });
-        
-        // Update progress bar
-        videoPlayer.addEventListener('timeupdate', () => {
-            const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-            progressBar.style.width = `${progress}%`;
-            
-            // Update time display
-            const currentMins = Math.floor(videoPlayer.currentTime / 60);
-            const currentSecs = Math.floor(videoPlayer.currentTime % 60).toString().padStart(2, '0');
-            const durationMins = Math.floor(videoPlayer.duration / 60);
-            const durationSecs = Math.floor(videoPlayer.duration % 60).toString().padStart(2, '0');
-            
-            timeDisplay.textContent = `${currentMins}:${currentSecs} / ${durationMins}:${durationSecs}`;
-        });
-        
-        // Auf Fortschrittsbalken klicken, um zu suchen
-        progressContainer.addEventListener('click', (e) => {
-            const pos = (e.pageX - progressContainer.getBoundingClientRect().left) / progressContainer.offsetWidth;
-            videoPlayer.currentTime = pos * videoPlayer.duration;
-        });
-        
-        // Wiedergabegeschwindigkeit
-        speedBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                videoPlayer.playbackRate = parseFloat(btn.dataset.speed);
-                speedBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
-        
-        // Untertitel (simuliert)
-        subtitleBtn.addEventListener('click', () => {
-            alert('KI-Untertitel werden für dieses Video generiert...');
-        });
-        
-        // Vollbildmodus
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                videoPlayer.requestFullscreen().catch(err => {
-                    alert(`Fehler beim Öffnen des Vollbildmodus: ${err.message}`);
+        // Hindernisse
+        function spawnObstacles() {
+            for (let i = 0; i < CONFIG.obstacleCount; i++) {
+                gameState.obstacles.push({
+                    x: Math.random() * gameState.world.width,
+                    y: Math.random() * gameState.world.height,
+                    width: 50 + Math.random() * 100,
+                    height: 50 + Math.random() * 100,
+                    rotation: Math.random() * Math.PI * 2
                 });
-            } else {
-                document.exitFullscreen();
-            }
-        });
-        
-        // Video liken
-        likeBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                alert('Bitte melden Sie sich an, um Videos zu bewerten');
-                return;
-            }
-            likeBtn.innerHTML = '<span>👍</span><span>Bewertet</span>';
-        });
-
-        // Upload-Funktionalität
-        const uploadArea = document.getElementById('upload-area');
-        const fileInput = document.getElementById('file-input');
-        const uploadForm = document.getElementById('upload-form');
-        const uploadProgress = document.getElementById('upload-progress');
-        const uploadStatus = document.getElementById('upload-status');
-        
-        // Drag and Drop
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'var(--primary)';
-            uploadArea.style.backgroundColor = 'rgba(58, 134, 255, 0.05)';
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = 'var(--border)';
-            uploadArea.style.backgroundColor = '';
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'var(--border)';
-            uploadArea.style.backgroundColor = '';
-            
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                updateUploadPreview();
-            }
-        });
-        
-        // Dateiauswahl
-        uploadArea.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', updateUploadPreview);
-        
-        function updateUploadPreview() {
-            if (fileInput.files.length > 0) {
-                const filesList = Array.from(fileInput.files).map(file => file.name).join(', ');
-                uploadStatus.textContent = `Ausgewählte Dateien: ${filesList}`;
-                uploadStatus.style.color = 'var(--text)';
             }
         }
-        
-        // Formular absenden
-        uploadForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+
+        // Power-Ups
+        function spawnPowerUp() {
+            if (!gameState.gameRunning || Math.random() > 0.5) return;
             
-            if (!currentUser) {
-                alert('Bitte melden Sie sich an, um Videos hochzuladen');
-                return;
-            }
+            const type = CONFIG.powerUpTypes[Math.floor(Math.random() * CONFIG.powerUpTypes.length)];
+            const colors = {
+                speed: '#00d4ff',
+                growth: '#2ed573',
+                invincibility: '#7b68ee',
+                points: '#ffa502'
+            };
             
-            if (!fileInput.files.length) {
-                uploadStatus.textContent = 'Bitte wählen Sie mindestens eine Datei aus';
-                uploadStatus.style.color = 'var(--danger)';
-                return;
-            }
+            const powerUp = {
+                x: Math.random() * (gameState.world.width - 200) + 100,
+                y: Math.random() * (gameState.world.height - 200) + 100,
+                type: type,
+                color: colors[type],
+                radius: 15,
+                pulse: Math.random() * Math.PI * 2,
+                duration: CONFIG.powerUpDuration
+            };
             
-            // Upload simulieren
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                    uploadStatus.innerHTML = 'Upload abgeschlossen! Video wird verarbeitet...';
-                    
-                    // Video zur Datenbank hinzufügen
-                    const title = document.getElementById('video-title').value;
-                    const description = document.getElementById('video-description').value;
-                    const genre = document.getElementById('video-genre').value;
-                    
-                    const newVideo = {
-                        id: db.videos.length + 1,
-                        title,
-                        description,
-                        genre,
-                        userId: currentUser.id,
-                        uploadDate: new Date().toISOString(),
-                        views: 0,
-                        likes: 0
-                    };
-                    
-                    db.videos.push(newVideo);
-                    
-                    // Formular zurücksetzen
+            gameState.powerUps.push(powerUp);
+        }
+
+        function applyPowerUp(powerUp) {
+            switch (powerUp.type) {
+                case 'speed':
+                    gameState.baseSpeed = Math.min(
+                        CONFIG.maxSpeedLimit * 1.5,
+                        gameState.baseSpeed * 1.5
+                    );
                     setTimeout(() => {
-                        uploadForm.reset();
-                        uploadProgress.style.width = '0%';
-                        uploadStatus.textContent = '';
-                        alert('Video erfolgreich hochgeladen und veröffentlicht!');
-                    }, 3000);
+                        gameState.baseSpeed = Math.min(
+                            CONFIG.maxSpeedLimit,
+                            gameState.baseSpeed / 1.5
+                        );
+                    }, powerUp.duration);
+                    break;
+                    
+                case 'growth':
+                    gameState.size += 15;
+                    break;
+                    
+                case 'invincibility':
+                    gameState.shieldActive = true;
+                    gameState.shieldEndTime = Date.now() + powerUp.duration;
+                    setTimeout(() => {
+                        gameState.shieldActive = false;
+                    }, powerUp.duration);
+                    break;
+                    
+                case 'points':
+                    gameState.points += 500;
+                    break;
+            }
+            
+            // Partikel-Effekt
+            for (let i = 0; i < 30; i++) {
+                gameState.particles.push({
+                    x: powerUp.x,
+                    y: powerUp.y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    decay: 0.03,
+                    color: powerUp.color
+                });
+            }
+        }
+
+        // Fähigkeiten
+        function useBlastAbility() {
+            if (gameState.abilities.blast.cooldown > 0 || !gameState.gameRunning) return;
+            
+            gameState.abilities.blast.active = true;
+            gameState.abilities.blast.cooldown = gameState.abilities.blast.maxCooldown;
+            
+            const blastBtn = document.getElementById('blastAbility');
+            blastBtn.classList.add('cooldown');
+            
+            // Cooldown-Animation
+            const cooldownInterval = setInterval(() => {
+                gameState.abilities.blast.cooldown -= 100;
+                blastBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.blast.cooldown / gameState.abilities.blast.maxCooldown * 100)}%`);
+                
+                if (gameState.abilities.blast.cooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                    blastBtn.classList.remove('cooldown');
                 }
-                uploadProgress.style.width = `${progress}%`;
-                uploadStatus.textContent = `Upload läuft... ${Math.round(progress)}%`;
-            }, 300);
+            }, 100);
+            
+            // Energieblast-Effekt
+            const head = gameState.snake[0];
+            const blastParticles = 50;
+            
+            for (let i = 0; i < blastParticles; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 15 + 5;
+                
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.02,
+                    color: '#ff4757'
+                });
+            }
+            
+            // Gegnern Schaden zufügen
+            gameState.enemies.forEach(enemy => {
+                const dist = Math.hypot(
+                    enemy.segments[0].x - head.x,
+                    enemy.segments[0].y - head.y
+                );
+                
+                if (dist < CONFIG.blastRadius) {
+                    enemy.health -= CONFIG.blastDamage * (1 - dist / CONFIG.blastRadius);
+                    
+                    if (enemy.health <= 0) {
+                        // Gegner besiegt
+                        const index = gameState.enemies.indexOf(enemy);
+                        if (index > -1) {
+                            gameState.enemies.splice(index, 1);
+                            gameState.points += 100;
+                            gameState.xp += 20;
+                            gameState.enemiesDefeated++;
+                            
+                            // XP-Check für Level-Up
+                            if (gameState.xp >= gameState.xpToNextLevel) {
+                                levelUp();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function useShieldAbility() {
+            if (gameState.abilities.shield.cooldown > 0 || !gameState.gameRunning) return;
+            
+            gameState.abilities.shield.active = true;
+            gameState.abilities.shield.cooldown = gameState.abilities.shield.maxCooldown;
+            gameState.abilities.shield.endTime = Date.now() + gameState.abilities.shield.duration;
+            gameState.shieldActive = true;
+            gameState.shieldEndTime = Date.now() + gameState.abilities.shield.duration;
+            
+            const shieldBtn = document.getElementById('shieldAbility');
+            shieldBtn.classList.add('cooldown');
+            
+            // Cooldown-Animation
+            const cooldownInterval = setInterval(() => {
+                gameState.abilities.shield.cooldown -= 100;
+                shieldBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.shield.cooldown / gameState.abilities.shield.maxCooldown * 100)}%`);
+                
+                if (gameState.abilities.shield.cooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                    shieldBtn.classList.remove('cooldown');
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                gameState.shieldActive = false;
+                gameState.abilities.shield.active = false;
+            }, gameState.abilities.shield.duration);
+            
+            // Schild-Effekt
+            const head = gameState.snake[0];
+            
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = CONFIG.snakeRadius * 2;
+                
+                gameState.particles.push({
+                    x: head.x + Math.cos(angle) * radius,
+                    y: head.y + Math.sin(angle) * radius,
+                    vx: Math.cos(angle + Math.PI/2) * 2,
+                    vy: Math.sin(angle + Math.PI/2) * 2,
+                    life: 1,
+                    decay: 0.01,
+                    color: '#7b68ee'
+                });
+            }
+        }
+
+        function useHealAbility() {
+            if (gameState.abilities.heal.cooldown > 0 || !gameState.gameRunning) return;
+            
+            gameState.abilities.heal.active = true;
+            gameState.abilities.heal.cooldown = gameState.abilities.heal.maxCooldown;
+            
+            const healBtn = document.getElementById('healAbility');
+            healBtn.classList.add('cooldown');
+            
+            // Cooldown-Animation
+            const cooldownInterval = setInterval(() => {
+                gameState.abilities.heal.cooldown -= 100;
+                healBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.heal.cooldown / gameState.abilities.heal.maxCooldown * 100)}%`);
+                
+                if (gameState.abilities.heal.cooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                    healBtn.classList.remove('cooldown');
+                }
+            }, 100);
+            
+            // Heilungseffekt
+            gameState.size = Math.min(gameState.size + CONFIG.healAmount, 100);
+            
+            const head = gameState.snake[0];
+            
+            for (let i = 0; i < 30; i++) {
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1,
+                    decay: 0.03,
+                    color: '#2ed573'
+                });
+            }
+        }
+
+        // Level-System
+        function levelUp() {
+            gameState.level++;
+            gameState.xp -= gameState.xpToNextLevel;
+            gameState.xpToNextLevel = Math.floor(gameState.xpToNextLevel * 1.5);
+            
+            // Verbesserungen beim Level-Up
+            gameState.maxSpeedLimit += 0.5;
+            gameState.baseSpeed = Math.min(
+                gameState.maxSpeedLimit,
+                gameState.baseSpeed + 0.3
+            );
+            
+            // UI-Update
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('current-level').textContent = gameState.level;
+            
+            // Level-Up-Effekt
+            const head = gameState.snake[0];
+            
+            for (let i = 0; i < 100; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 5;
+                
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.01,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        // Partikel-System
+        function createBoostParticles() {
+            if (!gameState.boost) return;
+            
+            const head = gameState.snake[0];
+            for (let i = 0; i < 3; i++) {
+                gameState.particles.push({
+                    x: head.x + (Math.random() - 0.5) * 20,
+                    y: head.y + (Math.random() - 0.5) * 20,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 1,
+                    decay: 0.02,
+                    color: `hsl(${15 + Math.random() * 30}, 100%, ${50 + Math.random() * 30}%)`
+                });
+            }
+        }
+
+        function createFoodParticles(x, y) {
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                gameState.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1,
+                    decay: 0.05,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        // Erweiterte Futter-Generierung
+        function spawnFood() {
+            while (gameState.food.length < CONFIG.maxFood) {
+                let attempts = 0;
+                let newFood;
+                
+                do {
+                    newFood = {
+                        x: Math.random() * gameState.world.width,
+                        y: Math.random() * gameState.world.height,
+                        hue: Math.random() * 360,
+                        pulse: Math.random() * Math.PI * 2,
+                        value: 1 + Math.random() * 2
+                    };
+                    attempts++;
+                } while (attempts < 15 && isNearSnake(newFood, 80));
+                
+                gameState.food.push(newFood);
+            }
+        }
+
+        function isNearSnake(pos, minDistance) {
+            return gameState.snake.some(segment => 
+                Math.hypot(segment.x - pos.x, segment.y - pos.y) < minDistance
+            );
+        }
+
+        // Kamera-System
+        function updateCamera() {
+            const head = gameState.snake[0];
+            const targetX = head.x - canvas.width / 2;
+            const targetY = head.y - canvas.height / 2;
+            
+            gameState.camera.x += (targetX - gameState.camera.x) * CONFIG.cameraSmoothing;
+            gameState.camera.y += (targetY - gameState.camera.y) * CONFIG.cameraSmoothing;
+            
+            // Kamera-Grenzen
+            gameState.camera.x = Math.max(0, Math.min(gameState.world.width - canvas.width, gameState.camera.x));
+            gameState.camera.y = Math.max(0, Math.min(gameState.world.height - canvas.height, gameState.camera.y));
+        }
+
+        // Hauptspiel-Update
+        function update(currentTime) {
+            if (!gameState.gameRunning) return;
+            
+            const deltaTime = (currentTime - gameState.lastTime) / 16.67;
+            gameState.lastTime = currentTime;
+
+            // Boost-Partikel
+            if (gameState.boost && Math.random() < 0.7) {
+                createBoostParticles();
+            }
+
+            // Geschwindigkeit
+            const boostSpeed = gameState.boost ? CONFIG.boostMultiplier : 1;
+            gameState.currentSpeed = gameState.baseSpeed * boostSpeed;
+            
+            // Snake-Bewegung
+            const head = gameState.snake[0];
+            const newHead = {
+                x: head.x + gameState.direction.x * gameState.currentSpeed * deltaTime,
+                y: head.y + gameState.direction.y * gameState.currentSpeed * deltaTime
+            };
+
+            gameState.snake.unshift(newHead);
+
+            // Snake-Länge bei Boost
+            if (gameState.boost && gameState.size > 8) {
+                gameState.size -= CONFIG.boostShrinkRate * deltaTime;
+                gameState.size = Math.max(8, gameState.size);
+            }
+
+            // Snake kürzen
+            while (gameState.snake.length > Math.floor(gameState.size)) {
+                gameState.snake.pop();
+            }
+
+            // Welt-Kollision
+            if (newHead.x < 0 || newHead.x > gameState.world.width || 
+                newHead.y < 0 || newHead.y > gameState.world.height) {
+                gameOver();
+                return;
+            }
+
+            // Selbstkollision
+            if (gameState.size > 25) {
+                for (let i = 15; i < gameState.snake.length; i++) {
+                    if (Math.hypot(newHead.x - gameState.snake[i].x, 
+                                  newHead.y - gameState.snake[i].y) < CONFIG.snakeRadius) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+
+            // Hindernis-Kollision
+            gameState.obstacles.forEach(obstacle => {
+                const distX = Math.abs(newHead.x - (obstacle.x + obstacle.width/2));
+                const distY = Math.abs(newHead.y - (obstacle.y + obstacle.height/2));
+                
+                if (distX <= obstacle.width/2 && distY <= obstacle.height/2) {
+                    gameOver();
+                    return;
+                }
+            });
+
+            // Futter-Kollision
+            for (let i = gameState.food.length - 1; i >= 0; i--) {
+                const food = gameState.food[i];
+                const distance = Math.hypot(food.x - newHead.x, food.y - newHead.y);
+                
+                if (distance < CONFIG.foodRadius + CONFIG.snakeRadius) {
+                    gameState.size += food.value;
+                    gameState.points += Math.floor(food.value * 10);
+                    gameState.xp += Math.floor(food.value * 2);
+                    gameState.baseSpeed = Math.min(
+                        CONFIG.maxSpeedLimit, 
+                        gameState.baseSpeed + CONFIG.speedIncrease
+                    );
+                    gameState.maxSpeed = Math.max(gameState.maxSpeed, gameState.baseSpeed);
+                    
+                    createFoodParticles(food.x, food.y);
+                    gameState.food.splice(i, 1);
+                    
+                    // XP-Check für Level-Up
+                    if (gameState.xp >= gameState.xpToNextLevel) {
+                        levelUp();
+                    }
+                }
+            }
+
+            // Power-Up-Kollision
+            for (let i = gameState.powerUps.length - 1; i >= 0; i--) {
+                const powerUp = gameState.powerUps[i];
+                const distance = Math.hypot(powerUp.x - newHead.x, powerUp.y - newHead.y);
+                
+                if (distance < powerUp.radius + CONFIG.snakeRadius) {
+                    applyPowerUp(powerUp);
+                    gameState.powerUps.splice(i, 1);
+                }
+            }
+
+            // Gegner aktualisieren
+            updateEnemies(deltaTime);
+            
+            // Tote Gegner entfernen
+            for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                if (gameState.enemies[i].health <= 0) {
+                    const enemy = gameState.enemies[i];
+                    
+                    // Explosionspartikel
+                    for (let j = 0; j < 30; j++) {
+                        gameState.particles.push({
+                            x: enemy.segments[0].x,
+                            y: enemy.segments[0].y,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            life: 1,
+                            decay: 0.03,
+                            color: enemy.color
+                        });
+                    }
+                    
+                    gameState.enemies.splice(i, 1);
+                    gameState.points += 100;
+                    gameState.xp += 20;
+                    gameState.enemiesDefeated++;
+                    
+                    // XP-Check für Level-Up
+                    if (gameState.xp >= gameState.xpToNextLevel) {
+                        levelUp();
+                    }
+                }
+            }
+
+            // Partikel-Update
+            for (let i = gameState.particles.length - 1; i >= 0; i--) {
+                const particle = gameState.particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life -= particle.decay;
+                
+                if (particle.life <= 0) {
+                    gameState.particles.splice(i, 1);
+                }
+            }
+
+            // Fähigkeiten-Cooldown
+            Object.keys(gameState.abilities).forEach(ability => {
+                if (gameState.abilities[ability].cooldown > 0) {
+                    gameState.abilities[ability].cooldown -= deltaTime * 16.67;
+                }
+            });
+
+            // Schild-Dauer
+            if (gameState.shieldActive && Date.now() > gameState.shieldEndTime) {
+                gameState.shieldActive = false;
+            }
+
+            // Zufällige Gegner spawnen
+            if (Math.random() < 0.01 * deltaTime) {
+                spawnEnemy();
+            }
+
+            // Zufällige Power-Ups spawnen
+            if (Math.random() < 0.005 * deltaTime && gameState.powerUps.length < 3) {
+                spawnPowerUp();
+            }
+
+            updateCamera();
+            updateUI();
+            updateMinimap();
+        }
+
+        // Erweiterte Zeichenfunktionen
+        function draw() {
+            // Hintergrund-Gradient
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, "#0f1922");
+            gradient.addColorStop(0.5, "#0a1217");
+            gradient.addColorStop(1, "#050b0f");
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid-System
+            drawGrid();
+
+            ctx.save();
+            ctx.translate(-gameState.camera.x, -gameState.camera.y);
+
+            // Hindernisse zeichnen
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.7)';
+            gameState.obstacles.forEach(obstacle => {
+                ctx.save();
+                ctx.translate(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2);
+                ctx.rotate(obstacle.rotation);
+                ctx.fillRect(-obstacle.width/2, -obstacle.height/2, obstacle.width, obstacle.height);
+                ctx.restore();
+            });
+
+            // Futter mit verbessertem Design
+            gameState.food.forEach((food, index) => {
+                food.pulse += 0.1;
+                const pulseFactor = 1 + Math.sin(food.pulse) * 0.2;
+                const radius = CONFIG.foodRadius * pulseFactor;
+                
+                const gradient = ctx.createRadialGradient(
+                    food.x, food.y, 0,
+                    food.x, food.y, radius * 2
+                );
+                gradient.addColorStop(0, `hsl(${food.hue}, 100%, 70%)`);
+                gradient.addColorStop(0.7, `hsl(${food.hue}, 100%, 50%)`);
+                gradient.addColorStop(1, `hsl(${food.hue}, 100%, 10%)`);
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(food.x, food.y, radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Glüheffekt
+                ctx.shadowColor = `hsl(${food.hue}, 100%, 50%)`;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(food.x, food.y, radius * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Power-Ups zeichnen
+            gameState.powerUps.forEach(powerUp => {
+                powerUp.pulse += 0.05;
+                const pulseSize = 1 + Math.sin(powerUp.pulse) * 0.2;
+                
+                // Hauptkreis
+                ctx.fillStyle = powerUp.color;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * pulseSize, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Glüheffekt
+                ctx.shadowColor = powerUp.color;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Symbol
+                ctx.fillStyle = 'white';
+                ctx.font = `${powerUp.radius}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                let symbol = '?';
+                switch (powerUp.type) {
+                    case 'speed': symbol = '⚡'; break;
+                    case 'growth': symbol = '⬆️'; break;
+                    case 'invincibility': symbol = '🛡️'; break;
+                    case 'points': symbol = '💰'; break;
+                }
+                
+                ctx.fillText(symbol, powerUp.x, powerUp.y);
+            });
+
+            // Gegner zeichnen
+            gameState.enemies.forEach(enemy => {
+                // Segmente
+                enemy.segments.forEach((segment, index) => {
+                    const opacity = Math.max(0.4, 1 - (index / enemy.segments.length) * 0.8);
+                    const radius = CONFIG.enemySize * (1 - index * 0.05);
+                    
+                    ctx.fillStyle = enemy.color;
+                    ctx.globalAlpha = opacity;
+                    ctx.beginPath();
+                    ctx.arc(segment.x, segment.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Gesundheitsbalken für den Kopf
+                    if (index === 0) {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                        ctx.fillRect(
+                            segment.x - CONFIG.enemySize,
+                            segment.y - CONFIG.enemySize - 10,
+                            CONFIG.enemySize * 2,
+                            5
+                        );
+                        
+                        ctx.fillStyle = '#ff4757';
+                        ctx.fillRect(
+                            segment.x - CONFIG.enemySize,
+                            segment.y - CONFIG.enemySize - 10,
+                            (CONFIG.enemySize * 2) * (enemy.health / enemy.maxHealth),
+                            5
+                        );
+                    }
+                });
+                
+                ctx.globalAlpha = 1;
+            });
+
+            // Snake mit Regenbogen-Effekt
+            gameState.snake.forEach((segment, index) => {
+                const opacity = Math.max(0.4, 1 - (index / gameState.snake.length) * 0.8);
+                const radius = CONFIG.snakeRadius * (1 - index * 0.008);
+                const hue = (index * 5 + Date.now() * 0.1) % 360;
+                
+                let color;
+                if (gameState.boost) {
+                    color = `hsla(${15 + Math.sin(index * 0.1) * 30}, 100%, 60%, ${opacity})`;
+                } else {
+                    color = `hsla(${120 + hue * 0.3}, 80%, 60%, ${opacity})`;
+                }
+                
+                // Schatten für Tiefe
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(segment.x, segment.y, Math.max(3, radius), 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Kopf-Highlights
+                if (index === 0) {
+                    const eyeSize = 3;
+                    const eyeOffset = CONFIG.snakeRadius * 0.6;
+                    
+                    ctx.fillStyle = "white";
+                    ctx.beginPath();
+                    ctx.arc(segment.x - eyeOffset * gameState.direction.x + eyeOffset * gameState.direction.y, 
+                           segment.y - eyeOffset * gameState.direction.y - eyeOffset * gameState.direction.x, 
+                           eyeSize, 0, Math.PI * 2);
+                    ctx.arc(segment.x - eyeOffset * gameState.direction.x - eyeOffset * gameState.direction.y, 
+                           segment.y - eyeOffset * gameState.direction.y + eyeOffset * gameState.direction.x, 
+                           eyeSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Schild-Effekt
+                    if (gameState.shieldActive) {
+                        ctx.strokeStyle = '#7b68ee';
+                        ctx.lineWidth = 2;
+                        ctx.globalAlpha = 0.5;
+                        ctx.beginPath();
+                        ctx.arc(segment.x, segment.y, CONFIG.snakeRadius * 1.5, 0, Math.PI * 2);
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                    }
+                }
+                
+                ctx.shadowBlur = 0;
+            });
+
+            // Partikel rendern
+            gameState.particles.forEach(particle => {
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 2 + particle.life * 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            ctx.restore();
+        }
+
+        function drawGrid() {
+            const gridSize = 50;
+            const startX = Math.floor(gameState.camera.x / gridSize) * gridSize;
+            const startY = Math.floor(gameState.camera.y / gridSize) * gridSize;
+            
+            ctx.strokeStyle = "rgba(0, 212, 255, 0.1)";
+            ctx.lineWidth = 1;
+            
+            for (let x = startX; x < gameState.camera.x + canvas.width + gridSize; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x - gameState.camera.x, 0);
+                ctx.lineTo(x - gameState.camera.x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = startY; y < gameState.camera.y + canvas.height + gridSize; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y - gameState.camera.y);
+                ctx.lineTo(canvas.width, y - gameState.camera.y);
+                ctx.stroke();
+            }
+        }
+
+        function updateMinimap() {
+            minimapCtx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            minimapCtx.fillRect(0, 0, minimap.width, minimap.height);
+            
+            const scaleX = minimap.width / gameState.world.width;
+            const scaleY = minimap.height / gameState.world.height;
+            
+            // Hindernisse auf Minimap
+            minimapCtx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+            gameState.obstacles.forEach(obstacle => {
+                minimapCtx.fillRect(
+                    obstacle.x * scaleX,
+                    obstacle.y * scaleY,
+                    obstacle.width * scaleX,
+                    obstacle.height * scaleY
+                );
+            });
+            
+            // Futter auf Minimap
+            gameState.food.forEach(food => {
+                minimapCtx.fillStyle = `hsl(${food.hue}, 100%, 50%)`;
+                minimapCtx.beginPath();
+                minimapCtx.arc(
+                    food.x * scaleX,
+                    food.y * scaleY,
+                    2, 0, Math.PI * 2
+                );
+                minimapCtx.fill();
+            });
+            
+            // Power-Ups auf Minimap
+            gameState.powerUps.forEach(powerUp => {
+                minimapCtx.fillStyle = powerUp.color;
+                minimapCtx.beginPath();
+                minimapCtx.arc(
+                    powerUp.x * scaleX,
+                    powerUp.y * scaleY,
+                    3, 0, Math.PI * 2
+                );
+                minimapCtx.fill();
+            });
+            
+            // Gegner auf Minimap
+            gameState.enemies.forEach(enemy => {
+                minimapCtx.fillStyle = enemy.color;
+                minimapCtx.beginPath();
+                minimapCtx.arc(
+                    enemy.segments[0].x * scaleX,
+                    enemy.segments[0].y * scaleY,
+                    2, 0, Math.PI * 2
+                );
+                minimapCtx.fill();
+            });
+            
+            // Snake auf Minimap
+            minimapCtx.fillStyle = "#00ff00";
+            minimapCtx.beginPath();
+            minimapCtx.arc(
+                gameState.snake[0].x * scaleX,
+                gameState.snake[0].y * scaleY,
+                3, 0, Math.PI * 2
+            );
+            minimapCtx.fill();
+            
+            // Kamera-View
+            minimapCtx.strokeStyle = "#00d4ff";
+            minimapCtx.lineWidth = 2;
+            minimapCtx.strokeRect(
+                gameState.camera.x * scaleX,
+                gameState.camera.y * scaleY,
+                canvas.width * scaleX,
+                canvas.height * scaleY
+            );
+        }
+
+        function updateUI() {
+            document.getElementById("score").textContent = Math.floor(gameState.size);
+            document.getElementById("speed-display").textContent = gameState.baseSpeed.toFixed(1);
+            document.getElementById("food-counter").textContent = `${gameState.food.length}/${CONFIG.maxFood}`;
+            document.getElementById("points").textContent = gameState.points;
+            document.getElementById("level").textContent = gameState.level;
+            document.getElementById("xp").textContent = `${Math.floor((gameState.xp / gameState.xpToNextLevel) * 100)}%`;
+            document.getElementById("xp-progress").style.width = `${(gameState.xp / gameState.xpToNextLevel) * 100}%`;
+            document.getElementById("current-level").textContent = gameState.level;
+        }
+
+        function updateLeaderboard() {
+            const list = document.getElementById("leaderboardList");
+            list.innerHTML = "";
+            
+            leaderboard.slice(0, 5).forEach((entry, index) => {
+                const div = document.createElement("div");
+                div.className = "score-entry";
+                div.innerHTML = `
+                    <span>${index + 1}. Länge ${entry.size}</span>
+                    <span>${entry.points}pts</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function saveScore() {
+            const gameTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const newEntry = {
+                size: Math.floor(gameState.size),
+                points: gameState.points,
+                speed: gameState.maxSpeed,
+                time: gameTime,
+                level: gameState.level,
+                enemiesDefeated: gameState.enemiesDefeated,
+                date: new Date().toLocaleDateString()
+            };
+            
+            leaderboard.push(newEntry);
+            leaderboard.sort((a, b) => b.points - a.points);
+            leaderboard = leaderboard.slice(0, 10);
+            
+            try {
+                localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+            } catch (e) {
+                console.log('Speichern der Bestenliste nicht möglich');
+            }
+            
+            updateLeaderboard();
+        }
+
+        function gameOver() {
+            gameState.gameRunning = false;
+            stopBoost();
+            
+            const gameTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            
+            document.getElementById("finalScore").textContent = Math.floor(gameState.size);
+            document.getElementById("maxSpeed").textContent = gameState.maxSpeed.toFixed(1);
+            document.getElementById("finalPoints").textContent = gameState.points;
+            document.getElementById("gameTime").textContent = `${gameTime}s`;
+            document.getElementById("finalLevel").textContent = gameState.level;
+            document.getElementById("enemiesDefeated").textContent = gameState.enemiesDefeated;
+            
+            const gameOverDiv = document.getElementById("gameOver");
+            gameOverDiv.style.display = "block";
+            setTimeout(() => gameOverDiv.classList.add("show"), 10);
+            
+            saveScore();
+            
+            // Explosion-Effekt
+            for (let i = 0; i < 50; i++) {
+                const head = gameState.snake[0];
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15,
+                    life: 1,
+                    decay: 0.02,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        function restartGame() {
+            // Reset game state
+            gameState = {
+                snake: [{ 
+                    x: gameState.world.width / 2, 
+                    y: gameState.world.height / 2 
+                }],
+                direction: { x: 1, y: 0 },
+                size: 10,
+                baseSpeed: 2.5,
+                currentSpeed: 2.5,
+                maxSpeed: 2.5,
+                food: [],
+                powerUps: [],
+                particles: [],
+                enemies: [],
+                obstacles: [],
+                boost: false,
+                gameRunning: true,
+                lastTime: 0,
+                startTime: Date.now(),
+                points: 0,
+                camera: { x: 0, y: 0 },
+                world: { width: 3000, height: 2000 },
+                level: 1,
+                xp: 0,
+                xpToNextLevel: 100,
+                abilities: {
+                    blast: { cooldown: 0, maxCooldown: 10000, active: false },
+                    shield: { cooldown: 0, maxCooldown: 15000, active: false, duration: 5000, endTime: 0 },
+                    heal: { cooldown: 0, maxCooldown: 20000, active: false }
+                },
+                enemiesDefeated: 0,
+                shieldActive: false,
+                shieldEndTime: 0
+            };
+            
+            const gameOverDiv = document.getElementById("gameOver");
+            gameOverDiv.classList.remove("show");
+            setTimeout(() => gameOverDiv.style.display = "none", 500);
+            
+            spawnFood();
+            spawnObstacles();
+            updateUI();
+        }
+
+        // Touch-Steuerung für Mobile
+        let touchStart = null;
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStart = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY
+            };
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!touchStart || !gameState.gameRunning) return;
+            
+            const touch = e.touches[0];
+            const head = gameState.snake[0];
+            const worldTouchX = touch.clientX + gameState.camera.x;
+            const worldTouchY = touch.clientY + gameState.camera.y;
+            
+            const dx = worldTouchX - head.x;
+            const dy = worldTouchY - head.y;
+            const distance = Math.hypot(dx, dy);
+            
+            if (distance > 30) {
+                gameState.direction = { 
+                    x: dx / distance, 
+                    y: dy / distance 
+                };
+            }
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchStart = null;
         });
 
-        // Cookie-Banner
-        const cookieBanner = document.querySelector('.cookie-banner');
-        const cookieAccept = document.getElementById('cookie-accept');
-        const cookieDecline = document.getElementById('cookie-decline');
+        // Doppel-Touch für Boost
+        let lastTouchTime = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            const currentTime = Date.now();
+            if (currentTime - lastTouchTime < 300) {
+                startBoost();
+                setTimeout(stopBoost, 500);
+            }
+            lastTouchTime = currentTime;
+        });
+
+        // Fähigkeiten für Touch
+        document.getElementById('blastAbility').addEventListener('click', useBlastAbility);
+        document.getElementById('shieldAbility').addEventListener('click', useShieldAbility);
+        document.getElementById('healAbility').addEventListener('click', useHealAbility);
+
+        // Hauptschleife mit verbesserter Performance
+        function gameLoop(currentTime) {
+            spawnFood();
+            update(currentTime);
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Performance-Monitoring
+        let frameCount = 0;
+        let lastFPSTime = Date.now();
         
-        // Cookie-Banner anzeigen, wenn nicht akzeptiert
-        if (!localStorage.getItem('cookiesAccepted')) {
+        function monitorPerformance() {
+            frameCount++;
+            const currentTime = Date.now();
+            
+            if (currentTime - lastFPSTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastFPSTime));
+                
+                // FPS zu niedrig? Partikel reduzieren
+                if (fps < 30 && CONFIG.particleCount > 5) {
+                    CONFIG.particleCount = Math.max(5, CONFIG.particleCount - 2);
+                } else if (fps > 50 && CONFIG.particleCount < 15) {
+                    CONFIG.particleCount = Math.min(15, CONFIG.particleCount + 1);
+                }
+                
+                frameCount = 0;
+                lastFPSTime = currentTime;
+            }
+        }
+
+        // Erweiterte Hauptschleife
+        function enhancedGameLoop(currentTime) {
+            spawnFood();
+            update(currentTime);
+            draw();
+            monitorPerformance();
+            requestAnimationFrame(enhancedGameLoop);
+        }
+
+        // Pause-Funktionalität
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                if (gameState.gameRunning) {
+                    gameState.gameRunning = false;
+                    // Pause-Overlay anzeigen
+                    const pauseOverlay = document.createElement('div');
+                    pauseOverlay.id = 'pauseOverlay';
+                    pauseOverlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0,0,0,0.8);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 48px;
+                        color: white;
+                        z-index: 1000;
+                        font-family: 'Orbitron', monospace;
+                    `;
+                    pauseOverlay.innerHTML = '⏸️ PAUSE<br><small style="font-size: 24px;">Drücke ESC zum Fortsetzen</small>';
+                    document.body.appendChild(pauseOverlay);
+                } else {
+                    gameState.gameRunning = true;
+                    gameState.lastTime = performance.now();
+                    const pauseOverlay = document.getElementById('pauseOverlay');
+                    if (pauseOverlay) pauseOverlay.remove();
+                }
+            }
+        });
+
+        // Initialisierung
+        function initGame() {
+            spawnFood();
+            spawnObstacles();
+            updateUI();
+            updateLeaderboard();
+            
+            // Willkommensnachricht
             setTimeout(() => {
-                cookieBanner.style.display = 'block';
+                if (gameState.gameRunning) {
+                    const welcome = document.createElement('div');
+                    welcome.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0,0,0,0.9);
+                        padding: 30px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                        z-index: 1000;
+                        font-family: 'Orbitron', monospace;
+                        border: 2px solid #00d4ff;
+                    `;
+                    welcome.innerHTML = `
+                        <h3>🐍 Snake.io Ultimate</h3>
+                        <p>Steuerung: Maus bewegen</p>
+                        <p>Boost: Leertaste/Shift halten</p>
+                        <p>Fähigkeiten: Q (Blast), W (Schild), E (Heilung)</p>
+                        <p>Pause: ESC drücken</p>
+                        <button onclick="this.parentElement.remove()" style="
+                            margin-top: 15px;
+                            padding: 10px 20px;
+                            background: #00d4ff;
+                            border: none;
+                            border-radius: 5px;
+                            color: black;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">Los geht's! 🚀</button>
+                    `;
+                    document.body.appendChild(welcome);
+                }
             }, 1000);
         }
-        
-        cookieAccept.addEventListener('click', () => {
-            cookieBanner.style.display = 'none';
-            localStorage.setItem('cookiesAccepted', 'true');
-        });
-        
-        cookieDecline.addEventListener('click', () => {
-            cookieBanner.style.display = 'none';
-            localStorage.setItem('cookiesAccepted', 'false');
-        });
 
-        // Kommentare initial laden
-        loadComments();
-
-        // KI-Funktionen simulieren
-        function simulateKIFeatures() {
-            console.log("KI-Moderation: Analysiere hochgeladene Inhalte...");
-            console.log("KI-Untertitel: Generiere Untertitel für neue Videos...");
-            console.log("Empfehlungssystem: Aktualisiere personalisierte Vorschläge...");
-        }
-
-        // Seite initialisieren
-        window.addEventListener('DOMContentLoaded', () => {
-            // Aktuelle Benutzersitzung wiederherstellen
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                updateUserUI();
-            }
-            
-            // KI-Funktionen starten
-            simulateKIFeatures();
-        });
+        // Spiel starten
+        initGame();
+        requestAnimationFrame(enhancedGameLoop);
     </script>
 </body>
-                        </html>
+</html>
