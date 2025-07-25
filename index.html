@@ -116,6 +116,53 @@
         .auth-buttons {
             display: flex;
             gap: 1rem;
+            align-items: center;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 200px;
+            z-index: 100;
+            display: none;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 0.8rem 1rem;
+            text-decoration: none;
+            color: var(--text);
+            transition: background-color 0.3s;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: rgba(58, 134, 255, 0.1);
         }
 
         /* Button Styles */
@@ -179,7 +226,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('https://source.unsplash.com/random/1920x1080/?movie,theater') no-repeat center center;
+            background: url('https://source.unsplash.com/random/1920x1080/?cinema,movie') no-repeat center center;
             background-size: cover;
             z-index: -1;
             opacity: 0.2;
@@ -698,6 +745,91 @@
             right: -10px;
         }
 
+        /* Comments Section */
+        .comments-section {
+            margin-top: 3rem;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .comments-section h3 {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .comment-input {
+            flex-grow: 1;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+
+        .comment-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comment {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex-grow: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-author {
+            font-weight: bold;
+        }
+
+        .comment-time {
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+
+        .comment-text {
+            line-height: 1.5;
+        }
+
         /* Legal Section */
         .legal-section {
             padding: 5rem 0;
@@ -864,6 +996,80 @@
             gap: 1rem;
         }
 
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-group-modal {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group-modal label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-modal {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            color: var(--text);
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            background-color: rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
         /* Utility Classes */
         .text-primary {
             color: var(--primary);
@@ -929,6 +1135,10 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .comment-form {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -965,6 +1175,70 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Anmelden</h3>
+                <button class="close-btn" id="close-login">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group-modal">
+                    <label for="login-email">E-Mail</label>
+                    <input type="email" id="login-email" class="form-control-modal" required>
+                </div>
+                <div class="form-group-modal">
+                    <label for="login-password">Passwort</label>
+                    <input type="password" id="login-password" class="form-control-modal" required>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember-me">
+                    <label for="remember-me">Angemeldet bleiben</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="register-toggle">Registrieren</button>
+                <button class="btn btn-primary" id="login-btn">Anmelden</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="register-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrieren</h3>
+                <button class="close-btn" id="close-register">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group-modal">
+                    <label for="register-name">Name</label>
+                    <input type="text" id="register-name" class="form-control-modal" required>
+                </div>
+                <div class="form-group-modal">
+                    <label for="register-email">E-Mail</label>
+                    <input type="email" id="register-email" class="form-control-modal" required>
+                </div>
+                <div class="form-group-modal">
+                    <label for="register-password">Passwort</label>
+                    <input type="password" id="register-password" class="form-control-modal" required>
+                </div>
+                <div class="form-group-modal">
+                    <label for="register-confirm">Passwort bestätigen</label>
+                    <input type="password" id="register-confirm" class="form-control-modal" required>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="terms-agree" required>
+                    <label for="terms-agree">Ich akzeptiere die Nutzungsbedingungen</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="login-toggle">Anmelden</button>
+                <button class="btn btn-primary" id="register-btn">Registrieren</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header>
         <div class="container header-container">
@@ -982,14 +1256,23 @@
                 </ul>
             </nav>
             <div class="auth-buttons">
-                <button class="btn btn-outline">
+                <button class="btn btn-outline" id="login-button">
                     <span class="btn-icon">👤</span>
                     <span>Anmelden</span>
                 </button>
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" id="register-button">
                     <span class="btn-icon">✍️</span>
                     <span>Registrieren</span>
                 </button>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <div class="dropdown-menu" id="dropdown-menu">
+                        <a href="#" id="user-profile">Mein Profil</a>
+                        <a href="#" id="user-videos">Meine Videos</a>
+                        <a href="#" id="user-settings">Einstellungen</a>
+                        <a href="#" id="logout-btn">Abmelden</a>
+                    </div>
+                </div>
                 <button id="darkModeToggle" class="btn btn-outline">🌙</button>
             </div>
         </div>
@@ -1095,7 +1378,7 @@
             
             <div class="video-container">
                 <div class="video-wrapper">
-                    <video id="video-player" poster="https://source.unsplash.com/random/800x450/?movie">
+                    <video id="video-player" poster="https://source.unsplash.com/random/800x450/?movie,cinema">
                         <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
                         Ihr Browser unterstützt das Video-Tag nicht.
                     </video>
@@ -1123,7 +1406,7 @@
                     </div>
                     <p class="video-description">Dieses Video demonstriert die KI-Funktionen von GerKino, einschließlich automatischer Untertitelung und intelligenter Empfehlungen. Erfahren Sie, wie unsere Plattform das Streaming-Erlebnis revolutioniert.</p>
                     <div class="video-actions">
-                        <button class="action-btn">
+                        <button class="action-btn" id="like-btn">
                             <span>👍</span>
                             <span>Bewerten</span>
                         </button>
@@ -1145,6 +1428,18 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- Kommentarbereich -->
+                <div class="comments-section">
+                    <h3>Kommentare (24)</h3>
+                    <div class="comment-form">
+                        <input type="text" class="comment-input" id="comment-input" placeholder="Schreibe einen Kommentar...">
+                        <button class="btn btn-primary" id="submit-comment">Kommentieren</button>
+                    </div>
+                    <div class="comment-list" id="comment-list">
+                        <!-- Kommentare werden dynamisch hinzugefügt -->
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1159,21 +1454,21 @@
             
             <div class="categories-grid">
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?action,movie" alt="Action">
+                    <img src="https://source.unsplash.com/random/300x300/?action,film" alt="Action">
                     <div class="category-overlay">
                         <div class="category-title">Action</div>
                         <div class="category-count">1.234 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?drama,movie" alt="Drama">
+                    <img src="https://source.unsplash.com/random/300x300/?drama,film" alt="Drama">
                     <div class="category-overlay">
                         <div class="category-title">Drama</div>
                         <div class="category-count">876 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?comedy,movie" alt="Comedy">
+                    <img src="https://source.unsplash.com/random/300x300/?comedy,film" alt="Comedy">
                     <div class="category-overlay">
                         <div class="category-title">Comedy</div>
                         <div class="category-count">1.542 Videos</div>
@@ -1187,59 +1482,87 @@
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?scifi,movie" alt="Sci-Fi">
+                    <img src="https://source.unsplash.com/random/300x300/?scifi,space" alt="Sci-Fi">
                     <div class="category-overlay">
                         <div class="category-title">Sci-Fi</div>
                         <div class="category-count">789 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?horror,movie" alt="Horror">
+                    <img src="https://source.unsplash.com/random/300x300/?horror,scary" alt="Horror">
                     <div class="category-overlay">
                         <div class="category-title">Horror</div>
                         <div class="category-count">567 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?romance,movie" alt="Romanze">
+                    <img src="https://source.unsplash.com/random/300x300/?romance,love" alt="Romanze">
                     <div class="category-overlay">
                         <div class="category-title">Romanze</div>
                         <div class="category-count">432 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?animation,movie" alt="Animation">
+                    <img src="https://source.unsplash.com/random/300x300/?animation,cartoon" alt="Animation">
                     <div class="category-overlay">
                         <div class="category-title">Animation</div>
                         <div class="category-count">345 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?thriller,movie" alt="Thriller">
+                    <img src="https://source.unsplash.com/random/300x300/?thriller,suspense" alt="Thriller">
                     <div class="category-overlay">
                         <div class="category-title">Thriller</div>
                         <div class="category-count">678 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?music,video" alt="Musikvideos">
+                    <img src="https://source.unsplash.com/random/300x300/?music,concert" alt="Musikvideos">
                     <div class="category-overlay">
                         <div class="category-title">Musikvideos</div>
                         <div class="category-count">2.345 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?sports" alt="Sport">
+                    <img src="https://source.unsplash.com/random/300x300/?sports,football" alt="Sport">
                     <div class="category-overlay">
                         <div class="category-title">Sport</div>
                         <div class="category-count">456 Videos</div>
                     </div>
                 </div>
                 <div class="category-card">
-                    <img src="https://source.unsplash.com/random/300x300/?shortfilm" alt="Kurzfilme">
+                    <img src="https://source.unsplash.com/random/300x300/?shortfilm,indie" alt="Kurzfilme">
                     <div class="category-overlay">
                         <div class="category-title">Kurzfilme</div>
                         <div class="category-count">1.234 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?independent,art" alt="Independent">
+                    <div class="category-overlay">
+                        <div class="category-title">Independent</div>
+                        <div class="category-count">2.109 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?fantasy,dragon" alt="Fantasy">
+                    <div class="category-overlay">
+                        <div class="category-title">Fantasy</div>
+                        <div class="category-count">876 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?history,castle" alt="Historisch">
+                    <div class="category-overlay">
+                        <div class="category-title">Historisch</div>
+                        <div class="category-count">543 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?family,children" alt="Familie">
+                    <div class="category-overlay">
+                        <div class="category-title">Familie</div>
+                        <div class="category-count">789 Videos</div>
                     </div>
                 </div>
             </div>
@@ -1296,6 +1619,9 @@
                             <option value="sports">Sport</option>
                             <option value="shortfilm">Kurzfilme</option>
                             <option value="independent">Independent</option>
+                            <option value="fantasy">Fantasy</option>
+                            <option value="historical">Historisch</option>
+                            <option value="family">Familie</option>
                         </select>
                     </div>
                     
@@ -1532,12 +1858,69 @@
         </div>
     </footer>
 
-    <!-- Backend Simulation (would be separate in production) -->
     <script>
-        // Dark Mode Toggle
+        // Datenbank-Simulation
+        const db = {
+            users: [],
+            videos: [],
+            comments: [],
+            categories: [
+                { id: 1, name: "Action", videos: 1234 },
+                { id: 2, name: "Drama", videos: 876 },
+                { id: 3, name: "Comedy", videos: 1542 },
+                { id: 4, name: "Dokumentation", videos: 654 },
+                { id: 5, name: "Sci-Fi", videos: 789 },
+                { id: 6, name: "Horror", videos: 567 },
+                { id: 7, name: "Romanze", videos: 432 },
+                { id: 8, name: "Animation", videos: 345 },
+                { id: 9, name: "Thriller", videos: 678 },
+                { id: 10, name: "Musikvideos", videos: 2345 },
+                { id: 11, name: "Sport", videos: 456 },
+                { id: 12, name: "Kurzfilme", videos: 1234 },
+                { id: 13, name: "Independent", videos: 2109 },
+                { id: 14, name: "Fantasy", videos: 876 },
+                { id: 15, name: "Historisch", videos: 543 },
+                { id: 16, name: "Familie", videos: 789 }
+            ]
+        };
+
+        // Aktueller Benutzer
+        let currentUser = null;
+
+        // Beispielkommentare
+        const sampleComments = [
+            { id: 1, videoId: 1, userId: 1, text: "Tolles Video! Die KI-Untertitel sind wirklich beeindruckend.", time: "2:15", author: "Max M.", date: "Vor 2 Tagen" },
+            { id: 2, videoId: 1, userId: 2, text: "Kann jemand erklären, wie die KI die Untertitel generiert?", time: "5:42", author: "Sarah K.", date: "Gestern" },
+            { id: 3, videoId: 1, userId: 3, text: "Ich liebe diese Plattform! Viel besser als die Konkurrenz.", time: "8:30", author: "Thomas B.", date: "Heute" },
+            { id: 4, videoId: 1, userId: 4, text: "Die Übersetzungsfunktion hat mir geholfen, das Video mit meinen internationalen Freunden zu teilen.", time: "10:15", author: "Julia R.", date: "Vor 3 Stunden" }
+        ];
+
+        // Initialisiere Kommentare
+        db.comments = [...sampleComments];
+
+        // DOM-Elemente
+        const loginButton = document.getElementById('login-button');
+        const registerButton = document.getElementById('register-button');
+        const userMenu = document.getElementById('user-menu');
+        const userAvatar = document.getElementById('user-avatar');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginModal = document.getElementById('login-modal');
+        const registerModal = document.getElementById('register-modal');
+        const closeLogin = document.getElementById('close-login');
+        const closeRegister = document.getElementById('close-register');
+        const loginToggle = document.getElementById('login-toggle');
+        const registerToggle = document.getElementById('register-toggle');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
         const darkModeToggle = document.getElementById('darkModeToggle');
         const body = document.body;
-        
+        const commentList = document.getElementById('comment-list');
+        const commentInput = document.getElementById('comment-input');
+        const submitComment = document.getElementById('submit-comment');
+        const likeBtn = document.getElementById('like-btn');
+
+        // Dark Mode Toggle
         darkModeToggle.addEventListener('click', () => {
             body.classList.toggle('dark-mode');
             if (body.classList.contains('dark-mode')) {
@@ -1548,27 +1931,169 @@
                 localStorage.setItem('darkMode', 'disabled');
             }
         });
-        
+
         // Check for saved dark mode preference
         if (localStorage.getItem('darkMode') === 'enabled') {
             body.classList.add('dark-mode');
             darkModeToggle.textContent = '☀️';
         }
-        
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
+
+        // Modale Fenster
+        loginButton.addEventListener('click', () => loginModal.style.display = 'flex');
+        registerButton.addEventListener('click', () => registerModal.style.display = 'flex');
+        closeLogin.addEventListener('click', () => loginModal.style.display = 'none');
+        closeRegister.addEventListener('click', () => registerModal.style.display = 'none');
+        loginToggle.addEventListener('click', () => {
+            registerModal.style.display = 'none';
+            loginModal.style.display = 'flex';
         });
-        
-        // Video Player Functionality
+        registerToggle.addEventListener('click', () => {
+            loginModal.style.display = 'none';
+            registerModal.style.display = 'flex';
+        });
+
+        // Klick außerhalb des Modals schließt es
+        window.addEventListener('click', (e) => {
+            if (e.target === loginModal) loginModal.style.display = 'none';
+            if (e.target === registerModal) registerModal.style.display = 'none';
+        });
+
+        // Benutzerregistrierung
+        registerBtn.addEventListener('click', () => {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if (!name || !email || !password || !confirm) {
+                alert('Bitte füllen Sie alle Felder aus');
+                return;
+            }
+            
+            if (password !== confirm) {
+                alert('Passwörter stimmen nicht überein');
+                return;
+            }
+            
+            // Überprüfen, ob Benutzer bereits existiert
+            if (db.users.some(user => user.email === email)) {
+                alert('Ein Benutzer mit dieser E-Mail existiert bereits');
+                return;
+            }
+            
+            // Neuen Benutzer erstellen
+            const newUser = {
+                id: db.users.length + 1,
+                name,
+                email,
+                password, // In der Praxis würde man das Passwort hashen
+                joined: new Date().toISOString()
+            };
+            
+            db.users.push(newUser);
+            currentUser = newUser;
+            
+            // UI aktualisieren
+            updateUserUI();
+            registerModal.style.display = 'none';
+            alert('Registrierung erfolgreich! Willkommen bei GerKino');
+        });
+
+        // Benutzeranmeldung
+        loginBtn.addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const user = db.users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                updateUserUI();
+                loginModal.style.display = 'none';
+            } else {
+                alert('Ungültige Anmeldedaten');
+            }
+        });
+
+        // Abmelden
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            updateUserUI();
+        });
+
+        // Benutzer-UI aktualisieren
+        function updateUserUI() {
+            if (currentUser) {
+                loginButton.parentElement.style.display = 'none';
+                userMenu.style.display = 'block';
+                userAvatar.textContent = currentUser.name.charAt(0);
+                userAvatar.setAttribute('title', currentUser.name);
+            } else {
+                loginButton.parentElement.style.display = 'flex';
+                userMenu.style.display = 'none';
+            }
+        }
+
+        // Dropdown-Menü
+        userAvatar.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('show');
+        });
+
+        // Dropdown schließen, wenn außerhalb geklickt wird
+        window.addEventListener('click', (e) => {
+            if (!e.target.matches('.user-avatar')) {
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.classList.remove('show');
+                }
+            }
+        });
+
+        // Kommentare laden und anzeigen
+        function loadComments() {
+            commentList.innerHTML = '';
+            db.comments.forEach(comment => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment';
+                commentElement.innerHTML = `
+                    <div class="comment-avatar">${comment.author.charAt(0)}</div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <div class="comment-author">${comment.author}</div>
+                            <div class="comment-time">${comment.date} · ${comment.time}</div>
+                        </div>
+                        <div class="comment-text">${comment.text}</div>
+                    </div>
+                `;
+                commentList.appendChild(commentElement);
+            });
+        }
+
+        // Kommentar hinzufügen
+        submitComment.addEventListener('click', () => {
+            const text = commentInput.value.trim();
+            if (!text) return;
+            
+            if (!currentUser) {
+                alert('Bitte melden Sie sich an, um einen Kommentar zu schreiben');
+                return;
+            }
+            
+            const newComment = {
+                id: db.comments.length + 1,
+                videoId: 1, // Aktuelles Video
+                userId: currentUser.id,
+                text,
+                time: '0:00', // Zeitstempel simulieren
+                author: currentUser.name,
+                date: 'Gerade eben'
+            };
+            
+            db.comments.unshift(newComment);
+            commentInput.value = '';
+            loadComments();
+        });
+
+        // Video-Player-Funktionalität
         const videoPlayer = document.getElementById('video-player');
         const playPauseBtn = document.getElementById('play-pause');
         const muteBtn = document.getElementById('mute');
@@ -1610,28 +2135,27 @@
             timeDisplay.textContent = `${currentMins}:${currentSecs} / ${durationMins}:${durationSecs}`;
         });
         
-        // Click on progress bar to seek
+        // Auf Fortschrittsbalken klicken, um zu suchen
         progressContainer.addEventListener('click', (e) => {
-            const pos = (e.pageX - progressContainer.offsetLeft) / progressContainer.offsetWidth;
+            const pos = (e.pageX - progressContainer.getBoundingClientRect().left) / progressContainer.offsetWidth;
             videoPlayer.currentTime = pos * videoPlayer.duration;
         });
         
-        // Playback speed controls
+        // Wiedergabegeschwindigkeit
         speedBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                videoPlayer.playbackRate = btn.dataset.speed;
+                videoPlayer.playbackRate = parseFloat(btn.dataset.speed);
                 speedBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             });
         });
         
-        // Subtitle toggle (simulated)
+        // Untertitel (simuliert)
         subtitleBtn.addEventListener('click', () => {
-            // In a real implementation, this would toggle subtitles
-            alert('KI-generierte Untertitel würden jetzt ein-/ausgeblendet werden');
+            alert('KI-Untertitel werden für dieses Video generiert...');
         });
         
-        // Fullscreen toggle
+        // Vollbildmodus
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 videoPlayer.requestFullscreen().catch(err => {
@@ -1642,14 +2166,23 @@
             }
         });
         
-        // Upload Functionality
+        // Video liken
+        likeBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                alert('Bitte melden Sie sich an, um Videos zu bewerten');
+                return;
+            }
+            likeBtn.innerHTML = '<span>👍</span><span>Bewertet</span>';
+        });
+
+        // Upload-Funktionalität
         const uploadArea = document.getElementById('upload-area');
         const fileInput = document.getElementById('file-input');
         const uploadForm = document.getElementById('upload-form');
         const uploadProgress = document.getElementById('upload-progress');
         const uploadStatus = document.getElementById('upload-status');
         
-        // Drag and drop upload
+        // Drag and Drop
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadArea.style.borderColor = 'var(--primary)';
@@ -1672,11 +2205,8 @@
             }
         });
         
-        // Click to select files
-        uploadArea.addEventListener('click', () => {
-            fileInput.click();
-        });
-        
+        // Dateiauswahl
+        uploadArea.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', updateUploadPreview);
         
         function updateUploadPreview() {
@@ -1687,9 +2217,14 @@
             }
         }
         
-        // Form submission (simulated upload)
+        // Formular absenden
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            if (!currentUser) {
+                alert('Bitte melden Sie sich an, um Videos hochzuladen');
+                return;
+            }
             
             if (!fileInput.files.length) {
                 uploadStatus.textContent = 'Bitte wählen Sie mindestens eine Datei aus';
@@ -1697,33 +2232,52 @@
                 return;
             }
             
-            // Simulate upload progress
+            // Upload simulieren
             let progress = 0;
             const interval = setInterval(() => {
                 progress += Math.random() * 10;
                 if (progress >= 100) {
                     progress = 100;
                     clearInterval(interval);
-                    uploadStatus.innerHTML = 'Upload abgeschlossen! <span style="color:var(--success)">✓</span>';
+                    uploadStatus.innerHTML = 'Upload abgeschlossen! Video wird verarbeitet...';
                     
-                    // Reset form after delay
+                    // Video zur Datenbank hinzufügen
+                    const title = document.getElementById('video-title').value;
+                    const description = document.getElementById('video-description').value;
+                    const genre = document.getElementById('video-genre').value;
+                    
+                    const newVideo = {
+                        id: db.videos.length + 1,
+                        title,
+                        description,
+                        genre,
+                        userId: currentUser.id,
+                        uploadDate: new Date().toISOString(),
+                        views: 0,
+                        likes: 0
+                    };
+                    
+                    db.videos.push(newVideo);
+                    
+                    // Formular zurücksetzen
                     setTimeout(() => {
                         uploadForm.reset();
                         uploadProgress.style.width = '0%';
                         uploadStatus.textContent = '';
+                        alert('Video erfolgreich hochgeladen und veröffentlicht!');
                     }, 3000);
                 }
                 uploadProgress.style.width = `${progress}%`;
                 uploadStatus.textContent = `Upload läuft... ${Math.round(progress)}%`;
             }, 300);
         });
-        
-        // Cookie Banner
+
+        // Cookie-Banner
         const cookieBanner = document.querySelector('.cookie-banner');
         const cookieAccept = document.getElementById('cookie-accept');
         const cookieDecline = document.getElementById('cookie-decline');
         
-        // Show cookie banner if not already accepted
+        // Cookie-Banner anzeigen, wenn nicht akzeptiert
         if (!localStorage.getItem('cookiesAccepted')) {
             setTimeout(() => {
                 cookieBanner.style.display = 'block';
@@ -1739,77 +2293,29 @@
             cookieBanner.style.display = 'none';
             localStorage.setItem('cookiesAccepted', 'false');
         });
-        
-        // Simulate KI-Funktionen
-        function simulateKIContentModeration() {
-            console.log("KI-Moderation: Analysiere hochgeladene Inhalte auf Urheberrechtsverletzungen...");
-            // In a real implementation, this would call a backend API
-        }
-        
-        function generateAISubtitles() {
-            console.log("KI-Untertitel: Generiere automatische Untertitel für Videos...");
-            // In a real implementation, this would use a service like Whisper AI
-        }
-        
-        function provideAIRecommendations() {
-            console.log("KI-Empfehlungen: Analysiere Nutzerverhalten für personalisierte Vorschläge...");
-            // In a real implementation, this would use machine learning models
-        }
-        
-        // Initialize simulated AI features
-        simulateKIContentModeration();
-        generateAISubtitles();
-        provideAIRecommendations();
-    </script>
 
-    <!-- Backend Simulation (Node.js) - This would be in a separate file in production -->
-    <script type="text/javascript">
-        // This is a simulation of what the backend would do
-        console.log("Backend-Simulation gestartet...");
-        
-        // Simulated database
-        const simulatedDB = {
-            users: [],
-            videos: [],
-            categories: [
-                { id: 1, name: "Action", count: 1234 },
-                { id: 2, name: "Drama", count: 876 },
-                // ... other categories
-            ]
-        };
-        
-        // Simulated API endpoints
-        function registerUser(email, password) {
-            console.log(`Registriere neuen Benutzer: ${email}`);
-            // In a real implementation, this would hash the password
-            const newUser = { id: simulatedDB.users.length + 1, email, password };
-            simulatedDB.users.push(newUser);
-            return newUser;
+        // Kommentare initial laden
+        loadComments();
+
+        // KI-Funktionen simulieren
+        function simulateKIFeatures() {
+            console.log("KI-Moderation: Analysiere hochgeladene Inhalte...");
+            console.log("KI-Untertitel: Generiere Untertitel für neue Videos...");
+            console.log("Empfehlungssystem: Aktualisiere personalisierte Vorschläge...");
         }
-        
-        function uploadVideo(file, metadata) {
-            console.log(`Lade Video hoch: ${file.name}`);
-            // In a real implementation, this would process the file
-            const newVideo = { 
-                id: simulatedDB.videos.length + 1,
-                title: metadata.title,
-                description: metadata.description,
-                genre: metadata.genre,
-                uploadDate: new Date(),
-                views: 0,
-                likes: 0
-            };
-            simulatedDB.videos.push(newVideo);
-            return newVideo;
-        }
-        
-        // Simulate backend initialization
-        console.log("Backend bereit. Simulierte Endpunkte:");
-        console.log("- POST /api/register");
-        console.log("- POST /api/login");
-        console.log("- POST /api/videos/upload");
-        console.log("- GET /api/videos");
-        console.log("- GET /api/categories");
+
+        // Seite initialisieren
+        window.addEventListener('DOMContentLoaded', () => {
+            // Aktuelle Benutzersitzung wiederherstellen
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUserUI();
+            }
+            
+            // KI-Funktionen starten
+            simulateKIFeatures();
+        });
     </script>
 </body>
-</html>
+                        </html>
