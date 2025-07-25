@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake.io - Ultimate Edition</title>
+    <title>Astora - Schlange der Ewigkeit</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=MedievalSharp&display=swap');
         
         * {
             margin: 0;
@@ -15,38 +15,44 @@
 
         body {
             overflow: hidden;
-            background: linear-gradient(135deg, #0d1421, #1a2332, #0f1419);
-            color: white;
-            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a0e18, #121a2b, #0a0f15);
+            color: #e0d6c3;
+            font-family: 'MedievalSharp', 'Orbitron', monospace;
             user-select: none;
             cursor: none;
+            position: relative;
         }
 
         #gameCanvas {
             display: block;
-            background: radial-gradient(ellipse at center, #0f1922, #0a1217, #050b0f);
-            border: 3px solid transparent;
-            background-clip: padding-box;
+            background: radial-gradient(ellipse at center, #0a111a, #070d12, #04090c);
             position: relative;
+            z-index: 1;
         }
 
-        #gameCanvas::before {
-            content: '';
+        .boost-overlay {
             position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            background: linear-gradient(45deg, #00d4ff, #ff6b35, #7b68ee, #00d4ff);
-            background-size: 400% 400%;
-            animation: gradientShift 3s ease infinite;
-            z-index: -1;
-            border-radius: 8px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+            display: none;
         }
 
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+        .boost-overlay.active {
+            display: block;
+            animation: boostGlow 0.8s infinite alternate;
+        }
+
+        @keyframes boostGlow {
+            0% {
+                box-shadow: inset 0 0 20px 5px rgba(255, 107, 53, 0.3);
+            }
+            100% {
+                box-shadow: inset 0 0 40px 15px rgba(255, 107, 53, 0.7);
+            }
         }
 
         .ui {
@@ -60,14 +66,15 @@
         }
 
         .game-stats {
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(10, 15, 25, 0.85);
             padding: 20px;
-            border-radius: 16px;
+            border-radius: 12px;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(123, 90, 50, 0.5);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
+            border-image: linear-gradient(to bottom right, #7b5a32, #d4af37) 1;
         }
 
         .game-stats::before {
@@ -77,7 +84,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(123, 90, 50, 0.1), transparent);
             animation: shimmer 3s infinite;
         }
 
@@ -93,34 +100,34 @@
             margin: 8px 0;
             font-size: 16px;
             font-weight: 700;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
         }
 
         .stat-label {
-            color: #00d4ff;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            color: #d4af37;
         }
 
         .stat-value {
             color: #ffffff;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
         }
 
         #boostBtn {
             padding: 16px 32px;
             font-size: 18px;
             font-weight: 900;
-            background: linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726);
+            background: linear-gradient(135deg, #d4af37, #ffd700, #ffa500);
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
-            color: white;
-            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            color: #2a0a00;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
             letter-spacing: 1px;
             position: relative;
             overflow: hidden;
-            font-family: 'Orbitron', monospace;
+            font-family: 'MedievalSharp', cursive;
+            border: 2px solid #7b5a32;
         }
 
         #boostBtn::before {
@@ -136,7 +143,7 @@
 
         #boostBtn:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.6);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.6);
         }
 
         #boostBtn:hover::before {
@@ -148,9 +155,9 @@
         }
 
         #boostBtn.boosting {
-            background: linear-gradient(135deg, #ff4757, #ff6b7a, #ff8a95);
+            background: linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726);
             animation: boostPulse 0.6s infinite alternate;
-            box-shadow: 0 0 30px rgba(255, 71, 87, 0.8);
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
         }
 
         @keyframes boostPulse {
@@ -163,15 +170,19 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(10, 15, 25, 0.95);
             padding: 40px;
             border-radius: 20px;
             text-align: center;
-            border: 2px solid #ff4757;
+            border: 2px solid #d4af37;
             display: none;
             backdrop-filter: blur(20px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 200;
+            border-image: linear-gradient(to bottom right, #d4af37, #ffd700) 1;
+            width: 80%;
+            max-width: 500px;
         }
 
         .game-over.show {
@@ -179,17 +190,18 @@
         }
 
         .game-over h2 {
-            color: #ff4757;
+            color: #d4af37;
             margin: 0 0 20px 0;
-            font-size: 32px;
+            font-size: 42px;
             font-weight: 900;
-            text-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
             animation: glow 2s ease-in-out infinite alternate;
+            font-family: 'MedievalSharp', cursive;
         }
 
         @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(255, 71, 87, 0.5); }
-            to { text-shadow: 0 0 30px rgba(255, 71, 87, 0.8), 0 0 40px rgba(255, 71, 87, 0.3); }
+            from { text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+            to { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8), 0 0 30px rgba(212, 175, 55, 0.3); }
         }
 
         .final-stats {
@@ -203,15 +215,19 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 15px;
             border-radius: 10px;
-            border: 1px solid rgba(0, 212, 255, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .final-stat strong {
+            color: #d4af37;
         }
 
         .restart-btn {
             padding: 15px 30px;
-            background: linear-gradient(135deg, #2ed573, #17c0eb);
+            background: linear-gradient(135deg, #7b5a32, #d4af37);
             border: none;
             border-radius: 10px;
-            color: white;
+            color: #fff;
             cursor: pointer;
             font-size: 18px;
             font-weight: 700;
@@ -219,45 +235,49 @@
             transition: all 0.3s;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-family: 'Orbitron', monospace;
+            font-family: 'MedievalSharp', cursive;
+            border: 1px solid #ffd700;
         }
 
         .restart-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(46, 213, 115, 0.4);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
         }
 
         .leaderboard {
             position: absolute;
             top: 25px;
             right: 25px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(10, 15, 25, 0.85);
             padding: 20px;
-            border-radius: 16px;
+            border-radius: 12px;
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(123, 104, 238, 0.3);
+            border: 1px solid rgba(123, 90, 50, 0.5);
             max-width: 300px;
+            border-image: linear-gradient(to bottom right, #7b5a32, #d4af37) 1;
         }
 
         .leaderboard h3 {
-            color: #7b68ee;
+            color: #d4af37;
             margin-bottom: 15px;
             text-align: center;
             font-weight: 900;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 24px;
         }
 
         .score-entry {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
         }
 
         .custom-cursor {
             position: fixed;
-            width: 20px;
-            height: 20px;
-            background: radial-gradient(circle, #00d4ff, transparent);
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, #d4af37, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
             z-index: 1000;
@@ -289,10 +309,11 @@
             right: 25px;
             width: 200px;
             height: 150px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid rgba(0, 212, 255, 0.3);
-            border-radius: 10px;
+            background: rgba(10, 15, 25, 0.8);
+            border: 2px solid rgba(123, 90, 50, 0.5);
+            border-radius: 8px;
             backdrop-filter: blur(10px);
+            z-index: 100;
         }
 
         .ability-container {
@@ -305,13 +326,13 @@
         }
 
         .ability-btn {
-            width: 60px;
-            height: 60px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.7);
-            border: 2px solid rgba(0, 212, 255, 0.5);
-            color: white;
-            font-size: 24px;
+            background: rgba(10, 15, 25, 0.7);
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            color: #d4af37;
+            font-size: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -319,11 +340,12 @@
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
         }
 
         .ability-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
         }
 
         .ability-btn::after {
@@ -333,7 +355,7 @@
             left: 0;
             width: 100%;
             height: 0%;
-            background: rgba(0, 212, 255, 0.3);
+            background: rgba(212, 175, 55, 0.3);
             transition: height 0.3s;
         }
 
@@ -342,51 +364,87 @@
             background: rgba(255, 0, 0, 0.3);
         }
 
-        .enemy-health {
-            position: absolute;
-            top: -15px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: rgba(255, 0, 0, 0.3);
-        }
-
-        .enemy-health-bar {
-            height: 100%;
-            background: #ff4757;
-            transition: width 0.2s;
-        }
-
         .level-indicator {
             position: absolute;
             top: 25px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px 20px;
+            background: rgba(10, 15, 25, 0.7);
+            padding: 10px 25px;
             border-radius: 20px;
-            border: 1px solid rgba(0, 212, 255, 0.5);
+            border: 1px solid rgba(212, 175, 55, 0.5);
             font-weight: bold;
             z-index: 100;
+            font-family: 'MedievalSharp', cursive;
+            color: #d4af37;
+            border-image: linear-gradient(to right, #7b5a32, #d4af37) 1;
         }
 
         .xp-bar {
-            height: 5px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            margin-top: 5px;
+            height: 6px;
+            background: rgba(123, 90, 50, 0.3);
+            border-radius: 3px;
+            margin-top: 8px;
             overflow: hidden;
         }
 
         .xp-progress {
             height: 100%;
-            background: linear-gradient(90deg, #00d4ff, #7b68ee);
+            background: linear-gradient(90deg, #7b5a32, #d4af37);
             width: 0%;
             transition: width 0.3s;
+        }
+        
+        .controls-hint {
+            position: absolute;
+            bottom: 100px;
+            left: 25px;
+            background: rgba(10, 15, 25, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            font-size: 14px;
+            z-index: 100;
+            color: #d4af37;
+            font-family: 'MedievalSharp', cursive;
+        }
+        
+        .key-hint {
+            display: inline-block;
+            background: rgba(123, 90, 50, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 0 5px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+        }
+        
+        .game-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d4af37;
+            font-size: 36px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            font-family: 'MedievalSharp', cursive;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        
+        .game-title span {
+            font-size: 16px;
+            display: block;
+            letter-spacing: 4px;
+            margin-top: -5px;
+            color: #ffd700;
         }
     </style>
 </head>
 <body>
+    <div class="game-title">ASTORA<span>Schlange der Ewigkeit</span></div>
+    <div class="boost-overlay" id="boostOverlay"></div>
     <div class="custom-cursor" id="customCursor"></div>
     
     <canvas id="gameCanvas"></canvas>
@@ -418,7 +476,7 @@
                 <span class="stat-value" id="xp">0%</span>
             </div>
         </div>
-        <button id="boostBtn">🚀 Boost (Halten)</button>
+        <button id="boostBtn">🚀 BOOST (F4)</button>
     </div>
 
     <div class="level-indicator">
@@ -436,13 +494,21 @@
     <canvas class="minimap" id="minimap"></canvas>
 
     <div class="ability-container">
-        <div class="ability-btn" id="blastAbility" title="Energieblast (Q)">💥</div>
-        <div class="ability-btn" id="shieldAbility" title="Schild (W)">🛡️</div>
-        <div class="ability-btn" id="healAbility" title="Heilung (E)">❤️</div>
+        <div class="ability-btn" id="blastAbility" title="Energieblast (F1)">💥</div>
+        <div class="ability-btn" id="shieldAbility" title="Schild (F2)">🛡️</div>
+        <div class="ability-btn" id="healAbility" title="Heilung (F3)">❤️</div>
+    </div>
+    
+    <div class="controls-hint">
+        Tastenkürzel: 
+        <span class="key-hint">F1</span> Energieblast, 
+        <span class="key-hint">F2</span> Schild, 
+        <span class="key-hint">F3</span> Heilung,
+        <span class="key-hint">F4</span> Boost
     </div>
 
     <div id="gameOver" class="game-over">
-        <h2>💀 Game Over!</h2>
+        <h2>⚔️ Game Over! ⚔️</h2>
         <div class="final-stats">
             <div class="final-stat">
                 <strong>Finale Länge</strong>
@@ -477,6 +543,7 @@
         const ctx = canvas.getContext("2d");
         const minimap = document.getElementById("minimap");
         const minimapCtx = minimap.getContext("2d");
+        const boostOverlay = document.getElementById("boostOverlay");
 
         // Canvas-Größe anpassen
         function resizeCanvas() {
@@ -529,8 +596,7 @@
             boostShrinkRate: 0.2,
             particleCount: 15,
             cameraSmoothing: 0.1,
-            enemySpawnRate: 5000, // ms zwischen Spawns
-            enemySpeed: 1.5,
+            enemySpawnRate: 5000,
             enemyHealth: 100,
             enemyDamage: 10,
             enemySize: 8,
@@ -544,7 +610,7 @@
         };
 
         // Lokale Bestenliste
-        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
+        let leaderboard = JSON.parse(localStorage.getItem('astoraLeaderboard') || '[]');
 
         // Custom Cursor
         const cursor = document.getElementById('customCursor');
@@ -553,8 +619,8 @@
         document.addEventListener('mousemove', (e) => {
             mousePos.x = e.clientX;
             mousePos.y = e.clientY;
-            cursor.style.left = e.clientX - 10 + 'px';
-            cursor.style.top = e.clientY - 10 + 'px';
+            cursor.style.left = e.clientX - 12 + 'px';
+            cursor.style.top = e.clientY - 12 + 'px';
             
             if (!gameState.gameRunning) return;
             
@@ -581,6 +647,7 @@
             if (gameState.gameRunning && gameState.size > 8) {
                 gameState.boost = true;
                 boostBtn.classList.add("boosting");
+                boostOverlay.classList.add("active");
                 createBoostParticles();
             }
         }
@@ -588,6 +655,7 @@
         function stopBoost() {
             gameState.boost = false;
             boostBtn.classList.remove("boosting");
+            boostOverlay.classList.remove("active");
         }
 
         boostBtn.addEventListener("mousedown", startBoost);
@@ -595,26 +663,27 @@
         boostBtn.addEventListener("mouseleave", stopBoost);
         
         window.addEventListener("keydown", (e) => {
-            if (e.code === "Space" || e.key === "Shift") {
+            // Boost (F4)
+            if (e.code === "F4") {
                 e.preventDefault();
                 startBoost();
             }
             
             // Fähigkeiten
-            if (e.key === 'q' || e.key === 'Q') useBlastAbility();
-            if (e.key === 'w' || e.key === 'W') useShieldAbility();
-            if (e.key === 'e' || e.key === 'E') useHealAbility();
+            if (e.code === "F1") useBlastAbility();
+            if (e.code === "F2") useShieldAbility();
+            if (e.code === "F3") useHealAbility();
         });
         
         window.addEventListener("keyup", (e) => {
-            if (e.code === "Space" || e.key === "Shift") {
+            if (e.code === "F4") {
                 stopBoost();
             }
         });
 
         // Gegner-System
         function spawnEnemy() {
-            if (!gameState.gameRunning || Math.random() > 0.7) return;
+            if (!gameState.gameRunning || Math.random() > 0.7 || gameState.enemies.length > 15) return;
             
             let x, y;
             const margin = 300;
@@ -647,7 +716,7 @@
                 maxHealth: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
                 lastDirectionChange: 0,
                 directionChangeInterval: 1000 + Math.random() * 2000,
-                color: `hsl(${Math.random() * 60}, 100%, 50%)`,
+                color: `hsl(${Math.random() * 60}, 70%, 40%)`,
                 damage: CONFIG.enemyDamage
             };
             
@@ -747,11 +816,11 @@
 
         // Power-Ups
         function spawnPowerUp() {
-            if (!gameState.gameRunning || Math.random() > 0.5) return;
+            if (!gameState.gameRunning || Math.random() > 0.5 || gameState.powerUps.length >= 5) return;
             
             const type = CONFIG.powerUpTypes[Math.floor(Math.random() * CONFIG.powerUpTypes.length)];
             const colors = {
-                speed: '#00d4ff',
+                speed: '#d4af37',
                 growth: '#2ed573',
                 invincibility: '#7b68ee',
                 points: '#ffa502'
@@ -824,7 +893,7 @@
             gameState.abilities.blast.cooldown = gameState.abilities.blast.maxCooldown;
             
             const blastBtn = document.getElementById('blastAbility');
-            blastBtn.classList.add('cooldown');
+            blastBtn.classList.add("cooldown");
             
             // Cooldown-Animation
             const cooldownInterval = setInterval(() => {
@@ -833,7 +902,7 @@
                 
                 if (gameState.abilities.blast.cooldown <= 0) {
                     clearInterval(cooldownInterval);
-                    blastBtn.classList.remove('cooldown');
+                    blastBtn.classList.remove("cooldown");
                 }
             }, 100);
             
@@ -895,7 +964,7 @@
             gameState.shieldEndTime = Date.now() + gameState.abilities.shield.duration;
             
             const shieldBtn = document.getElementById('shieldAbility');
-            shieldBtn.classList.add('cooldown');
+            shieldBtn.classList.add("cooldown");
             
             // Cooldown-Animation
             const cooldownInterval = setInterval(() => {
@@ -904,7 +973,7 @@
                 
                 if (gameState.abilities.shield.cooldown <= 0) {
                     clearInterval(cooldownInterval);
-                    shieldBtn.classList.remove('cooldown');
+                    shieldBtn.classList.remove("cooldown");
                 }
             }, 100);
             
@@ -939,7 +1008,7 @@
             gameState.abilities.heal.cooldown = gameState.abilities.heal.maxCooldown;
             
             const healBtn = document.getElementById('healAbility');
-            healBtn.classList.add('cooldown');
+            healBtn.classList.add("cooldown");
             
             // Cooldown-Animation
             const cooldownInterval = setInterval(() => {
@@ -948,7 +1017,7 @@
                 
                 if (gameState.abilities.heal.cooldown <= 0) {
                     clearInterval(cooldownInterval);
-                    healBtn.classList.remove('cooldown');
+                    healBtn.classList.remove("cooldown");
                 }
             }, 100);
             
@@ -1003,6 +1072,13 @@
                     decay: 0.01,
                     color: `hsl(${Math.random() * 360}, 100%, 70%)`
                 });
+            }
+            
+            // Level 2+ Schwierigkeitserhöhung
+            if (gameState.level > 1) {
+                CONFIG.enemySpawnRate = Math.max(2000, CONFIG.enemySpawnRate - 500);
+                CONFIG.enemyHealth += 20;
+                CONFIG.enemyDamage += 2;
             }
         }
 
@@ -1259,9 +1335,9 @@
                 canvas.width / 2, canvas.height / 2, 0,
                 canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
             );
-            gradient.addColorStop(0, "#0f1922");
-            gradient.addColorStop(0.5, "#0a1217");
-            gradient.addColorStop(1, "#050b0f");
+            gradient.addColorStop(0, "#0a111a");
+            gradient.addColorStop(0.5, "#070d12");
+            gradient.addColorStop(1, "#04090c");
             
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1273,7 +1349,7 @@
             ctx.translate(-gameState.camera.x, -gameState.camera.y);
 
             // Hindernisse zeichnen
-            ctx.fillStyle = 'rgba(100, 100, 100, 0.7)';
+            ctx.fillStyle = 'rgba(90, 70, 40, 0.7)';
             gameState.obstacles.forEach(obstacle => {
                 ctx.save();
                 ctx.translate(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2);
@@ -1452,7 +1528,7 @@
             const startX = Math.floor(gameState.camera.x / gridSize) * gridSize;
             const startY = Math.floor(gameState.camera.y / gridSize) * gridSize;
             
-            ctx.strokeStyle = "rgba(0, 212, 255, 0.1)";
+            ctx.strokeStyle = "rgba(123, 90, 50, 0.1)";
             ctx.lineWidth = 1;
             
             for (let x = startX; x < gameState.camera.x + canvas.width + gridSize; x += gridSize) {
@@ -1471,14 +1547,14 @@
         }
 
         function updateMinimap() {
-            minimapCtx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            minimapCtx.fillStyle = "rgba(10, 15, 25, 0.8)";
             minimapCtx.fillRect(0, 0, minimap.width, minimap.height);
             
             const scaleX = minimap.width / gameState.world.width;
             const scaleY = minimap.height / gameState.world.height;
             
             // Hindernisse auf Minimap
-            minimapCtx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+            minimapCtx.fillStyle = 'rgba(90, 70, 40, 0.5)';
             gameState.obstacles.forEach(obstacle => {
                 minimapCtx.fillRect(
                     obstacle.x * scaleX,
@@ -1535,7 +1611,7 @@
             minimapCtx.fill();
             
             // Kamera-View
-            minimapCtx.strokeStyle = "#00d4ff";
+            minimapCtx.strokeStyle = "#d4af37";
             minimapCtx.lineWidth = 2;
             minimapCtx.strokeRect(
                 gameState.camera.x * scaleX,
@@ -1588,7 +1664,7 @@
             leaderboard = leaderboard.slice(0, 10);
             
             try {
-                localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+                localStorage.setItem('astoraLeaderboard', JSON.stringify(leaderboard));
             } catch (e) {
                 console.log('Speichern der Bestenliste nicht möglich');
             }
@@ -1729,14 +1805,6 @@
         document.getElementById('shieldAbility').addEventListener('click', useShieldAbility);
         document.getElementById('healAbility').addEventListener('click', useHealAbility);
 
-        // Hauptschleife mit verbesserter Performance
-        function gameLoop(currentTime) {
-            spawnFood();
-            update(currentTime);
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
         // Performance-Monitoring
         let frameCount = 0;
         let lastFPSTime = Date.now();
@@ -1789,9 +1857,9 @@
                         align-items: center;
                         justify-content: center;
                         font-size: 48px;
-                        color: white;
+                        color: #d4af37;
                         z-index: 1000;
-                        font-family: 'Orbitron', monospace;
+                        font-family: 'MedievalSharp', cursive;
                     `;
                     pauseOverlay.innerHTML = '⏸️ PAUSE<br><small style="font-size: 24px;">Drücke ESC zum Fortsetzen</small>';
                     document.body.appendChild(pauseOverlay);
@@ -1820,31 +1888,40 @@
                         top: 50%;
                         left: 50%;
                         transform: translate(-50%, -50%);
-                        background: rgba(0,0,0,0.9);
+                        background: rgba(10, 15, 25, 0.95);
                         padding: 30px;
                         border-radius: 15px;
-                        color: white;
+                        color: #d4af37;
                         text-align: center;
                         z-index: 1000;
-                        font-family: 'Orbitron', monospace;
-                        border: 2px solid #00d4ff;
+                        font-family: 'MedievalSharp', cursive;
+                        border: 2px solid #d4af37;
+                        width: 90%;
+                        max-width: 500px;
                     `;
                     welcome.innerHTML = `
-                        <h3>🐍 Snake.io Ultimate</h3>
+                        <h3>🐍 ASTORA 🏰</h3>
+                        <p>Schlange der Ewigkeit</p>
+                        <hr style="border-color: rgba(212,175,55,0.3); margin: 15px 0;">
                         <p>Steuerung: Maus bewegen</p>
-                        <p>Boost: Leertaste/Shift halten</p>
-                        <p>Fähigkeiten: Q (Blast), W (Schild), E (Heilung)</p>
-                        <p>Pause: ESC drücken</p>
+                        <p>Boost: <span class="key-hint">F4</span> oder Leertaste</p>
+                        <p>Fähigkeiten: 
+                            <span class="key-hint">F1</span> Energieblast, 
+                            <span class="key-hint">F2</span> Schild, 
+                            <span class="key-hint">F3</span> Heilung
+                        </p>
+                        <p>Pause: <span class="key-hint">ESC</span></p>
                         <button onclick="this.parentElement.remove()" style="
                             margin-top: 15px;
                             padding: 10px 20px;
-                            background: #00d4ff;
+                            background: #d4af37;
                             border: none;
                             border-radius: 5px;
-                            color: black;
+                            color: #2a0a00;
                             cursor: pointer;
                             font-weight: bold;
-                        ">Los geht's! 🚀</button>
+                            font-family: 'MedievalSharp', cursive;
+                        ">Beginne die Reise! 🚀</button>
                     `;
                     document.body.appendChild(welcome);
                 }
@@ -1856,4 +1933,4 @@
         requestAnimationFrame(enhancedGameLoop);
     </script>
 </body>
-</html>
+    </html>
