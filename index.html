@@ -2,499 +2,1858 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake.io Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake.io - Ultimate Edition</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: manipulation;
         }
 
         body {
             overflow: hidden;
-            background: #0f172a;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            position: fixed;
-            width: 100%;
-            height: 100%;
+            background: linear-gradient(135deg, #0d1421, #1a2332, #0f1419);
+            color: white;
+            font-family: 'Orbitron', monospace;
+            user-select: none;
+            cursor: none;
         }
 
         #gameCanvas {
             display: block;
-            background: #0f172a;
+            background: radial-gradient(ellipse at center, #0f1922, #0a1217, #050b0f);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+
+        #gameCanvas::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #00d4ff, #ff6b35, #7b68ee, #00d4ff);
+            background-size: 400% 400%;
+            animation: gradientShift 3s ease infinite;
+            z-index: -1;
+            border-radius: 8px;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .ui {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .game-stats {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
             height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
         }
 
-        /* Mobile Controls - Joystick Style */
-        .joystick-area {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: rgba(15, 23, 42, 0.7);
-            border: 2px solid rgba(74, 222, 128, 0.3);
-            z-index: 100;
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
-        .joystick {
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .stat-value {
+            color: #ffffff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        #boostBtn {
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Orbitron', monospace;
+        }
+
+        #boostBtn::before {
+            content: '';
             position: absolute;
-            width: 50px;
-            height: 50px;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        #boostBtn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.6);
+        }
+
+        #boostBtn:hover::before {
+            left: 100%;
+        }
+
+        #boostBtn:active {
+            transform: translateY(-1px);
+        }
+
+        #boostBtn.boosting {
+            background: linear-gradient(135deg, #ff4757, #ff6b7a, #ff8a95);
+            animation: boostPulse 0.6s infinite alternate;
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.8);
+        }
+
+        @keyframes boostPulse {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.05) rotate(1deg); }
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #ff4757;
+            display: none;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .game-over.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .game-over h2 {
+            color: #ff4757;
+            margin: 0 0 20px 0;
+            font-size: 32px;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 71, 87, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 71, 87, 0.8), 0 0 40px rgba(255, 71, 87, 0.3); }
+        }
+
+        .final-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .final-stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .restart-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #2ed573, #17c0eb);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 20px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(46, 213, 115, 0.4);
+        }
+
+        .leaderboard {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(123, 104, 238, 0.3);
+            max-width: 300px;
+        }
+
+        .leaderboard h3 {
+            color: #7b68ee;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .score-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #00d4ff, transparent);
             border-radius: 50%;
-            background: rgba(74, 222, 128, 0.7);
-            top: 35px;
-            left: 35px;
+            pointer-events: none;
+            z-index: 1000;
+            mix-blend-mode: difference;
             transition: transform 0.1s;
         }
 
-        .boost-btn {
-            position: fixed;
-            right: 30px;
-            bottom: 30px;
-            width: 80px;
-            height: 80px;
+        .particle {
+            position: absolute;
+            pointer-events: none;
             border-radius: 50%;
-            background: rgba(248, 113, 113, 0.3);
-            border: 2px solid rgba(248, 113, 113, 0.5);
+            animation: particleFloat 2s linear forwards;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translateY(-100px);
+            }
+        }
+
+        .minimap {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 200px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ability-container {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .ability-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 212, 255, 0.5);
             color: white;
             font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            transition: all 0.2s;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .boost-btn.active {
-            background: rgba(248, 113, 113, 0.7);
+        .ability-btn:hover {
             transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
         }
 
-        .game-stats {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(15, 23, 42, 0.8);
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            z-index: 100;
-            border: 1px solid rgba(74, 222, 128, 0.2);
-        }
-
-        .game-over {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(15, 23, 42, 0.95);
-            padding: 24px;
-            border-radius: 16px;
-            color: white;
-            text-align: center;
-            display: none;
-            z-index: 200;
-            width: 85%;
-            max-width: 320px;
-            border: 2px solid rgba(248, 113, 113, 0.5);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        }
-
-        .restart-btn {
-            margin-top: 20px;
-            padding: 12px 24px;
-            background: linear-gradient(to right, #4ade80, #3b82f6);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
+        .ability-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 100%;
+            height: 0%;
+            background: rgba(0, 212, 255, 0.3);
+            transition: height 0.3s;
         }
 
-        /* Responsive Anpassungen */
-        @media (max-width: 400px) {
-            .joystick-area {
-                width: 100px;
-                height: 100px;
-                bottom: 20px;
-                left: 20px;
-            }
-            .joystick {
-                width: 40px;
-                height: 40px;
-                top: 30px;
-                left: 30px;
-            }
-            .boost-btn {
-                width: 70px;
-                height: 70px;
-                right: 20px;
-                bottom: 20px;
-            }
+        .ability-btn.cooldown::after {
+            height: 100%;
+            background: rgba(255, 0, 0, 0.3);
+        }
+
+        .enemy-health {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 0, 0, 0.3);
+        }
+
+        .enemy-health-bar {
+            height: 100%;
+            background: #ff4757;
+            transition: width 0.2s;
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        .xp-bar {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .xp-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #7b68ee);
+            width: 0%;
+            transition: width 0.3s;
         }
     </style>
 </head>
 <body>
+    <div class="custom-cursor" id="customCursor"></div>
+    
     <canvas id="gameCanvas"></canvas>
     
-    <div class="game-stats">
-        <div>🐍 <span id="score">10</span></div>
-        <div>⭐ <span id="points">0</span></div>
+    <div class="ui">
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-label">Länge:</span>
+                <span class="stat-value" id="score">10</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Geschwindigkeit:</span>
+                <span class="stat-value" id="speed-display">2.0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Futter:</span>
+                <span class="stat-value" id="food-counter">0/75</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Punkte:</span>
+                <span class="stat-value" id="points">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Level:</span>
+                <span class="stat-value" id="level">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">XP:</span>
+                <span class="stat-value" id="xp">0%</span>
+            </div>
+        </div>
+        <button id="boostBtn">🚀 Boost (Halten)</button>
     </div>
-    
-    <div class="joystick-area">
-        <div class="joystick" id="joystick"></div>
+
+    <div class="level-indicator">
+        <div>Level <span id="current-level">1</span></div>
+        <div class="xp-bar">
+            <div class="xp-progress" id="xp-progress"></div>
+        </div>
     </div>
-    
-    <div class="boost-btn" id="boostBtn">🚀</div>
-    
+
+    <div class="leaderboard">
+        <h3>🏆 Bestenliste</h3>
+        <div id="leaderboardList"></div>
+    </div>
+
+    <canvas class="minimap" id="minimap"></canvas>
+
+    <div class="ability-container">
+        <div class="ability-btn" id="blastAbility" title="Energieblast (Q)">💥</div>
+        <div class="ability-btn" id="shieldAbility" title="Schild (W)">🛡️</div>
+        <div class="ability-btn" id="healAbility" title="Heilung (E)">❤️</div>
+    </div>
+
     <div id="gameOver" class="game-over">
-        <h2 style="margin-bottom: 16px; color: #f87171">Game Over!</h2>
-        <div style="margin: 8px 0">Länge: <span id="finalScore">0</span></div>
-        <div style="margin: 8px 0">Punkte: <span id="finalPoints">0</span></div>
-        <button class="restart-btn" onclick="restartGame()">Nochmal spielen</button>
+        <h2>💀 Game Over!</h2>
+        <div class="final-stats">
+            <div class="final-stat">
+                <strong>Finale Länge</strong>
+                <div id="finalScore">0</div>
+            </div>
+            <div class="final-stat">
+                <strong>Max Speed</strong>
+                <div id="maxSpeed">0</div>
+            </div>
+            <div class="final-stat">
+                <strong>Punkte</strong>
+                <div id="finalPoints">0</div>
+            </div>
+            <div class="final-stat">
+                <strong>Zeit</strong>
+                <div id="gameTime">0s</div>
+            </div>
+            <div class="final-stat">
+                <strong>Level</strong>
+                <div id="finalLevel">1</div>
+            </div>
+            <div class="final-stat">
+                <strong>Gegner besiegt</strong>
+                <div id="enemiesDefeated">0</div>
+            </div>
+        </div>
+        <button class="restart-btn" onclick="restartGame()">🔄 Neu starten</button>
     </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        const joystick = document.getElementById("joystick");
-        const joystickArea = document.querySelector(".joystick-area");
-        const boostBtn = document.getElementById("boostBtn");
-        
-        // Canvas anpassen
+        const minimap = document.getElementById("minimap");
+        const minimapCtx = minimap.getContext("2d");
+
+        // Canvas-Größe anpassen
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
         resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        
-        // Spielzustand
+        window.addEventListener("resize", resizeCanvas);
+
+        // Erweiterte Spielvariablen
         let gameState = {
             snake: [{ x: canvas.width / 2, y: canvas.height / 2 }],
             direction: { x: 1, y: 0 },
             size: 10,
-            speed: 3,
+            baseSpeed: 2.5,
+            currentSpeed: 2.5,
+            maxSpeed: 2.5,
             food: [],
-            gameRunning: true,
-            points: 0,
+            powerUps: [],
+            particles: [],
+            enemies: [],
+            obstacles: [],
             boost: false,
-            touchStart: null,
-            joystickActive: false
+            gameRunning: true,
+            lastTime: 0,
+            startTime: Date.now(),
+            points: 0,
+            camera: { x: 0, y: 0 },
+            world: { width: 3000, height: 2000 },
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            abilities: {
+                blast: { cooldown: 0, maxCooldown: 10000, active: false },
+                shield: { cooldown: 0, maxCooldown: 15000, active: false, duration: 5000, endTime: 0 },
+                heal: { cooldown: 0, maxCooldown: 20000, active: false }
+            },
+            enemiesDefeated: 0,
+            shieldActive: false,
+            shieldEndTime: 0
         };
+
+        const CONFIG = {
+            maxFood: 75,
+            foodRadius: 8,
+            snakeRadius: 10,
+            boostMultiplier: 2.8,
+            speedIncrease: 0.025,
+            maxSpeedLimit: 10,
+            boostShrinkRate: 0.2,
+            particleCount: 15,
+            cameraSmoothing: 0.1,
+            enemySpawnRate: 5000, // ms zwischen Spawns
+            enemySpeed: 1.5,
+            enemyHealth: 100,
+            enemyDamage: 10,
+            enemySize: 8,
+            obstacleCount: 20,
+            powerUpTypes: ['speed', 'growth', 'invincibility', 'points'],
+            powerUpDuration: 10000,
+            powerUpSpawnRate: 15000,
+            blastRadius: 100,
+            blastDamage: 50,
+            healAmount: 20
+        };
+
+        // Lokale Bestenliste
+        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard') || '[]');
+
+        // Custom Cursor
+        const cursor = document.getElementById('customCursor');
+        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
         
-        // Joystick Steuerung
-        joystickArea.addEventListener('touchstart', handleTouchStart);
-        joystickArea.addEventListener('touchmove', handleTouchMove);
-        joystickArea.addEventListener('touchend', handleTouchEnd);
-        
-        function handleTouchStart(e) {
-            gameState.joystickActive = true;
-            gameState.touchStart = {
-                x: e.touches[0].clientX,
-                y: e.touches[0].clientY
-            };
-            updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
-        }
-        
-        function handleTouchMove(e) {
-            if (!gameState.joystickActive) return;
-            e.preventDefault();
-            updateJoystickPosition(e.touches[0].clientX, e.touches[0].clientY);
-        }
-        
-        function handleTouchEnd() {
-            gameState.joystickActive = false;
-            joystick.style.transform = 'translate(0, 0)';
-            gameState.direction = { x: 0, y: 0 };
-        }
-        
-        function updateJoystickPosition(touchX, touchY) {
-            const rect = joystickArea.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+        document.addEventListener('mousemove', (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
             
-            const deltaX = touchX - centerX;
-            const deltaY = touchY - centerY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const maxDistance = rect.width / 2 - 25;
-            
-            const limitedDistance = Math.min(distance, maxDistance);
-            const angle = Math.atan2(deltaY, deltaX);
-            
-            const moveX = limitedDistance * Math.cos(angle);
-            const moveY = limitedDistance * Math.sin(angle);
-            
-            joystick.style.transform = `translate(${moveX}px, ${moveY}px)`;
-            
-            // Richtung basierend auf Joystick-Position
-            if (distance > 20) {
-                gameState.direction = {
-                    x: Math.cos(angle),
-                    y: Math.sin(angle)
-                };
-            } else {
-                gameState.direction = { x: 0, y: 0 };
-            }
-        }
-        
-        // Boost Button
-        boostBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            gameState.boost = true;
-            boostBtn.classList.add('active');
-        });
-        
-        boostBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            gameState.boost = false;
-            boostBtn.classList.remove('active');
-        });
-        
-        // Futter generieren
-        function spawnFood() {
-            if (gameState.food.length < 15) {
-                gameState.food.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    color: `hsl(${Math.random() * 360}, 80%, 60%)`,
-                    size: 8 + Math.random() * 4
-                });
-            }
-        }
-        
-        // Spiel-Update
-        function update() {
             if (!gameState.gameRunning) return;
             
             const head = gameState.snake[0];
-            const speed = gameState.boost ? gameState.speed * 1.8 : gameState.speed;
+            const worldMouseX = e.clientX + gameState.camera.x;
+            const worldMouseY = e.clientY + gameState.camera.y;
             
-            // Nur bewegen wenn Joystick aktiv
-            if (gameState.joystickActive) {
-                const newHead = {
-                    x: head.x + gameState.direction.x * speed,
-                    y: head.y + gameState.direction.y * speed
+            const dx = worldMouseX - head.x;
+            const dy = worldMouseY - head.y;
+            const distance = Math.hypot(dx, dy);
+            
+            if (distance > 30) {
+                gameState.direction = { 
+                    x: dx / distance, 
+                    y: dy / distance 
                 };
-                gameState.snake.unshift(newHead);
+            }
+        });
+
+        // Erweiterte Boost-Steuerung
+        const boostBtn = document.getElementById("boostBtn");
+        
+        function startBoost() {
+            if (gameState.gameRunning && gameState.size > 8) {
+                gameState.boost = true;
+                boostBtn.classList.add("boosting");
+                createBoostParticles();
+            }
+        }
+        
+        function stopBoost() {
+            gameState.boost = false;
+            boostBtn.classList.remove("boosting");
+        }
+
+        boostBtn.addEventListener("mousedown", startBoost);
+        boostBtn.addEventListener("mouseup", stopBoost);
+        boostBtn.addEventListener("mouseleave", stopBoost);
+        
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "Space" || e.key === "Shift") {
+                e.preventDefault();
+                startBoost();
             }
             
-            // Länge anpassen
-            while (gameState.snake.length > gameState.size) {
+            // Fähigkeiten
+            if (e.key === 'q' || e.key === 'Q') useBlastAbility();
+            if (e.key === 'w' || e.key === 'W') useShieldAbility();
+            if (e.key === 'e' || e.key === 'E') useHealAbility();
+        });
+        
+        window.addEventListener("keyup", (e) => {
+            if (e.code === "Space" || e.key === "Shift") {
+                stopBoost();
+            }
+        });
+
+        // Gegner-System
+        function spawnEnemy() {
+            if (!gameState.gameRunning || Math.random() > 0.7) return;
+            
+            let x, y;
+            const margin = 300;
+            
+            // Spawn außerhalb des Sichtbereichs
+            if (Math.random() > 0.5) {
+                x = Math.random() > 0.5 ? 
+                    gameState.camera.x - margin : 
+                    gameState.camera.x + canvas.width + margin;
+                y = gameState.camera.y + Math.random() * canvas.height;
+            } else {
+                x = gameState.camera.x + Math.random() * canvas.width;
+                y = Math.random() > 0.5 ? 
+                    gameState.camera.y - margin : 
+                    gameState.camera.y + canvas.height + margin;
+            }
+            
+            // Begrenzung auf Welt
+            x = Math.max(0, Math.min(gameState.world.width, x));
+            y = Math.max(0, Math.min(gameState.world.height, y));
+            
+            const enemy = {
+                x: x,
+                y: y,
+                segments: [{x: x, y: y}],
+                size: CONFIG.enemySize + Math.random() * 5,
+                speed: CONFIG.enemySpeed * (0.8 + Math.random() * 0.4),
+                direction: {x: 0, y: 0},
+                health: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
+                maxHealth: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
+                lastDirectionChange: 0,
+                directionChangeInterval: 1000 + Math.random() * 2000,
+                color: `hsl(${Math.random() * 60}, 100%, 50%)`,
+                damage: CONFIG.enemyDamage
+            };
+            
+            gameState.enemies.push(enemy);
+        }
+
+        function updateEnemies(deltaTime) {
+            const head = gameState.snake[0];
+            
+            gameState.enemies.forEach(enemy => {
+                // Richtung aktualisieren
+                enemy.lastDirectionChange += deltaTime * 16.67;
+                
+                if (enemy.lastDirectionChange > enemy.directionChangeInterval) {
+                    enemy.lastDirectionChange = 0;
+                    
+                    // Entscheidung: Spieler verfolgen oder zufällige Richtung
+                    if (Math.random() > 0.3) {
+                        // Spieler verfolgen
+                        const dx = head.x - enemy.segments[0].x;
+                        const dy = head.y - enemy.segments[0].y;
+                        const dist = Math.hypot(dx, dy);
+                        
+                        if (dist > 0) {
+                            enemy.direction = {
+                                x: dx / dist,
+                                y: dy / dist
+                            };
+                        }
+                    } else {
+                        // Zufällige Richtung
+                        const angle = Math.random() * Math.PI * 2;
+                        enemy.direction = {
+                            x: Math.cos(angle),
+                            y: Math.sin(angle)
+                        };
+                    }
+                }
+                
+                // Bewegung
+                const newHead = {
+                    x: enemy.segments[0].x + enemy.direction.x * enemy.speed * deltaTime,
+                    y: enemy.segments[0].y + enemy.direction.y * enemy.speed * deltaTime
+                };
+                
+                enemy.segments.unshift(newHead);
+                
+                // Länge anpassen
+                while (enemy.segments.length > Math.floor(enemy.size)) {
+                    enemy.segments.pop();
+                }
+                
+                // Weltgrenzen
+                if (newHead.x < 0 || newHead.x > gameState.world.width || 
+                    newHead.y < 0 || newHead.y > gameState.world.height) {
+                    // Umkehren bei Grenzen
+                    enemy.direction.x *= -1;
+                    enemy.direction.y *= -1;
+                }
+                
+                // Kollision mit Spieler
+                if (!gameState.shieldActive && Math.hypot(
+                    newHead.x - head.x, 
+                    newHead.y - head.y
+                ) < CONFIG.snakeRadius + CONFIG.enemySize) {
+                    // Schaden nehmen
+                    gameState.size = Math.max(5, gameState.size - (enemy.damage / 10));
+                    
+                    // Explosionspartikel
+                    for (let i = 0; i < 10; i++) {
+                        gameState.particles.push({
+                            x: (newHead.x + head.x) / 2,
+                            y: (newHead.y + head.y) / 2,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            life: 1,
+                            decay: 0.05,
+                            color: '#ff4757'
+                        });
+                    }
+                }
+            });
+        }
+
+        // Hindernisse
+        function spawnObstacles() {
+            for (let i = 0; i < CONFIG.obstacleCount; i++) {
+                gameState.obstacles.push({
+                    x: Math.random() * gameState.world.width,
+                    y: Math.random() * gameState.world.height,
+                    width: 50 + Math.random() * 100,
+                    height: 50 + Math.random() * 100,
+                    rotation: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // Power-Ups
+        function spawnPowerUp() {
+            if (!gameState.gameRunning || Math.random() > 0.5) return;
+            
+            const type = CONFIG.powerUpTypes[Math.floor(Math.random() * CONFIG.powerUpTypes.length)];
+            const colors = {
+                speed: '#00d4ff',
+                growth: '#2ed573',
+                invincibility: '#7b68ee',
+                points: '#ffa502'
+            };
+            
+            const powerUp = {
+                x: Math.random() * (gameState.world.width - 200) + 100,
+                y: Math.random() * (gameState.world.height - 200) + 100,
+                type: type,
+                color: colors[type],
+                radius: 15,
+                pulse: Math.random() * Math.PI * 2,
+                duration: CONFIG.powerUpDuration
+            };
+            
+            gameState.powerUps.push(powerUp);
+        }
+
+        function applyPowerUp(powerUp) {
+            switch (powerUp.type) {
+                case 'speed':
+                    gameState.baseSpeed = Math.min(
+                        CONFIG.maxSpeedLimit * 1.5,
+                        gameState.baseSpeed * 1.5
+                    );
+                    setTimeout(() => {
+                        gameState.baseSpeed = Math.min(
+                            CONFIG.maxSpeedLimit,
+                            gameState.baseSpeed / 1.5
+                        );
+                    }, powerUp.duration);
+                    break;
+                    
+                case 'growth':
+                    gameState.size += 15;
+                    break;
+                    
+                case 'invincibility':
+                    gameState.shieldActive = true;
+                    gameState.shieldEndTime = Date.now() + powerUp.duration;
+                    setTimeout(() => {
+                        gameState.shieldActive = false;
+                    }, powerUp.duration);
+                    break;
+                    
+                case 'points':
+                    gameState.points += 500;
+                    break;
+            }
+            
+            // Partikel-Effekt
+            for (let i = 0; i < 30; i++) {
+                gameState.particles.push({
+                    x: powerUp.x,
+                    y: powerUp.y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    decay: 0.03,
+                    color: powerUp.color
+                });
+            }
+        }
+
+        // Fähigkeiten
+        function useBlastAbility() {
+            if (gameState.abilities.blast.cooldown > 0 || !gameState.gameRunning) return;
+            
+            gameState.abilities.blast.active = true;
+            gameState.abilities.blast.cooldown = gameState.abilities.blast.maxCooldown;
+            
+            const blastBtn = document.getElementById('blastAbility');
+            blastBtn.classList.add('cooldown');
+            
+            // Cooldown-Animation
+            const cooldownInterval = setInterval(() => {
+                gameState.abilities.blast.cooldown -= 100;
+                blastBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.blast.cooldown / gameState.abilities.blast.maxCooldown * 100)}%`);
+                
+                if (gameState.abilities.blast.cooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                    blastBtn.classList.remove('cooldown');
+                }
+            }, 100);
+            
+            // Energieblast-Effekt
+            const head = gameState.snake[0];
+            const blastParticles = 50;
+            
+            for (let i = 0; i < blastParticles; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 15 + 5;
+                
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.02,
+                    color: '#ff4757'
+                });
+            }
+            
+            // Gegnern Schaden zufügen
+            gameState.enemies.forEach(enemy => {
+                const dist = Math.hypot(
+                    enemy.segments[0].x - head.x,
+                    enemy.segments[0].y - head.y
+                );
+                
+                if (dist < CONFIG.blastRadius) {
+                    enemy.health -= CONFIG.blastDamage * (1 - dist / CONFIG.blastRadius);
+                    
+                    if (enemy.health <= 0) {
+                        // Gegner besiegt
+                        const index = gameState.enemies.indexOf(enemy);
+                        if (index > -1) {
+                            gameState.enemies.splice(index, 1);
+                            gameState.points += 100;
+                            gameState.xp += 20;
+                            gameState.enemiesDefeated++;
+                            
+                            // XP-Check für Level-Up
+                            if (gameState.xp >= gameState.xpToNextLevel) {
+                                levelUp();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function useShieldAbility() {
+            if (gameState.abilities.shield.cooldown > 0 || !gameState.gameRunning) return;
+            
+            gameState.abilities.shield.active = true;
+            gameState.abilities.shield.cooldown = gameState.abilities.shield.maxCooldown;
+            gameState.abilities.shield.endTime = Date.now() + gameState.abilities.shield.duration;
+            gameState.shieldActive = true;
+            gameState.shieldEndTime = Date.now() + gameState.abilities.shield.duration;
+            
+            const shieldBtn = document.getElementById('shieldAbility');
+            shieldBtn.classList.add('cooldown');
+            
+            // Cooldown-Animation
+            const cooldownInterval = setInterval(() => {
+                gameState.abilities.shield.cooldown -= 100;
+                shieldBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.shield.cooldown / gameState.abilities.shield.maxCooldown * 100)}%`);
+                
+                if (gameState.abilities.shield.cooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                    shieldBtn.classList.remove('cooldown');
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                gameState.shieldActive = false;
+                gameState.abilities.shield.active = false;
+            }, gameState.abilities.shield.duration);
+            
+            // Schild-Effekt
+            const head = gameState.snake[0];
+            
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const radius = CONFIG.snakeRadius * 2;
+                
+                gameState.particles.push({
+                    x: head.x + Math.cos(angle) * radius,
+                    y: head.y + Math.sin(angle) * radius,
+                    vx: Math.cos(angle + Math.PI/2) * 2,
+                    vy: Math.sin(angle + Math.PI/2) * 2,
+                    life: 1,
+                    decay: 0.01,
+                    color: '#7b68ee'
+                });
+            }
+        }
+
+        function useHealAbility() {
+            if (gameState.abilities.heal.cooldown > 0 || !gameState.gameRunning) return;
+            
+            gameState.abilities.heal.active = true;
+            gameState.abilities.heal.cooldown = gameState.abilities.heal.maxCooldown;
+            
+            const healBtn = document.getElementById('healAbility');
+            healBtn.classList.add('cooldown');
+            
+            // Cooldown-Animation
+            const cooldownInterval = setInterval(() => {
+                gameState.abilities.heal.cooldown -= 100;
+                healBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.heal.cooldown / gameState.abilities.heal.maxCooldown * 100)}%`);
+                
+                if (gameState.abilities.heal.cooldown <= 0) {
+                    clearInterval(cooldownInterval);
+                    healBtn.classList.remove('cooldown');
+                }
+            }, 100);
+            
+            // Heilungseffekt
+            gameState.size = Math.min(gameState.size + CONFIG.healAmount, 100);
+            
+            const head = gameState.snake[0];
+            
+            for (let i = 0; i < 30; i++) {
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1,
+                    decay: 0.03,
+                    color: '#2ed573'
+                });
+            }
+        }
+
+        // Level-System
+        function levelUp() {
+            gameState.level++;
+            gameState.xp -= gameState.xpToNextLevel;
+            gameState.xpToNextLevel = Math.floor(gameState.xpToNextLevel * 1.5);
+            
+            // Verbesserungen beim Level-Up
+            gameState.maxSpeedLimit += 0.5;
+            gameState.baseSpeed = Math.min(
+                gameState.maxSpeedLimit,
+                gameState.baseSpeed + 0.3
+            );
+            
+            // UI-Update
+            document.getElementById('level').textContent = gameState.level;
+            document.getElementById('current-level').textContent = gameState.level;
+            
+            // Level-Up-Effekt
+            const head = gameState.snake[0];
+            
+            for (let i = 0; i < 100; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 5;
+                
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1,
+                    decay: 0.01,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        // Partikel-System
+        function createBoostParticles() {
+            if (!gameState.boost) return;
+            
+            const head = gameState.snake[0];
+            for (let i = 0; i < 3; i++) {
+                gameState.particles.push({
+                    x: head.x + (Math.random() - 0.5) * 20,
+                    y: head.y + (Math.random() - 0.5) * 20,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 1,
+                    decay: 0.02,
+                    color: `hsl(${15 + Math.random() * 30}, 100%, ${50 + Math.random() * 30}%)`
+                });
+            }
+        }
+
+        function createFoodParticles(x, y) {
+            for (let i = 0; i < CONFIG.particleCount; i++) {
+                gameState.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1,
+                    decay: 0.05,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        // Erweiterte Futter-Generierung
+        function spawnFood() {
+            while (gameState.food.length < CONFIG.maxFood) {
+                let attempts = 0;
+                let newFood;
+                
+                do {
+                    newFood = {
+                        x: Math.random() * gameState.world.width,
+                        y: Math.random() * gameState.world.height,
+                        hue: Math.random() * 360,
+                        pulse: Math.random() * Math.PI * 2,
+                        value: 1 + Math.random() * 2
+                    };
+                    attempts++;
+                } while (attempts < 15 && isNearSnake(newFood, 80));
+                
+                gameState.food.push(newFood);
+            }
+        }
+
+        function isNearSnake(pos, minDistance) {
+            return gameState.snake.some(segment => 
+                Math.hypot(segment.x - pos.x, segment.y - pos.y) < minDistance
+            );
+        }
+
+        // Kamera-System
+        function updateCamera() {
+            const head = gameState.snake[0];
+            const targetX = head.x - canvas.width / 2;
+            const targetY = head.y - canvas.height / 2;
+            
+            gameState.camera.x += (targetX - gameState.camera.x) * CONFIG.cameraSmoothing;
+            gameState.camera.y += (targetY - gameState.camera.y) * CONFIG.cameraSmoothing;
+            
+            // Kamera-Grenzen
+            gameState.camera.x = Math.max(0, Math.min(gameState.world.width - canvas.width, gameState.camera.x));
+            gameState.camera.y = Math.max(0, Math.min(gameState.world.height - canvas.height, gameState.camera.y));
+        }
+
+        // Hauptspiel-Update
+        function update(currentTime) {
+            if (!gameState.gameRunning) return;
+            
+            const deltaTime = (currentTime - gameState.lastTime) / 16.67;
+            gameState.lastTime = currentTime;
+
+            // Boost-Partikel
+            if (gameState.boost && Math.random() < 0.7) {
+                createBoostParticles();
+            }
+
+            // Geschwindigkeit
+            const boostSpeed = gameState.boost ? CONFIG.boostMultiplier : 1;
+            gameState.currentSpeed = gameState.baseSpeed * boostSpeed;
+            
+            // Snake-Bewegung
+            const head = gameState.snake[0];
+            const newHead = {
+                x: head.x + gameState.direction.x * gameState.currentSpeed * deltaTime,
+                y: head.y + gameState.direction.y * gameState.currentSpeed * deltaTime
+            };
+
+            gameState.snake.unshift(newHead);
+
+            // Snake-Länge bei Boost
+            if (gameState.boost && gameState.size > 8) {
+                gameState.size -= CONFIG.boostShrinkRate * deltaTime;
+                gameState.size = Math.max(8, gameState.size);
+            }
+
+            // Snake kürzen
+            while (gameState.snake.length > Math.floor(gameState.size)) {
                 gameState.snake.pop();
             }
-            
-            // Wandkollision
-            const headPos = gameState.snake[0];
-            if (headPos.x < 0 || headPos.x > canvas.width || 
-                headPos.y < 0 || headPos.y > canvas.height) {
+
+            // Welt-Kollision
+            if (newHead.x < 0 || newHead.x > gameState.world.width || 
+                newHead.y < 0 || newHead.y > gameState.world.height) {
                 gameOver();
                 return;
             }
-            
-            // Selbstkollision (nur wenn lang genug)
-            if (gameState.size > 15) {
-                for (let i = 10; i < gameState.snake.length; i++) {
-                    if (Math.hypot(headPos.x - gameState.snake[i].x, 
-                                  headPos.y - gameState.snake[i].y) < 12) {
+
+            // Selbstkollision
+            if (gameState.size > 25) {
+                for (let i = 15; i < gameState.snake.length; i++) {
+                    if (Math.hypot(newHead.x - gameState.snake[i].x, 
+                                  newHead.y - gameState.snake[i].y) < CONFIG.snakeRadius) {
                         gameOver();
                         return;
                     }
                 }
             }
-            
-            // Futterkollision
+
+            // Hindernis-Kollision
+            gameState.obstacles.forEach(obstacle => {
+                const distX = Math.abs(newHead.x - (obstacle.x + obstacle.width/2));
+                const distY = Math.abs(newHead.y - (obstacle.y + obstacle.height/2));
+                
+                if (distX <= obstacle.width/2 && distY <= obstacle.height/2) {
+                    gameOver();
+                    return;
+                }
+            });
+
+            // Futter-Kollision
             for (let i = gameState.food.length - 1; i >= 0; i--) {
                 const food = gameState.food[i];
-                if (Math.hypot(food.x - headPos.x, food.y - headPos.y) < 12 + food.size/2) {
-                    gameState.size += food.size/4;
-                    gameState.points += Math.floor(food.size);
-                    gameState.food.splice(i, 1);
-                    updateUI();
+                const distance = Math.hypot(food.x - newHead.x, food.y - newHead.y);
+                
+                if (distance < CONFIG.foodRadius + CONFIG.snakeRadius) {
+                    gameState.size += food.value;
+                    gameState.points += Math.floor(food.value * 10);
+                    gameState.xp += Math.floor(food.value * 2);
+                    gameState.baseSpeed = Math.min(
+                        CONFIG.maxSpeedLimit, 
+                        gameState.baseSpeed + CONFIG.speedIncrease
+                    );
+                    gameState.maxSpeed = Math.max(gameState.maxSpeed, gameState.baseSpeed);
                     
-                    // Kleiner Geschwindigkeits-Boost beim Fressen
-                    gameState.speed = Math.min(6, gameState.speed + 0.05);
+                    createFoodParticles(food.x, food.y);
+                    gameState.food.splice(i, 1);
+                    
+                    // XP-Check für Level-Up
+                    if (gameState.xp >= gameState.xpToNextLevel) {
+                        levelUp();
+                    }
                 }
             }
+
+            // Power-Up-Kollision
+            for (let i = gameState.powerUps.length - 1; i >= 0; i--) {
+                const powerUp = gameState.powerUps[i];
+                const distance = Math.hypot(powerUp.x - newHead.x, powerUp.y - newHead.y);
+                
+                if (distance < powerUp.radius + CONFIG.snakeRadius) {
+                    applyPowerUp(powerUp);
+                    gameState.powerUps.splice(i, 1);
+                }
+            }
+
+            // Gegner aktualisieren
+            updateEnemies(deltaTime);
             
-            spawnFood();
+            // Tote Gegner entfernen
+            for (let i = gameState.enemies.length - 1; i >= 0; i--) {
+                if (gameState.enemies[i].health <= 0) {
+                    const enemy = gameState.enemies[i];
+                    
+                    // Explosionspartikel
+                    for (let j = 0; j < 30; j++) {
+                        gameState.particles.push({
+                            x: enemy.segments[0].x,
+                            y: enemy.segments[0].y,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            life: 1,
+                            decay: 0.03,
+                            color: enemy.color
+                        });
+                    }
+                    
+                    gameState.enemies.splice(i, 1);
+                    gameState.points += 100;
+                    gameState.xp += 20;
+                    gameState.enemiesDefeated++;
+                    
+                    // XP-Check für Level-Up
+                    if (gameState.xp >= gameState.xpToNextLevel) {
+                        levelUp();
+                    }
+                }
+            }
+
+            // Partikel-Update
+            for (let i = gameState.particles.length - 1; i >= 0; i--) {
+                const particle = gameState.particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life -= particle.decay;
+                
+                if (particle.life <= 0) {
+                    gameState.particles.splice(i, 1);
+                }
+            }
+
+            // Fähigkeiten-Cooldown
+            Object.keys(gameState.abilities).forEach(ability => {
+                if (gameState.abilities[ability].cooldown > 0) {
+                    gameState.abilities[ability].cooldown -= deltaTime * 16.67;
+                }
+            });
+
+            // Schild-Dauer
+            if (gameState.shieldActive && Date.now() > gameState.shieldEndTime) {
+                gameState.shieldActive = false;
+            }
+
+            // Zufällige Gegner spawnen
+            if (Math.random() < 0.01 * deltaTime) {
+                spawnEnemy();
+            }
+
+            // Zufällige Power-Ups spawnen
+            if (Math.random() < 0.005 * deltaTime && gameState.powerUps.length < 3) {
+                spawnPowerUp();
+            }
+
+            updateCamera();
+            updateUI();
+            updateMinimap();
         }
-        
-        // Zeichnen
+
+        // Erweiterte Zeichenfunktionen
         function draw() {
-            // Hintergrund mit feinem Raster
-            ctx.fillStyle = '#0f172a';
+            // Hintergrund-Gradient
+            const gradient = ctx.createRadialGradient(
+                canvas.width / 2, canvas.height / 2, 0,
+                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
+            );
+            gradient.addColorStop(0, "#0f1922");
+            gradient.addColorStop(0.5, "#0a1217");
+            gradient.addColorStop(1, "#050b0f");
+            
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Raster zeichnen
-            ctx.strokeStyle = 'rgba(74, 222, 128, 0.05)';
-            ctx.lineWidth = 1;
-            const gridSize = 40;
-            
-            for (let x = 0; x < canvas.width; x += gridSize) {
+
+            // Grid-System
+            drawGrid();
+
+            ctx.save();
+            ctx.translate(-gameState.camera.x, -gameState.camera.y);
+
+            // Hindernisse zeichnen
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.7)';
+            gameState.obstacles.forEach(obstacle => {
+                ctx.save();
+                ctx.translate(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2);
+                ctx.rotate(obstacle.rotation);
+                ctx.fillRect(-obstacle.width/2, -obstacle.height/2, obstacle.width, obstacle.height);
+                ctx.restore();
+            });
+
+            // Futter mit verbessertem Design
+            gameState.food.forEach((food, index) => {
+                food.pulse += 0.1;
+                const pulseFactor = 1 + Math.sin(food.pulse) * 0.2;
+                const radius = CONFIG.foodRadius * pulseFactor;
+                
+                const gradient = ctx.createRadialGradient(
+                    food.x, food.y, 0,
+                    food.x, food.y, radius * 2
+                );
+                gradient.addColorStop(0, `hsl(${food.hue}, 100%, 70%)`);
+                gradient.addColorStop(0.7, `hsl(${food.hue}, 100%, 50%)`);
+                gradient.addColorStop(1, `hsl(${food.hue}, 100%, 10%)`);
+                
+                ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            
-            for (let y = 0; y < canvas.height; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
-            
-            // Futter
-            gameState.food.forEach(food => {
-                ctx.fillStyle = food.color;
-                ctx.beginPath();
-                ctx.arc(food.x, food.y, food.size, 0, Math.PI * 2);
+                ctx.arc(food.x, food.y, radius, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Glow-Effekt
-                ctx.shadowColor = food.color;
+                // Glüheffekt
+                ctx.shadowColor = `hsl(${food.hue}, 100%, 50%)`;
                 ctx.shadowBlur = 15;
                 ctx.beginPath();
-                ctx.arc(food.x, food.y, food.size * 0.7, 0, Math.PI * 2);
+                ctx.arc(food.x, food.y, radius * 0.6, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
             });
-            
-            // Schlange
+
+            // Power-Ups zeichnen
+            gameState.powerUps.forEach(powerUp => {
+                powerUp.pulse += 0.05;
+                const pulseSize = 1 + Math.sin(powerUp.pulse) * 0.2;
+                
+                // Hauptkreis
+                ctx.fillStyle = powerUp.color;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * pulseSize, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Glüheffekt
+                ctx.shadowColor = powerUp.color;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Symbol
+                ctx.fillStyle = 'white';
+                ctx.font = `${powerUp.radius}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                let symbol = '?';
+                switch (powerUp.type) {
+                    case 'speed': symbol = '⚡'; break;
+                    case 'growth': symbol = '⬆️'; break;
+                    case 'invincibility': symbol = '🛡️'; break;
+                    case 'points': symbol = '💰'; break;
+                }
+                
+                ctx.fillText(symbol, powerUp.x, powerUp.y);
+            });
+
+            // Gegner zeichnen
+            gameState.enemies.forEach(enemy => {
+                // Segmente
+                enemy.segments.forEach((segment, index) => {
+                    const opacity = Math.max(0.4, 1 - (index / enemy.segments.length) * 0.8);
+                    const radius = CONFIG.enemySize * (1 - index * 0.05);
+                    
+                    ctx.fillStyle = enemy.color;
+                    ctx.globalAlpha = opacity;
+                    ctx.beginPath();
+                    ctx.arc(segment.x, segment.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Gesundheitsbalken für den Kopf
+                    if (index === 0) {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                        ctx.fillRect(
+                            segment.x - CONFIG.enemySize,
+                            segment.y - CONFIG.enemySize - 10,
+                            CONFIG.enemySize * 2,
+                            5
+                        );
+                        
+                        ctx.fillStyle = '#ff4757';
+                        ctx.fillRect(
+                            segment.x - CONFIG.enemySize,
+                            segment.y - CONFIG.enemySize - 10,
+                            (CONFIG.enemySize * 2) * (enemy.health / enemy.maxHealth),
+                            5
+                        );
+                    }
+                });
+                
+                ctx.globalAlpha = 1;
+            });
+
+            // Snake mit Regenbogen-Effekt
             gameState.snake.forEach((segment, index) => {
-                const opacity = 1 - (index / gameState.snake.length) * 0.7;
-                const hue = (index * 3 + Date.now() * 0.01) % 360;
-                const color = gameState.boost ? 
-                    `hsla(0, 80%, 65%, ${opacity})` : 
-                    `hsla(${hue}, 80%, 60%, ${opacity})`;
+                const opacity = Math.max(0.4, 1 - (index / gameState.snake.length) * 0.8);
+                const radius = CONFIG.snakeRadius * (1 - index * 0.008);
+                const hue = (index * 5 + Date.now() * 0.1) % 360;
+                
+                let color;
+                if (gameState.boost) {
+                    color = `hsla(${15 + Math.sin(index * 0.1) * 30}, 100%, 60%, ${opacity})`;
+                } else {
+                    color = `hsla(${120 + hue * 0.3}, 80%, 60%, ${opacity})`;
+                }
+                
+                // Schatten für Tiefe
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
                 
                 ctx.fillStyle = color;
                 ctx.beginPath();
-                ctx.arc(segment.x, segment.y, 10, 0, Math.PI * 2);
+                ctx.arc(segment.x, segment.y, Math.max(3, radius), 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Kopf
+                // Kopf-Highlights
                 if (index === 0) {
-                    ctx.fillStyle = "white";
-                    const eyeOffsetX = 6 * gameState.direction.x;
-                    const eyeOffsetY = 6 * gameState.direction.y;
+                    const eyeSize = 3;
+                    const eyeOffset = CONFIG.snakeRadius * 0.6;
                     
-                    // Augen
+                    ctx.fillStyle = "white";
                     ctx.beginPath();
-                    ctx.arc(
-                        segment.x - eyeOffsetY/2 - eyeOffsetX, 
-                        segment.y - eyeOffsetX/2 + eyeOffsetY, 
-                        3, 0, Math.PI * 2
-                    );
-                    ctx.arc(
-                        segment.x + eyeOffsetY/2 - eyeOffsetX, 
-                        segment.y + eyeOffsetX/2 + eyeOffsetY, 
-                        3, 0, Math.PI * 2
-                    );
+                    ctx.arc(segment.x - eyeOffset * gameState.direction.x + eyeOffset * gameState.direction.y, 
+                           segment.y - eyeOffset * gameState.direction.y - eyeOffset * gameState.direction.x, 
+                           eyeSize, 0, Math.PI * 2);
+                    ctx.arc(segment.x - eyeOffset * gameState.direction.x - eyeOffset * gameState.direction.y, 
+                           segment.y - eyeOffset * gameState.direction.y + eyeOffset * gameState.direction.x, 
+                           eyeSize, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Boost-Effekt
-                    if (gameState.boost) {
-                        ctx.strokeStyle = 'rgba(248, 113, 113, 0.5)';
+                    // Schild-Effekt
+                    if (gameState.shieldActive) {
+                        ctx.strokeStyle = '#7b68ee';
                         ctx.lineWidth = 2;
+                        ctx.globalAlpha = 0.5;
                         ctx.beginPath();
-                        ctx.arc(segment.x, segment.y, 15, 0, Math.PI * 2);
+                        ctx.arc(segment.x, segment.y, CONFIG.snakeRadius * 1.5, 0, Math.PI * 2);
                         ctx.stroke();
+                        ctx.globalAlpha = 1;
                     }
                 }
+                
+                ctx.shadowBlur = 0;
             });
+
+            // Partikel rendern
+            gameState.particles.forEach(particle => {
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 2 + particle.life * 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+
+            ctx.restore();
         }
-        
-        // UI aktualisieren
+
+        function drawGrid() {
+            const gridSize = 50;
+            const startX = Math.floor(gameState.camera.x / gridSize) * gridSize;
+            const startY = Math.floor(gameState.camera.y / gridSize) * gridSize;
+            
+            ctx.strokeStyle = "rgba(0, 212, 255, 0.1)";
+            ctx.lineWidth = 1;
+            
+            for (let x = startX; x < gameState.camera.x + canvas.width + gridSize; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x - gameState.camera.x, 0);
+                ctx.lineTo(x - gameState.camera.x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = startY; y < gameState.camera.y + canvas.height + gridSize; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y - gameState.camera.y);
+                ctx.lineTo(canvas.width, y - gameState.camera.y);
+                ctx.stroke();
+            }
+        }
+
+        function updateMinimap() {
+            minimapCtx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            minimapCtx.fillRect(0, 0, minimap.width, minimap.height);
+            
+            const scaleX = minimap.width / gameState.world.width;
+            const scaleY = minimap.height / gameState.world.height;
+            
+            // Hindernisse auf Minimap
+            minimapCtx.fillStyle = 'rgba(100, 100, 100, 0.5)';
+            gameState.obstacles.forEach(obstacle => {
+                minimapCtx.fillRect(
+                    obstacle.x * scaleX,
+                    obstacle.y * scaleY,
+                    obstacle.width * scaleX,
+                    obstacle.height * scaleY
+                );
+            });
+            
+            // Futter auf Minimap
+            gameState.food.forEach(food => {
+                minimapCtx.fillStyle = `hsl(${food.hue}, 100%, 50%)`;
+                minimapCtx.beginPath();
+                minimapCtx.arc(
+                    food.x * scaleX,
+                    food.y * scaleY,
+                    2, 0, Math.PI * 2
+                );
+                minimapCtx.fill();
+            });
+            
+            // Power-Ups auf Minimap
+            gameState.powerUps.forEach(powerUp => {
+                minimapCtx.fillStyle = powerUp.color;
+                minimapCtx.beginPath();
+                minimapCtx.arc(
+                    powerUp.x * scaleX,
+                    powerUp.y * scaleY,
+                    3, 0, Math.PI * 2
+                );
+                minimapCtx.fill();
+            });
+            
+            // Gegner auf Minimap
+            gameState.enemies.forEach(enemy => {
+                minimapCtx.fillStyle = enemy.color;
+                minimapCtx.beginPath();
+                minimapCtx.arc(
+                    enemy.segments[0].x * scaleX,
+                    enemy.segments[0].y * scaleY,
+                    2, 0, Math.PI * 2
+                );
+                minimapCtx.fill();
+            });
+            
+            // Snake auf Minimap
+            minimapCtx.fillStyle = "#00ff00";
+            minimapCtx.beginPath();
+            minimapCtx.arc(
+                gameState.snake[0].x * scaleX,
+                gameState.snake[0].y * scaleY,
+                3, 0, Math.PI * 2
+            );
+            minimapCtx.fill();
+            
+            // Kamera-View
+            minimapCtx.strokeStyle = "#00d4ff";
+            minimapCtx.lineWidth = 2;
+            minimapCtx.strokeRect(
+                gameState.camera.x * scaleX,
+                gameState.camera.y * scaleY,
+                canvas.width * scaleX,
+                canvas.height * scaleY
+            );
+        }
+
         function updateUI() {
             document.getElementById("score").textContent = Math.floor(gameState.size);
+            document.getElementById("speed-display").textContent = gameState.baseSpeed.toFixed(1);
+            document.getElementById("food-counter").textContent = `${gameState.food.length}/${CONFIG.maxFood}`;
             document.getElementById("points").textContent = gameState.points;
+            document.getElementById("level").textContent = gameState.level;
+            document.getElementById("xp").textContent = `${Math.floor((gameState.xp / gameState.xpToNextLevel) * 100)}%`;
+            document.getElementById("xp-progress").style.width = `${(gameState.xp / gameState.xpToNextLevel) * 100}%`;
+            document.getElementById("current-level").textContent = gameState.level;
         }
-        
-        // Game Over
-        function gameOver() {
-            gameState.gameRunning = false;
-            document.getElementById("finalScore").textContent = Math.floor(gameState.size);
-            document.getElementById("finalPoints").textContent = gameState.points;
-            document.getElementById("gameOver").style.display = "block";
+
+        function updateLeaderboard() {
+            const list = document.getElementById("leaderboardList");
+            list.innerHTML = "";
+            
+            leaderboard.slice(0, 5).forEach((entry, index) => {
+                const div = document.createElement("div");
+                div.className = "score-entry";
+                div.innerHTML = `
+                    <span>${index + 1}. Länge ${entry.size}</span>
+                    <span>${entry.points}pts</span>
+                `;
+                list.appendChild(div);
+            });
         }
-        
-        // Neustart
-        function restartGame() {
-            gameState = {
-                snake: [{ x: canvas.width / 2, y: canvas.height / 2 }],
-                direction: { x: 1, y: 0 },
-                size: 10,
-                speed: 3,
-                food: [],
-                gameRunning: true,
-                points: 0,
-                boost: false,
-                touchStart: null,
-                joystickActive: false
+
+        function saveScore() {
+            const gameTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const newEntry = {
+                size: Math.floor(gameState.size),
+                points: gameState.points,
+                speed: gameState.maxSpeed,
+                time: gameTime,
+                level: gameState.level,
+                enemiesDefeated: gameState.enemiesDefeated,
+                date: new Date().toLocaleDateString()
             };
             
-            document.getElementById("gameOver").style.display = "none";
+            leaderboard.push(newEntry);
+            leaderboard.sort((a, b) => b.points - a.points);
+            leaderboard = leaderboard.slice(0, 10);
+            
+            try {
+                localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+            } catch (e) {
+                console.log('Speichern der Bestenliste nicht möglich');
+            }
+            
+            updateLeaderboard();
+        }
+
+        function gameOver() {
+            gameState.gameRunning = false;
+            stopBoost();
+            
+            const gameTime = Math.floor((Date.now() - gameState.startTime) / 1000);
+            
+            document.getElementById("finalScore").textContent = Math.floor(gameState.size);
+            document.getElementById("maxSpeed").textContent = gameState.maxSpeed.toFixed(1);
+            document.getElementById("finalPoints").textContent = gameState.points;
+            document.getElementById("gameTime").textContent = `${gameTime}s`;
+            document.getElementById("finalLevel").textContent = gameState.level;
+            document.getElementById("enemiesDefeated").textContent = gameState.enemiesDefeated;
+            
+            const gameOverDiv = document.getElementById("gameOver");
+            gameOverDiv.style.display = "block";
+            setTimeout(() => gameOverDiv.classList.add("show"), 10);
+            
+            saveScore();
+            
+            // Explosion-Effekt
+            for (let i = 0; i < 50; i++) {
+                const head = gameState.snake[0];
+                gameState.particles.push({
+                    x: head.x,
+                    y: head.y,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15,
+                    life: 1,
+                    decay: 0.02,
+                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                });
+            }
+        }
+
+        function restartGame() {
+            // Reset game state
+            gameState = {
+                snake: [{ 
+                    x: gameState.world.width / 2, 
+                    y: gameState.world.height / 2 
+                }],
+                direction: { x: 1, y: 0 },
+                size: 10,
+                baseSpeed: 2.5,
+                currentSpeed: 2.5,
+                maxSpeed: 2.5,
+                food: [],
+                powerUps: [],
+                particles: [],
+                enemies: [],
+                obstacles: [],
+                boost: false,
+                gameRunning: true,
+                lastTime: 0,
+                startTime: Date.now(),
+                points: 0,
+                camera: { x: 0, y: 0 },
+                world: { width: 3000, height: 2000 },
+                level: 1,
+                xp: 0,
+                xpToNextLevel: 100,
+                abilities: {
+                    blast: { cooldown: 0, maxCooldown: 10000, active: false },
+                    shield: { cooldown: 0, maxCooldown: 15000, active: false, duration: 5000, endTime: 0 },
+                    heal: { cooldown: 0, maxCooldown: 20000, active: false }
+                },
+                enemiesDefeated: 0,
+                shieldActive: false,
+                shieldEndTime: 0
+            };
+            
+            const gameOverDiv = document.getElementById("gameOver");
+            gameOverDiv.classList.remove("show");
+            setTimeout(() => gameOverDiv.style.display = "none", 500);
+            
+            spawnFood();
+            spawnObstacles();
             updateUI();
         }
+
+        // Touch-Steuerung für Mobile
+        let touchStart = null;
         
-        // Hauptspielschleife
-        function gameLoop() {
-            update();
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStart = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY
+            };
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!touchStart || !gameState.gameRunning) return;
+            
+            const touch = e.touches[0];
+            const head = gameState.snake[0];
+            const worldTouchX = touch.clientX + gameState.camera.x;
+            const worldTouchY = touch.clientY + gameState.camera.y;
+            
+            const dx = worldTouchX - head.x;
+            const dy = worldTouchY - head.y;
+            const distance = Math.hypot(dx, dy);
+            
+            if (distance > 30) {
+                gameState.direction = { 
+                    x: dx / distance, 
+                    y: dy / distance 
+                };
+            }
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchStart = null;
+        });
+
+        // Doppel-Touch für Boost
+        let lastTouchTime = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            const currentTime = Date.now();
+            if (currentTime - lastTouchTime < 300) {
+                startBoost();
+                setTimeout(stopBoost, 500);
+            }
+            lastTouchTime = currentTime;
+        });
+
+        // Fähigkeiten für Touch
+        document.getElementById('blastAbility').addEventListener('click', useBlastAbility);
+        document.getElementById('shieldAbility').addEventListener('click', useShieldAbility);
+        document.getElementById('healAbility').addEventListener('click', useHealAbility);
+
+        // Hauptschleife mit verbesserter Performance
+        function gameLoop(currentTime) {
+            spawnFood();
+            update(currentTime);
             draw();
             requestAnimationFrame(gameLoop);
         }
+
+        // Performance-Monitoring
+        let frameCount = 0;
+        let lastFPSTime = Date.now();
         
-        // Spiel starten
-        spawnFood();
-        gameLoop();
-        
-        // Willkommensnachricht
-        setTimeout(() => {
-            if (gameState.gameRunning) {
-                const welcome = document.createElement('div');
-                welcome.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: rgba(15, 23, 42, 0.95);
-                    padding: 20px;
-                    border-radius: 16px;
-                    color: white;
-                    text-align: center;
-                    z-index: 200;
-                    width: 85%;
-                    max-width: 320px;
-                    border: 2px solid rgba(74, 222, 128, 0.5);
-                `;
-                welcome.innerHTML = `
-                    <h3 style="margin-bottom: 12px;">Snake.io Mobile</h3>
-                    <p style="margin-bottom: 8px;">Bewege den Joystick links</p>
-                    <p style="margin-bottom: 16px;">Halte 🚀 für Boost</p>
-                    <button onclick="this.parentElement.remove()" style="
-                        margin-top: 8px;
-                        padding: 10px 20px;
-                        background: linear-gradient(to right, #4ade80, #3b82f6);
-                        border: none;
-                        border-radius: 8px;
-                        color: white;
-                        font-weight: bold;
-                        width: 100%;
-                    ">Starten</button>
-                `;
-                document.body.appendChild(welcome);
+        function monitorPerformance() {
+            frameCount++;
+            const currentTime = Date.now();
+            
+            if (currentTime - lastFPSTime >= 1000) {
+                const fps = Math.round((frameCount * 1000) / (currentTime - lastFPSTime));
+                
+                // FPS zu niedrig? Partikel reduzieren
+                if (fps < 30 && CONFIG.particleCount > 5) {
+                    CONFIG.particleCount = Math.max(5, CONFIG.particleCount - 2);
+                } else if (fps > 50 && CONFIG.particleCount < 15) {
+                    CONFIG.particleCount = Math.min(15, CONFIG.particleCount + 1);
+                }
+                
+                frameCount = 0;
+                lastFPSTime = currentTime;
             }
-        }, 500);
+        }
+
+        // Erweiterte Hauptschleife
+        function enhancedGameLoop(currentTime) {
+            spawnFood();
+            update(currentTime);
+            draw();
+            monitorPerformance();
+            requestAnimationFrame(enhancedGameLoop);
+        }
+
+        // Pause-Funktionalität
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+                e.preventDefault();
+                if (gameState.gameRunning) {
+                    gameState.gameRunning = false;
+                    // Pause-Overlay anzeigen
+                    const pauseOverlay = document.createElement('div');
+                    pauseOverlay.id = 'pauseOverlay';
+                    pauseOverlay.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0,0,0,0.8);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 48px;
+                        color: white;
+                        z-index: 1000;
+                        font-family: 'Orbitron', monospace;
+                    `;
+                    pauseOverlay.innerHTML = '⏸️ PAUSE<br><small style="font-size: 24px;">Drücke ESC zum Fortsetzen</small>';
+                    document.body.appendChild(pauseOverlay);
+                } else {
+                    gameState.gameRunning = true;
+                    gameState.lastTime = performance.now();
+                    const pauseOverlay = document.getElementById('pauseOverlay');
+                    if (pauseOverlay) pauseOverlay.remove();
+                }
+            }
+        });
+
+        // Initialisierung
+        function initGame() {
+            spawnFood();
+            spawnObstacles();
+            updateUI();
+            updateLeaderboard();
+            
+            // Willkommensnachricht
+            setTimeout(() => {
+                if (gameState.gameRunning) {
+                    const welcome = document.createElement('div');
+                    welcome.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0,0,0,0.9);
+                        padding: 30px;
+                        border-radius: 15px;
+                        color: white;
+                        text-align: center;
+                        z-index: 1000;
+                        font-family: 'Orbitron', monospace;
+                        border: 2px solid #00d4ff;
+                    `;
+                    welcome.innerHTML = `
+                        <h3>🐍 Snake.io Ultimate</h3>
+                        <p>Steuerung: Maus bewegen</p>
+                        <p>Boost: Leertaste/Shift halten</p>
+                        <p>Fähigkeiten: Q (Blast), W (Schild), E (Heilung)</p>
+                        <p>Pause: ESC drücken</p>
+                        <button onclick="this.parentElement.remove()" style="
+                            margin-top: 15px;
+                            padding: 10px 20px;
+                            background: #00d4ff;
+                            border: none;
+                            border-radius: 5px;
+                            color: black;
+                            cursor: pointer;
+                            font-weight: bold;
+                        ">Los geht's! 🚀</button>
+                    `;
+                    document.body.appendChild(welcome);
+                }
+            }, 1000);
+        }
+
+        // Spiel starten
+        initGame();
+        requestAnimationFrame(enhancedGameLoop);
     </script>
 </body>
-</html>
+    </html>
