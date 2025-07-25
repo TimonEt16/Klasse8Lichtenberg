@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GerKino - KI-gestützte Streaming-Plattform</title>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
-    <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&family=Be+Vietnam+Pro:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900">
+    <title>GerKino - KI-Streaming Plattform</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap">
     <style>
         :root {
             --primary: #3a86ff;
@@ -16,89 +16,109 @@
             --gray: #6c757d;
             --danger: #ff006e;
             --success: #06d6a0;
+            --background: #ffffff;
+            --card-bg: #ffffff;
+            --text: #212529;
+            --border: #e9ecef;
         }
-        
+
+        .dark-mode {
+            --background: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --border: #333333;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Be Vietnam Pro', 'Noto Sans', sans-serif;
             line-height: 1.6;
-            color: var(--dark);
-            background-color: var(--light);
+            color: var(--text);
+            background-color: var(--background);
+            transition: all 0.3s ease;
         }
-        
-        .dark-mode {
-            background-color: #121212;
-            color: #e0e0e0;
-        }
-        
-        .dark-mode .navbar,
-        .dark-mode footer,
-        .dark-mode .card {
-            background-color: #1e1e1e;
-            color: #e0e0e0;
-            border-color: #333;
-        }
-        
-        .dark-mode .btn-primary {
-            background-color: var(--primary-dark);
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        /* Header & Navigation */
-        .navbar {
-            background-color: white;
+
+        /* Header Styles */
+        header {
+            background-color: var(--card-bg);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 1rem 0;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
         }
-        
-        .nav-container {
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .logo {
             font-size: 1.8rem;
             font-weight: 900;
             color: var(--primary);
             text-decoration: none;
-        }
-        
-        .nav-links {
             display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
             gap: 1.5rem;
         }
-        
-        .nav-links a {
+
+        nav a {
             text-decoration: none;
-            color: var(--dark);
+            color: var(--text);
             font-weight: 500;
             transition: color 0.3s;
+            position: relative;
         }
-        
-        .nav-links a:hover {
+
+        nav a:hover {
             color: var(--primary);
         }
-        
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
         .auth-buttons {
             display: flex;
             gap: 1rem;
         }
-        
-        /* Buttons */
+
+        /* Button Styles */
         .btn {
             padding: 0.6rem 1.2rem;
             border-radius: 5px;
@@ -106,315 +126,889 @@
             cursor: pointer;
             transition: all 0.3s;
             border: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
+
         .btn-primary {
             background-color: var(--primary);
             color: white;
         }
-        
+
         .btn-primary:hover {
             background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(58, 134, 255, 0.3);
         }
-        
+
         .btn-outline {
             background-color: transparent;
             border: 1px solid var(--primary);
             color: var(--primary);
         }
-        
+
         .btn-outline:hover {
             background-color: var(--primary);
             color: white;
+            transform: translateY(-2px);
         }
-        
+
+        .btn-icon {
+            font-size: 1.2rem;
+        }
+
         /* Hero Section */
         .hero {
-            padding: 4rem 0;
+            padding: 5rem 0;
             text-align: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, rgba(245, 247, 250, 0.9) 0%, rgba(195, 207, 226, 0.9) 100%);
+            position: relative;
+            overflow: hidden;
         }
-        
+
         .dark-mode .hero {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(45, 45, 45, 0.9) 100%);
         }
-        
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://source.unsplash.com/random/1920x1080/?movie,theater') no-repeat center center;
+            background-size: cover;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
         }
-        
+
         .hero p {
             font-size: 1.2rem;
-            max-width: 700px;
-            margin: 0 auto 2rem;
+            margin: 0 auto 2.5rem;
             color: var(--gray);
+            max-width: 600px;
         }
-        
-        .dark-mode .hero p {
-            color: #aaa;
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
         }
-        
+
         /* Features Section */
         .section {
-            padding: 4rem 0;
+            padding: 5rem 0;
         }
-        
+
         .section-title {
             text-align: center;
             margin-bottom: 3rem;
         }
-        
+
         .section-title h2 {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
         }
-        
+
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 4px;
+            bottom: -10px;
+            left: 25%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
         .section-title p {
             color: var(--gray);
             max-width: 700px;
             margin: 0 auto;
+            font-size: 1.1rem;
         }
-        
+
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
         }
-        
+
         .feature-card {
-            background-color: white;
-            border-radius: 8px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
             padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
         }
-        
-        .dark-mode .feature-card {
-            background-color: #252525;
-        }
-        
+
         .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: var(--primary);
         }
-        
+
         .feature-icon {
             font-size: 2.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             color: var(--primary);
-        }
-        
-        .feature-card h3 {
-            margin-bottom: 1rem;
-        }
-        
-        /* Video Player Section */
-        .video-section {
-            background-color: #f1f3f5;
-            padding: 4rem 0;
-        }
-        
-        .dark-mode .video-section {
-            background-color: #1a1a1a;
-        }
-        
-        .video-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: black;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        
-        .video-placeholder {
-            width: 100%;
-            height: 500px;
-            background-color: #333;
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
         }
-        
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .feature-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+
+        .feature-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Video Player Section */
+        .video-section {
+            background-color: var(--card-bg);
+            padding: 5rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .video-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+        }
+
+        #video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+
         .video-controls {
             padding: 1rem;
             background-color: #222;
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             align-items: center;
         }
-        
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .progress-container {
+            flex-grow: 1;
+            height: 5px;
+            background-color: #444;
+            border-radius: 5px;
+            margin: 0 1rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 5px;
+            width: 0%;
+        }
+
+        .time-display {
+            color: white;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
+        .speed-btn, .quality-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .speed-btn.active, .quality-btn.active {
+            background-color: var(--primary);
+        }
+
         .video-info {
-            padding: 1.5rem;
-            background-color: white;
+            padding: 2rem;
+            background-color: var(--card-bg);
         }
-        
-        .dark-mode .video-info {
-            background-color: #252525;
-        }
-        
+
         .video-info h3 {
             margin-bottom: 0.5rem;
+            font-size: 1.5rem;
         }
-        
+
         .video-meta {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
             color: var(--gray);
             font-size: 0.9rem;
             margin-bottom: 1rem;
         }
-        
+
+        .video-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .video-description {
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
         .video-actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
-        
-        /* Categories Section */
-        .categories {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .category {
-            padding: 1rem;
-            background-color: white;
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: rgba(58, 134, 255, 0.1);
+            color: var(--primary);
+            border: none;
+            padding: 0.5rem 1rem;
             border-radius: 5px;
-            text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            border: 1px solid #eee;
         }
-        
-        .dark-mode .category {
-            background-color: #252525;
-            border-color: #333;
+
+        .action-btn:hover {
+            background-color: rgba(58, 134, 255, 0.2);
         }
-        
-        .category:hover {
+
+        /* Categories Section */
+        .categories-section {
+            padding: 5rem 0;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .category-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 180px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .category-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .category-card:hover img {
+            transform: scale(1.1);
+        }
+
+        .category-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 1rem;
+            color: white;
+        }
+
+        .category-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .category-count {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            padding: 5rem 0;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border);
+        }
+
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: rgba(58, 134, 255, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            margin-bottom: 1rem;
+        }
+
+        .upload-text h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text p {
+            color: var(--gray);
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            color: var(--text);
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+        }
+
+        .select-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .checkbox-group input {
+            width: auto;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Community Section */
+        .community-section {
+            padding: 5rem 0;
+        }
+
+        .testimonials {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .testimonial-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .testimonial-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .testimonial-author {
+            font-weight: 700;
+        }
+
+        .testimonial-role {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .testimonial-text {
+            line-height: 1.7;
+            font-style: italic;
+            position: relative;
+        }
+
+        .testimonial-text::before,
+        .testimonial-text::after {
+            content: '"';
+            font-size: 2rem;
+            color: var(--primary);
+            opacity: 0.3;
+            position: absolute;
+        }
+
+        .testimonial-text::before {
+            top: -10px;
+            left: -10px;
+        }
+
+        .testimonial-text::after {
+            bottom: -20px;
+            right: -10px;
+        }
+
+        /* Legal Section */
+        .legal-section {
+            padding: 5rem 0;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border);
+        }
+
+        .legal-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .legal-content {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .legal-content h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .legal-item {
+            margin-bottom: 2rem;
+        }
+
+        .legal-item h4 {
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+        }
+
+        .legal-item p {
+            margin-bottom: 0.8rem;
+            line-height: 1.7;
+        }
+
+        .legal-item ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-item li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--card-bg);
+            padding: 4rem 0 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-col h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-col h3::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--primary);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            text-decoration: none;
+            color: var(--gray);
+            transition: color 0.3s;
+            display: inline-block;
+            padding: 0.2rem 0;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(58, 134, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
             background-color: var(--primary);
             color: white;
             transform: translateY(-3px);
         }
-        
-        /* Footer */
-        footer {
-            background-color: white;
-            padding: 3rem 0 1rem;
-            margin-top: 3rem;
-        }
-        
-        .dark-mode footer {
-            background-color: #1e1e1e;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .footer-column h3 {
-            margin-bottom: 1.5rem;
-            font-size: 1.2rem;
-        }
-        
-        .footer-column ul {
-            list-style: none;
-        }
-        
-        .footer-column li {
-            margin-bottom: 0.8rem;
-        }
-        
-        .footer-column a {
-            text-decoration: none;
-            color: var(--gray);
-            transition: color 0.3s;
-        }
-        
-        .dark-mode .footer-column a {
-            color: #aaa;
-        }
-        
-        .footer-column a:hover {
-            color: var(--primary);
-        }
-        
+
         .footer-bottom {
             text-align: center;
             padding-top: 2rem;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border);
             color: var(--gray);
+            font-size: 0.9rem;
         }
-        
-        .dark-mode .footer-bottom {
-            border-top-color: #333;
+
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+            border-top: 1px solid var(--border);
         }
-        
+
+        .cookie-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cookie-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .cookie-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
         /* Utility Classes */
+        .text-primary {
+            color: var(--primary);
+        }
+
         .text-center {
             text-align: center;
         }
-        
+
         .mt-1 { margin-top: 1rem; }
         .mt-2 { margin-top: 2rem; }
         .mt-3 { margin-top: 3rem; }
-        
+        .mt-4 { margin-top: 4rem; }
+        .mt-5 { margin-top: 5rem; }
+
         .mb-1 { margin-bottom: 1rem; }
         .mb-2 { margin-bottom: 2rem; }
         .mb-3 { margin-bottom: 3rem; }
-        
-        /* Responsive */
+        .mb-4 { margin-bottom: 4rem; }
+        .mb-5 { margin-bottom: 5rem; }
+
+        /* Responsive Adjustments */
         @media (max-width: 768px) {
-            .nav-container {
+            .header-container {
                 flex-direction: column;
                 gap: 1rem;
             }
-            
-            .hero h1 {
-                font-size: 2.2rem;
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
             }
-            
-            .video-placeholder {
-                height: 300px;
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .video-controls {
+                padding: 0.5rem;
+            }
+
+            .progress-container {
+                margin: 0.5rem 0;
+                width: 100%;
+                order: 1;
+            }
+
+            .time-display {
+                order: 2;
+            }
+
+            .cookie-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .cookie-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .section-title h2 {
+                font-size: 1.8rem;
+            }
+
+            .categories-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .category-card {
+                height: 140px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container nav-container">
-            <a href="#" class="logo">GerKino</a>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#categories">Kategorien</a>
-                <a href="#community">Community</a>
-                <a href="#legal">Rechtliches</a>
+    <!-- Cookie Banner -->
+    <div class="cookie-banner">
+        <div class="cookie-content">
+            <div class="cookie-text">
+                <p>Wir verwenden Cookies, um Ihnen das beste Erlebnis auf unserer Website zu bieten. Durch die Nutzung unserer Dienste erklären Sie sich damit einverstanden, dass wir Cookies verwenden.</p>
             </div>
+            <div class="cookie-actions">
+                <button id="cookie-accept" class="btn btn-primary">Akzeptieren</button>
+                <button id="cookie-decline" class="btn btn-outline">Ablehnen</button>
+                <a href="#" class="btn btn-outline">Mehr erfahren</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <span class="logo-icon">🎬</span>
+                <span>GerKino</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#categories">Kategorien</a></li>
+                    <li><a href="#upload">Upload</a></li>
+                    <li><a href="#community">Community</a></li>
+                    <li><a href="#legal">Rechtliches</a></li>
+                </ul>
+            </nav>
             <div class="auth-buttons">
-                <button class="btn btn-outline">Anmelden</button>
-                <button class="btn btn-primary">Registrieren</button>
+                <button class="btn btn-outline">
+                    <span class="btn-icon">👤</span>
+                    <span>Anmelden</span>
+                </button>
+                <button class="btn btn-primary">
+                    <span class="btn-icon">✍️</span>
+                    <span>Registrieren</span>
+                </button>
                 <button id="darkModeToggle" class="btn btn-outline">🌙</button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="container">
-            <h1>Deine KI-gestützte Streaming-Plattform</h1>
+        <div class="container hero-content">
+            <h1>Deine KI-gestützte <span class="text-primary">Streaming-Plattform</span></h1>
             <p>GerKino bietet intelligente Funktionen, starke Community-Interaktion und rechtlich abgesicherte Inhalte in einer modernen Umgebung.</p>
-            <div class="mt-3">
-                <button class="btn btn-primary">Jetzt entdecken</button>
-                <button class="btn btn-outline">Mehr erfahren</button>
+            <div class="hero-buttons">
+                <button class="btn btn-primary btn-lg">
+                    <span class="btn-icon">🎥</span>
+                    <span>Jetzt entdecken</span>
+                </button>
+                <button class="btn btn-outline btn-lg">
+                    <span class="btn-icon">🔍</span>
+                    <span>Mehr erfahren</span>
+                </button>
             </div>
         </div>
     </section>
@@ -432,36 +1026,60 @@
                     <div class="feature-icon">📤</div>
                     <h3>Video-Upload</h3>
                     <p>Hochladen direkt von lokalen Geräten mit Unterstützung für große Dateien (bis zu 50 GB), Drag & Drop und Mehrfach-Uploads.</p>
+                    <a href="#upload" class="feature-link">
+                        <span>Mehr erfahren</span>
+                        <span>→</span>
+                    </a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">🎬</div>
                     <h3>Intelligente Wiedergabe</h3>
                     <p>Videoplayer mit einstellbarer Geschwindigkeit, KI-generierten Untertiteln und Echtzeitübersetzung.</p>
+                    <a href="#" class="feature-link">
+                        <span>Mehr erfahren</span>
+                        <span>→</span>
+                    </a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">🔍</div>
                     <h3>Mächtige Suche</h3>
                     <p>Suchleiste mit Auto-Vervollständigung und Filterung nach Genre, Jahr, Bewertung und mehr.</p>
+                    <a href="#" class="feature-link">
+                        <span>Mehr erfahren</span>
+                        <span>→</span>
+                    </a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">🤖</div>
                     <h3>KI-Moderation</h3>
                     <p>Automatisierte Prüfung auf Urheberrechtsverletzungen und Altersfreigabe für sichere Inhalte.</p>
+                    <a href="#" class="feature-link">
+                        <span>Mehr erfahren</span>
+                        <span>→</span>
+                    </a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">🚀</div>
                     <h3>Hochleistungs-Streaming</h3>
                     <p>HLS-Streaming mit adaptiver Qualität und schneller Reaktionszeit trotz großer Datenmengen.</p>
+                    <a href="#" class="feature-link">
+                        <span>Mehr erfahren</span>
+                        <span>→</span>
+                    </a>
                 </div>
                 
                 <div class="feature-card">
                     <div class="feature-icon">💬</div>
                     <h3>Community</h3>
                     <p>Nutzerprofile, Freundeslisten, zeitbasierte Kommentare und Genre-Foren für maximale Interaktion.</p>
+                    <a href="#community" class="feature-link">
+                        <span>Mehr erfahren</span>
+                        <span>→</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -476,29 +1094,55 @@
             </div>
             
             <div class="video-container">
-                <div class="video-placeholder">
-                    <div>Video-Player Vorschau</div>
+                <div class="video-wrapper">
+                    <video id="video-player" poster="https://source.unsplash.com/random/800x450/?movie">
+                        <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
+                        Ihr Browser unterstützt das Video-Tag nicht.
+                    </video>
                 </div>
                 <div class="video-controls">
-                    <div>⏯️</div>
-                    <div>🔉</div>
-                    <div>⏱️</div>
-                    <div>0.5x - 1x - 1.5x - 2x</div>
-                    <div>🌐</div>
-                    <div>🖥️</div>
+                    <button class="control-btn" id="play-pause">⏯️</button>
+                    <button class="control-btn" id="mute">🔊</button>
+                    <div class="progress-container">
+                        <div id="progress-bar"></div>
+                    </div>
+                    <span class="time-display" id="time-display">0:00 / 0:00</span>
+                    <button class="speed-btn active" data-speed="1">1x</button>
+                    <button class="speed-btn" data-speed="1.5">1.5x</button>
+                    <button class="speed-btn" data-speed="2">2x</button>
+                    <button class="control-btn" id="subtitle">📝</button>
+                    <button class="control-btn" id="fullscreen">🖥️</button>
                 </div>
                 <div class="video-info">
                     <h3>Beispielvideo: Die Zukunft des Streamings</h3>
                     <div class="video-meta">
                         <span>📅 2023</span>
                         <span>⏱️ 12:34</span>
-                        <span>⭐ 4.5/5</span>
+                        <span>⭐ 4.5/5 (1.2K Bewertungen)</span>
+                        <span>👁️ 25.4K Aufrufe</span>
                     </div>
-                    <p>Dieses Video demonstriert die KI-Funktionen von GerKino, einschließlich automatischer Untertitelung und intelligenter Empfehlungen.</p>
+                    <p class="video-description">Dieses Video demonstriert die KI-Funktionen von GerKino, einschließlich automatischer Untertitelung und intelligenter Empfehlungen. Erfahren Sie, wie unsere Plattform das Streaming-Erlebnis revolutioniert.</p>
                     <div class="video-actions">
-                        <button class="btn btn-outline">👍 Bewerten</button>
-                        <button class="btn btn-outline">💬 Kommentieren</button>
-                        <button class="btn btn-primary">➕ Playlist</button>
+                        <button class="action-btn">
+                            <span>👍</span>
+                            <span>Bewerten</span>
+                        </button>
+                        <button class="action-btn">
+                            <span>💬</span>
+                            <span>Kommentieren</span>
+                        </button>
+                        <button class="action-btn">
+                            <span>➕</span>
+                            <span>Playlist</span>
+                        </button>
+                        <button class="action-btn">
+                            <span>🔗</span>
+                            <span>Teilen</span>
+                        </button>
+                        <button class="action-btn">
+                            <span>⬇️</span>
+                            <span>Download</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -506,96 +1150,321 @@
     </section>
 
     <!-- Categories Section -->
-    <section id="categories" class="section">
+    <section id="categories" class="categories-section">
         <div class="container">
             <div class="section-title">
                 <h2>🎭 Kategorien & Genres</h2>
                 <p>Entdecke eine vielfältige Auswahl an Inhalten</p>
             </div>
             
-            <div class="categories">
-                <div class="category">Action</div>
-                <div class="category">Drama</div>
-                <div class="category">Comedy</div>
-                <div class="category">Dokumentation</div>
-                <div class="category">Sci-Fi</div>
-                <div class="category">Horror</div>
-                <div class="category">Romanze</div>
-                <div class="category">Animation</div>
-                <div class="category">Thriller</div>
-                <div class="category">Musikvideos</div>
-                <div class="category">Sport</div>
-                <div class="category">Kurzfilme</div>
-                <div class="category">Independent</div>
+            <div class="categories-grid">
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?action,movie" alt="Action">
+                    <div class="category-overlay">
+                        <div class="category-title">Action</div>
+                        <div class="category-count">1.234 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?drama,movie" alt="Drama">
+                    <div class="category-overlay">
+                        <div class="category-title">Drama</div>
+                        <div class="category-count">876 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?comedy,movie" alt="Comedy">
+                    <div class="category-overlay">
+                        <div class="category-title">Comedy</div>
+                        <div class="category-count">1.542 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?documentary" alt="Dokumentation">
+                    <div class="category-overlay">
+                        <div class="category-title">Dokumentation</div>
+                        <div class="category-count">654 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?scifi,movie" alt="Sci-Fi">
+                    <div class="category-overlay">
+                        <div class="category-title">Sci-Fi</div>
+                        <div class="category-count">789 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?horror,movie" alt="Horror">
+                    <div class="category-overlay">
+                        <div class="category-title">Horror</div>
+                        <div class="category-count">567 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?romance,movie" alt="Romanze">
+                    <div class="category-overlay">
+                        <div class="category-title">Romanze</div>
+                        <div class="category-count">432 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?animation,movie" alt="Animation">
+                    <div class="category-overlay">
+                        <div class="category-title">Animation</div>
+                        <div class="category-count">345 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?thriller,movie" alt="Thriller">
+                    <div class="category-overlay">
+                        <div class="category-title">Thriller</div>
+                        <div class="category-count">678 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?music,video" alt="Musikvideos">
+                    <div class="category-overlay">
+                        <div class="category-title">Musikvideos</div>
+                        <div class="category-count">2.345 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?sports" alt="Sport">
+                    <div class="category-overlay">
+                        <div class="category-title">Sport</div>
+                        <div class="category-count">456 Videos</div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <img src="https://source.unsplash.com/random/300x300/?shortfilm" alt="Kurzfilme">
+                    <div class="category-overlay">
+                        <div class="category-title">Kurzfilme</div>
+                        <div class="category-count">1.234 Videos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section id="upload" class="upload-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>📤 Video-Upload</h2>
+                <p>Lade deine Videos hoch und teile sie mit der Community</p>
+            </div>
+            
+            <div class="upload-container">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-text">
+                        <h3>Dateien zum Hochladen auswählen</h3>
+                        <p>Ziehe deine Video-Dateien hierher oder klicke zum Durchsuchen</p>
+                    </div>
+                    <button class="btn btn-primary upload-btn">
+                        <span class="btn-icon">📁</span>
+                        <span>Dateien auswählen</span>
+                    </button>
+                    <input type="file" id="file-input" accept="video/*" multiple style="display: none;">
+                </div>
+                
+                <form id="upload-form">
+                    <div class="form-group">
+                        <label for="video-title">Titel</label>
+                        <input type="text" id="video-title" class="form-control" placeholder="Titel deines Videos" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="video-description">Beschreibung</label>
+                        <textarea id="video-description" class="form-control" rows="4" placeholder="Beschreibe dein Video..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="video-genre">Genre</label>
+                        <select id="video-genre" class="form-control select-control" required>
+                            <option value="">Wähle ein Genre</option>
+                            <option value="action">Action</option>
+                            <option value="drama">Drama</option>
+                            <option value="comedy">Comedy</option>
+                            <option value="documentary">Dokumentation</option>
+                            <option value="scifi">Sci-Fi</option>
+                            <option value="horror">Horror</option>
+                            <option value="romance">Romanze</option>
+                            <option value="animation">Animation</option>
+                            <option value="thriller">Thriller</option>
+                            <option value="music">Musikvideos</option>
+                            <option value="sports">Sport</option>
+                            <option value="shortfilm">Kurzfilme</option>
+                            <option value="independent">Independent</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Metadaten</label>
+                        <input type="text" id="video-director" class="form-control mt-1" placeholder="Regie">
+                        <input type="text" id="video-cast" class="form-control mt-1" placeholder="Schauspieler (durch Kommas getrennt)">
+                        <input type="number" id="video-year" class="form-control mt-1" placeholder="Jahr" min="1900" max="2099">
+                        <input type="text" id="video-runtime" class="form-control mt-1" placeholder="Laufzeit (z.B. 1h 23m)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Thumbnail</label>
+                        <div class="upload-area thumbnail-upload" style="padding: 1.5rem; margin-top: 0.5rem;">
+                            <div class="upload-icon">🖼️</div>
+                            <div class="upload-text">
+                                <p>Thumbnail auswählen (optional)</p>
+                            </div>
+                            <button class="btn btn-outline upload-btn" style="padding: 0.4rem 0.8rem;">
+                                <span class="btn-icon">📁</span>
+                                <span>Bild auswählen</span>
+                            </button>
+                            <input type="file" id="thumbnail-input" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Upload-Fortschritt</label>
+                        <div class="progress-bar">
+                            <div class="progress" id="upload-progress"></div>
+                        </div>
+                        <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="terms-agree" required>
+                            <label for="terms-agree">Ich bestätige, dass ich alle notwendigen Rechte an den hochgeladenen Inhalten besitze und akzeptiere die Nutzungsbedingungen.</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="age-restriction">
+                            <label for="age-restriction">Dieser Inhalt ist nur für Erwachsene geeignet (18+)</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">
+                        <span class="btn-icon">🚀</span>
+                        <span>Video hochladen</span>
+                    </button>
+                </form>
             </div>
         </div>
     </section>
 
     <!-- Community Section -->
-    <section id="community" class="section">
+    <section id="community" class="community-section">
         <div class="container">
             <div class="section-title">
-                <h2>💬 Community & Interaktion</h2>
-                <p>Verbinde dich mit Gleichgesinnten und teile deine Leidenschaft</p>
+                <h2>💬 Unsere Community</h2>
+                <p>Was unsere Nutzer über GerKino sagen</p>
             </div>
             
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">👤</div>
-                    <h3>Persönliche Profile</h3>
-                    <p>Erstelle dein Profil mit Favoriten, Playlists und Bewertungen. Zeige anderen, was dir gefällt.</p>
+            <div class="testimonials">
+                <div class="testimonial-card">
+                    <div class="testimonial-header">
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah M." class="testimonial-avatar">
+                        <div>
+                            <div class="testimonial-author">Sarah M.</div>
+                            <div class="testimonial-role">Filmemacherin</div>
+                        </div>
+                    </div>
+                    <div class="testimonial-text">
+                        "GerKino hat mir geholfen, meine Independent-Filme einem breiteren Publikum zu präsentieren. Die KI-Untertitelung ist ein Game-Changer für internationale Zuschauer!"
+                    </div>
                 </div>
                 
-                <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3>Freundeslisten</h3>
-                    <p>Finde Freunde, folge ihren Aktivitäten und tausche Empfehlungen aus.</p>
+                <div class="testimonial-card">
+                    <div class="testimonial-header">
+                        <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Thomas K." class="testimonial-avatar">
+                        <div>
+                            <div class="testimonial-author">Thomas K.</div>
+                            <div class="testimonial-role">Film-Enthusiast</div>
+                        </div>
+                    </div>
+                    <div class="testimonial-text">
+                        "Die Empfehlungsalgorithmen sind unglaublich genau. Ich entdecke ständig neue Filme, die genau meinem Geschmack entsprechen. Viel besser als andere Plattformen!"
+                    </div>
                 </div>
                 
-                <div class="feature-card">
-                    <div class="feature-icon">💭</div>
-                    <h3>Zeitbasierte Kommentare</h3>
-                    <p>Hinterlasse Kommentare zu bestimmten Momenten in Videos und diskutiere mit der Community.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🗨️</div>
-                    <h3>Genre-Foren</h3>
-                    <p>Tausche dich in spezialisierten Foren über deine Lieblingsgenres und -themen aus.</p>
+                <div class="testimonial-card">
+                    <div class="testimonial-header">
+                        <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Julia P." class="testimonial-avatar">
+                        <div>
+                            <div class="testimonial-author">Julia P.</div>
+                            <div class="testimonial-role">Content Creator</div>
+                        </div>
+                    </div>
+                    <div class="testimonial-text">
+                        "Als kleiner Creator schätze ich die faire Monetarisierung und die aktive Community. Die zeitbasierten Kommentare machen das Feedback so viel wertvoller!"
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Legal Section -->
-    <section id="legal" class="section">
+    <section id="legal" class="legal-section">
         <div class="container">
             <div class="section-title">
                 <h2>⚖️ Rechtliche Hinweise</h2>
                 <p>Transparent und sicher - unsere Verpflichtung an dich</p>
             </div>
             
-            <div class="feature-card">
-                <h3>📌 Haftungsausschluss & Nutzungsbedingungen</h3>
-                <p class="mt-1">Mit der Nutzung der Plattform GerKino erklären Sie sich mit unseren Nutzungsbedingungen einverstanden:</p>
-                
-                <div class="mt-2">
-                    <h4>1. Urheberrecht und Inhalte</h4>
-                    <p>GerKino stellt die technische Infrastruktur bereit, haftet jedoch nicht für Nutzerinhalte. Sie sind verantwortlich für alle hochgeladenen Inhalte und garantieren, dass Sie über die notwendigen Rechte verfügen.</p>
+            <div class="legal-container">
+                <div class="legal-content">
+                    <h3>📌 Haftungsausschluss & Nutzungsbedingungen</h3>
                     
-                    <h4 class="mt-2">2. Haftungsbeschränkung</h4>
-                    <p>Die Nutzung erfolgt auf eigene Verantwortung. GerKino übernimmt keine Haftung für Schäden durch hochgeladene oder geteilte Inhalte.</p>
+                    <div class="legal-item">
+                        <h4>1. Urheberrecht und Inhalte</h4>
+                        <p>Die Plattform stellt lediglich die technische Infrastruktur zum Teilen von Inhalten bereit. GerKino haftet nicht für Inhalte, die von Nutzern hochgeladen werden.</p>
+                        <p>Sie als Nutzer/in sind allein verantwortlich für sämtliche hochgeladenen Inhalte. Es dürfen keine urheberrechtlich geschützten Inhalte wie Filme, Serien, Musik, Bilder oder sonstige Werke hochgeladen werden, wenn Sie nicht im Besitz der dafür notwendigen Rechte oder Lizenzen sind.</p>
+                        <p>Inhalte, die gegen geltendes Recht oder Rechte Dritter verstoßen, werden nach Hinweis unverzüglich entfernt.</p>
+                    </div>
                     
-                    <h4 class="mt-2">3. Datenschutz</h4>
-                    <p>DSGVO-konforme Datenspeicherung, SSL-Verschlüsselung und Hosting auf sicheren EU-Servern. Nutzer haben jederzeit Auskunfts-, Löschungs- und Widerspruchsrechte.</p>
+                    <div class="legal-item">
+                        <h4>2. Haftungsbeschränkung</h4>
+                        <p>Die Nutzung von GerKino erfolgt auf eigene Verantwortung. Die Plattform wird „wie sie ist" bereitgestellt – es besteht kein Anspruch auf Verfügbarkeit oder Fehlerfreiheit.</p>
+                        <p>GerKino übernimmt keine Haftung für Schäden, Verluste oder rechtliche Konsequenzen, die aus dem Hochladen, Teilen oder Konsumieren von Inhalten resultieren. Lediglich bei grober Fahrlässigkeit oder Vorsatz durch GerKino selbst besteht eine mögliche Haftung.</p>
+                    </div>
                     
-                    <h4 class="mt-2">4. Meldung von Verstößen</h4>
-                    <p>Rechtsverletzende Inhalte können gemeldet werden und werden nach Prüfung umgehend entfernt.</p>
-                </div>
-                
-                <div class="mt-3">
-                    <button class="btn btn-outline">Vollständige AGB lesen</button>
-                    <button class="btn btn-outline">Datenschutzerklärung</button>
+                    <div class="legal-item">
+                        <h4>3. Verantwortung der Nutzer</h4>
+                        <p>Nutzer garantieren, dass sie alle Rechte an den hochgeladenen Inhalten besitzen. Sie verpflichten sich, GerKino im Falle von rechtlichen Ansprüchen Dritter vollständig freizustellen und schadlos zu halten.</p>
+                        <p>Für sämtliche rechtlichen Verstöße durch eigene Inhalte haftet ausschließlich der jeweilige Nutzer – nicht die Plattform.</p>
+                    </div>
+                    
+                    <div class="legal-item">
+                        <h4>4. Meldung von Verstößen</h4>
+                        <p>GerKino ermöglicht die Meldung rechtsverletzender Inhalte (z.B. durch Urheber oder Rechteinhaber). Nach erfolgter Prüfung wird der betreffende Inhalt umgehend entfernt oder gesperrt.</p>
+                        <p>Nutzer können bei fehlerhafter Entfernung einen Nachweis erbringen, dass sie berechtigt sind, die Inhalte zu verwenden.</p>
+                    </div>
+                    
+                    <div class="legal-item">
+                        <h4>5. Datenschutz</h4>
+                        <p>Wir verarbeiten Ihre Daten gemäß der DSGVO. Dies umfasst:</p>
+                        <ul>
+                            <li>SSL-Verschlüsselung aller Datenübertragungen</li>
+                            <li>Hosting auf sicheren EU-Servern</li>
+                            <li>Keine Weitergabe an Dritte ohne Einwilligung</li>
+                            <li>Ihre Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung und Widerspruch</li>
+                        </ul>
+                        <p>Ausführliche Informationen finden Sie in unserer <a href="#" style="color: var(--primary);">Datenschutzerklärung</a>.</p>
+                    </div>
+                    
+                    <div class="legal-item">
+                        <h4>6. Geltendes Recht</h4>
+                        <p>Es gilt das Recht der Bundesrepublik Deutschland. Gerichtsstand ist der Sitz von GerKino, sofern gesetzlich nichts anderes vorgeschrieben ist.</p>
+                    </div>
+                    
+                    <div class="mt-4" style="text-align: center;">
+                        <button class="btn btn-primary">
+                            <span class="btn-icon">📝</span>
+                            <span>Vollständige AGB anzeigen</span>
+                        </button>
+                        <button class="btn btn-outline">
+                            <span class="btn-icon">🔒</span>
+                            <span>Datenschutzerklärung</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -604,53 +1473,66 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-column">
+            <div class="footer-grid">
+                <div class="footer-col">
                     <h3>GerKino</h3>
-                    <ul>
+                    <ul class="footer-links">
                         <li><a href="#">Über uns</a></li>
                         <li><a href="#">Karriere</a></li>
                         <li><a href="#">Presse</a></li>
                         <li><a href="#">Blog</a></li>
+                        <li><a href="#">Hilfe Center</a></li>
                     </ul>
                 </div>
                 
-                <div class="footer-column">
+                <div class="footer-col">
                     <h3>Rechtliches</h3>
-                    <ul>
+                    <ul class="footer-links">
                         <li><a href="#">Nutzungsbedingungen</a></li>
                         <li><a href="#">Datenschutz</a></li>
                         <li><a href="#">Cookie-Richtlinie</a></li>
                         <li><a href="#">Impressum</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-column">
-                    <h3>Hilfe</h3>
-                    <ul>
-                        <li><a href="#">FAQ</a></li>
-                        <li><a href="#">Support Center</a></li>
-                        <li><a href="#">Kontakt</a></li>
                         <li><a href="#">Community-Richtlinien</a></li>
                     </ul>
                 </div>
                 
-                <div class="footer-column">
-                    <h3>Kontakt</h3>
-                    <ul>
-                        <li>Support: <a href="mailto:support@gerkino.com">support@gerkino.com</a></li>
-                        <li>Datenschutz: <a href="mailto:datenschutz@gerkino.com">datenschutz@gerkino.com</a></li>
-                        <li>Geplante Domain: www.gerkino.com</li>
+                <div class="footer-col">
+                    <h3>Entdecken</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Beliebte Videos</a></li>
+                        <li><a href="#">Trending</a></li>
+                        <li><a href="#">Neu hochgeladen</a></li>
+                        <li><a href="#">Kategorien</a></li>
+                        <li><a href="#">Creator Programm</a></li>
                     </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Kontakt</h3>
+                    <ul class="footer-links">
+                        <li><a href="mailto:support@gerkino.com">support@gerkino.com</a></li>
+                        <li><a href="mailto:datenschutz@gerkino.com">datenschutz@gerkino.com</a></li>
+                        <li><a href="#">Presseanfragen</a></li>
+                        <li><a href="#">Rechtliche Anfragen</a></li>
+                    </ul>
+                    
+                    <div class="social-links">
+                        <a href="#" class="social-link">📱</a>
+                        <a href="#" class="social-link">🐦</a>
+                        <a href="#" class="social-link">📸</a>
+                        <a href="#" class="social-link">💻</a>
+                    </div>
                 </div>
             </div>
             
             <div class="footer-bottom">
                 <p>© 2023 GerKino - Eine moderne, KI-gestützte Video-Streaming-Plattform. Alle Rechte vorbehalten.</p>
+                <p class="mt-1">Geplante Domain: <a href="https://www.gerkino.com" style="color: var(--primary);">www.gerkino.com</a></p>
             </div>
         </div>
     </footer>
 
+    <!-- Backend Simulation (would be separate in production) -->
     <script>
         // Dark Mode Toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
@@ -675,13 +1557,259 @@
         
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
+            anchor.addEventListener('click', function(e) {
                 e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
             });
         });
+        
+        // Video Player Functionality
+        const videoPlayer = document.getElementById('video-player');
+        const playPauseBtn = document.getElementById('play-pause');
+        const muteBtn = document.getElementById('mute');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.querySelector('.progress-container');
+        const timeDisplay = document.getElementById('time-display');
+        const speedBtns = document.querySelectorAll('.speed-btn');
+        const subtitleBtn = document.getElementById('subtitle');
+        const fullscreenBtn = document.getElementById('fullscreen');
+        
+        // Play/Pause toggle
+        playPauseBtn.addEventListener('click', () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                playPauseBtn.textContent = '⏸️';
+            } else {
+                videoPlayer.pause();
+                playPauseBtn.textContent = '⏯️';
+            }
+        });
+        
+        // Mute toggle
+        muteBtn.addEventListener('click', () => {
+            videoPlayer.muted = !videoPlayer.muted;
+            muteBtn.textContent = videoPlayer.muted ? '🔇' : '🔊';
+        });
+        
+        // Update progress bar
+        videoPlayer.addEventListener('timeupdate', () => {
+            const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // Update time display
+            const currentMins = Math.floor(videoPlayer.currentTime / 60);
+            const currentSecs = Math.floor(videoPlayer.currentTime % 60).toString().padStart(2, '0');
+            const durationMins = Math.floor(videoPlayer.duration / 60);
+            const durationSecs = Math.floor(videoPlayer.duration % 60).toString().padStart(2, '0');
+            
+            timeDisplay.textContent = `${currentMins}:${currentSecs} / ${durationMins}:${durationSecs}`;
+        });
+        
+        // Click on progress bar to seek
+        progressContainer.addEventListener('click', (e) => {
+            const pos = (e.pageX - progressContainer.offsetLeft) / progressContainer.offsetWidth;
+            videoPlayer.currentTime = pos * videoPlayer.duration;
+        });
+        
+        // Playback speed controls
+        speedBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                videoPlayer.playbackRate = btn.dataset.speed;
+                speedBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Subtitle toggle (simulated)
+        subtitleBtn.addEventListener('click', () => {
+            // In a real implementation, this would toggle subtitles
+            alert('KI-generierte Untertitel würden jetzt ein-/ausgeblendet werden');
+        });
+        
+        // Fullscreen toggle
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                videoPlayer.requestFullscreen().catch(err => {
+                    alert(`Fehler beim Öffnen des Vollbildmodus: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        
+        // Upload Functionality
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const uploadForm = document.getElementById('upload-form');
+        const uploadProgress = document.getElementById('upload-progress');
+        const uploadStatus = document.getElementById('upload-status');
+        
+        // Drag and drop upload
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--primary)';
+            uploadArea.style.backgroundColor = 'rgba(58, 134, 255, 0.05)';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = 'var(--border)';
+            uploadArea.style.backgroundColor = '';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--border)';
+            uploadArea.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateUploadPreview();
+            }
+        });
+        
+        // Click to select files
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', updateUploadPreview);
+        
+        function updateUploadPreview() {
+            if (fileInput.files.length > 0) {
+                const filesList = Array.from(fileInput.files).map(file => file.name).join(', ');
+                uploadStatus.textContent = `Ausgewählte Dateien: ${filesList}`;
+                uploadStatus.style.color = 'var(--text)';
+            }
+        }
+        
+        // Form submission (simulated upload)
+        uploadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (!fileInput.files.length) {
+                uploadStatus.textContent = 'Bitte wählen Sie mindestens eine Datei aus';
+                uploadStatus.style.color = 'var(--danger)';
+                return;
+            }
+            
+            // Simulate upload progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    uploadStatus.innerHTML = 'Upload abgeschlossen! <span style="color:var(--success)">✓</span>';
+                    
+                    // Reset form after delay
+                    setTimeout(() => {
+                        uploadForm.reset();
+                        uploadProgress.style.width = '0%';
+                        uploadStatus.textContent = '';
+                    }, 3000);
+                }
+                uploadProgress.style.width = `${progress}%`;
+                uploadStatus.textContent = `Upload läuft... ${Math.round(progress)}%`;
+            }, 300);
+        });
+        
+        // Cookie Banner
+        const cookieBanner = document.querySelector('.cookie-banner');
+        const cookieAccept = document.getElementById('cookie-accept');
+        const cookieDecline = document.getElementById('cookie-decline');
+        
+        // Show cookie banner if not already accepted
+        if (!localStorage.getItem('cookiesAccepted')) {
+            setTimeout(() => {
+                cookieBanner.style.display = 'block';
+            }, 1000);
+        }
+        
+        cookieAccept.addEventListener('click', () => {
+            cookieBanner.style.display = 'none';
+            localStorage.setItem('cookiesAccepted', 'true');
+        });
+        
+        cookieDecline.addEventListener('click', () => {
+            cookieBanner.style.display = 'none';
+            localStorage.setItem('cookiesAccepted', 'false');
+        });
+        
+        // Simulate KI-Funktionen
+        function simulateKIContentModeration() {
+            console.log("KI-Moderation: Analysiere hochgeladene Inhalte auf Urheberrechtsverletzungen...");
+            // In a real implementation, this would call a backend API
+        }
+        
+        function generateAISubtitles() {
+            console.log("KI-Untertitel: Generiere automatische Untertitel für Videos...");
+            // In a real implementation, this would use a service like Whisper AI
+        }
+        
+        function provideAIRecommendations() {
+            console.log("KI-Empfehlungen: Analysiere Nutzerverhalten für personalisierte Vorschläge...");
+            // In a real implementation, this would use machine learning models
+        }
+        
+        // Initialize simulated AI features
+        simulateKIContentModeration();
+        generateAISubtitles();
+        provideAIRecommendations();
+    </script>
+
+    <!-- Backend Simulation (Node.js) - This would be in a separate file in production -->
+    <script type="text/javascript">
+        // This is a simulation of what the backend would do
+        console.log("Backend-Simulation gestartet...");
+        
+        // Simulated database
+        const simulatedDB = {
+            users: [],
+            videos: [],
+            categories: [
+                { id: 1, name: "Action", count: 1234 },
+                { id: 2, name: "Drama", count: 876 },
+                // ... other categories
+            ]
+        };
+        
+        // Simulated API endpoints
+        function registerUser(email, password) {
+            console.log(`Registriere neuen Benutzer: ${email}`);
+            // In a real implementation, this would hash the password
+            const newUser = { id: simulatedDB.users.length + 1, email, password };
+            simulatedDB.users.push(newUser);
+            return newUser;
+        }
+        
+        function uploadVideo(file, metadata) {
+            console.log(`Lade Video hoch: ${file.name}`);
+            // In a real implementation, this would process the file
+            const newVideo = { 
+                id: simulatedDB.videos.length + 1,
+                title: metadata.title,
+                description: metadata.description,
+                genre: metadata.genre,
+                uploadDate: new Date(),
+                views: 0,
+                likes: 0
+            };
+            simulatedDB.videos.push(newVideo);
+            return newVideo;
+        }
+        
+        // Simulate backend initialization
+        console.log("Backend bereit. Simulierte Endpunkte:");
+        console.log("- POST /api/register");
+        console.log("- POST /api/login");
+        console.log("- POST /api/videos/upload");
+        console.log("- GET /api/videos");
+        console.log("- GET /api/categories");
     </script>
 </body>
-  </html>
+</html>
