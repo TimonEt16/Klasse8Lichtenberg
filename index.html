@@ -443,7 +443,7 @@
             box-shadow: 0 0 20px rgba(255, 50, 50, 0.5);
         }
         
-        /* Ladeanimation */
+        /* Ladeanimation verbessert */
         .loader-container {
             position: fixed;
             top: 0;
@@ -474,6 +474,50 @@
             font-size: 24px;
             font-family: 'MedievalSharp', cursive;
             text-align: center;
+            margin-bottom: 15px;
+            animation: pulse 1.5s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background: rgba(123, 90, 50, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #7b5a32, #d4af37);
+            width: 0%;
+            transition: width 0.3s;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        
+        .branding {
+            position: absolute;
+            bottom: 30px;
+            color: #d4af37;
+            font-family: 'MedievalSharp', cursive;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .branding h2 {
+            font-size: 28px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+        
+        .branding p {
+            font-size: 14px;
         }
         
         @keyframes spin {
@@ -598,12 +642,122 @@
                 transform: translate(-50%, -50%) scale(1.5);
             }
         }
+        
+        /* Verbesserte Weltgrenzen */
+        .world-boundary {
+            position: absolute;
+            background: rgba(255, 50, 50, 0.3);
+            z-index: 50;
+            box-shadow: 0 0 20px rgba(255, 50, 50, 0.5);
+        }
+        
+        .boundary-indicator {
+            position: absolute;
+            background: rgba(255, 50, 50, 0.5);
+            z-index: 49;
+            box-shadow: 0 0 15px rgba(255, 50, 50, 0.7);
+        }
+        
+        /* Touch-Steuerung für Mobilgeräte */
+        .touch-controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 120px;
+            height: 120px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .joystick {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: rgba(10, 15, 25, 0.7);
+            border-radius: 50%;
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+        
+        .joystick-handle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(212, 175, 55, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .touch-boost {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(255, 107, 53, 0.7);
+            border: 2px solid rgba(255, 200, 50, 0.8);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.5);
+        }
+        
+        /* Responsive Anpassungen */
+        @media (max-width: 768px) {
+            .ui {
+                top: 15px;
+                left: 15px;
+                gap: 10px;
+            }
+            
+            .game-stats {
+                padding: 15px;
+            }
+            
+            .leaderboard {
+                top: 15px;
+                right: 15px;
+                padding: 15px;
+                max-width: 200px;
+            }
+            
+            .minimap {
+                bottom: 15px;
+                right: 15px;
+                width: 150px;
+                height: 110px;
+            }
+            
+            .controls-hint {
+                bottom: 160px;
+                left: 15px;
+                font-size: 12px;
+            }
+            
+            .touch-controls, .touch-boost {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="loader-container" id="loader">
         <div class="loader"></div>
         <div class="loader-text" id="loaderText">Lade Astora...</div>
+        <div class="progress-bar">
+            <div class="progress" id="loaderProgress"></div>
+        </div>
+        <div class="branding">
+            <h2>Astora</h2>
+            <p>Schlange der Ewigkeit</p>
+        </div>
     </div>
     
     <div class="language-selector">
@@ -721,6 +875,17 @@
     </div>
     
     <div class="achievement-container" id="achievementContainer"></div>
+    
+    <!-- Touch-Steuerung für Mobilgeräte -->
+    <div class="touch-controls" id="touchControls">
+        <div class="joystick">
+            <div class="joystick-handle" id="joystickHandle"></div>
+        </div>
+    </div>
+    
+    <div class="touch-boost" id="touchBoost">
+        🚀
+    </div>
 
     <!-- Audio Elemente -->
     <audio id="backgroundMusic" loop>
@@ -949,6 +1114,7 @@
         const boostOverlay = document.getElementById("boostOverlay");
         const restartButton = document.getElementById("restartButton");
         const loader = document.getElementById("loader");
+        const loaderProgress = document.getElementById("loaderProgress");
 
         // Canvas-Größe anpassen
         function resizeCanvas() {
@@ -1012,7 +1178,8 @@
             blastRadius: 100,
             blastDamage: 50,
             healAmount: 20,
-            boundaryWidth: 15
+            boundaryWidth: 15,
+            maxParticles: 500 // Begrenzung für Performance
         };
 
         // Lokale Bestenliste
@@ -1070,6 +1237,74 @@
                 stopBoost();
             }
         });
+
+        // Touch-Steuerung für Mobilgeräte
+        const touchBoost = document.getElementById('touchBoost');
+        const joystickHandle = document.getElementById('joystickHandle');
+        let touchActive = false;
+        let joystickPosition = { x: 0, y: 0 };
+        const joystickRadius = 40;
+
+        if ('ontouchstart' in window) {
+            document.getElementById('touchControls').style.display = 'block';
+            touchBoost.style.display = 'flex';
+            
+            touchBoost.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startBoost();
+            });
+            
+            touchBoost.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                stopBoost();
+            });
+            
+            const joystick = document.querySelector('.joystick');
+            joystick.addEventListener('touchstart', handleTouchStart);
+            document.addEventListener('touchmove', handleTouchMove);
+            document.addEventListener('touchend', handleTouchEnd);
+            
+            function handleTouchStart(e) {
+                touchActive = true;
+                const rect = joystick.getBoundingClientRect();
+                joystickPosition = {
+                    x: rect.left + rect.width/2,
+                    y: rect.top + rect.height/2
+                };
+            }
+            
+            function handleTouchMove(e) {
+                if (!touchActive) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const dx = touch.clientX - joystickPosition.x;
+                const dy = touch.clientY - joystickPosition.y;
+                const dist = Math.hypot(dx, dy);
+                const angle = Math.atan2(dy, dx);
+                
+                const limitedDist = Math.min(dist, joystickRadius);
+                const moveX = limitedDist * Math.cos(angle);
+                const moveY = limitedDist * Math.sin(angle);
+                
+                // Joystick-Handle bewegen
+                joystickHandle.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                
+                // Richtung setzen
+                if (dist > 10) {
+                    gameState.direction = { 
+                        x: dx / dist, 
+                        y: dy / dist 
+                    };
+                }
+            }
+            
+            function handleTouchEnd(e) {
+                touchActive = false;
+                joystickHandle.style.transform = 'translate(-50%, -50%)';
+                gameState.direction = { x: 0, y: 0 };
+            }
+        }
 
         // Gegner-System
         function spawnEnemy() {
@@ -1193,15 +1428,17 @@
                     
                     // Explosionspartikel
                     for (let i = 0; i < 10; i++) {
-                        gameState.particles.push({
-                            x: (newHead.x + head.x) / 2,
-                            y: (newHead.y + head.y) / 2,
-                            vx: (Math.random() - 0.5) * 10,
-                            vy: (Math.random() - 0.5) * 10,
-                            life: 1,
-                            decay: 0.05,
-                            color: '#ff4757'
-                        });
+                        if (gameState.particles.length < CONFIG.maxParticles) {
+                            gameState.particles.push({
+                                x: (newHead.x + head.x) / 2,
+                                y: (newHead.y + head.y) / 2,
+                                vx: (Math.random() - 0.5) * 10,
+                                vy: (Math.random() - 0.5) * 10,
+                                life: 1,
+                                decay: 0.05,
+                                color: '#ff4757'
+                            });
+                        }
                     }
                 }
             });
@@ -1280,15 +1517,17 @@
             
             // Partikel-Effekt
             for (let i = 0; i < 30; i++) {
-                gameState.particles.push({
-                    x: powerUp.x,
-                    y: powerUp.y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1,
-                    decay: 0.03,
-                    color: powerUp.color
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    gameState.particles.push({
+                        x: powerUp.x,
+                        y: powerUp.y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
+                        life: 1,
+                        decay: 0.03,
+                        color: powerUp.color
+                    });
+                }
             }
             
             playSound(powerUpSound);
@@ -1321,18 +1560,20 @@
             const blastParticles = 50;
             
             for (let i = 0; i < blastParticles; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 15 + 5;
-                
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 1,
-                    decay: 0.02,
-                    color: '#ff4757'
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 15 + 5;
+                    
+                    gameState.particles.push({
+                        x: head.x,
+                        y: head.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1,
+                        decay: 0.02,
+                        color: '#ff4757'
+                    });
+                }
             }
             
             // Gegnern Schaden zufügen
@@ -1399,18 +1640,20 @@
             const head = gameState.snake[0];
             
             for (let i = 0; i < 30; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = CONFIG.snakeRadius * 2;
-                
-                gameState.particles.push({
-                    x: head.x + Math.cos(angle) * radius,
-                    y: head.y + Math.sin(angle) * radius,
-                    vx: Math.cos(angle + Math.PI/2) * 2,
-                    vy: Math.sin(angle + Math.PI/2) * 2,
-                    life: 1,
-                    decay: 0.01,
-                    color: '#7b68ee'
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = CONFIG.snakeRadius * 2;
+                    
+                    gameState.particles.push({
+                        x: head.x + Math.cos(angle) * radius,
+                        y: head.y + Math.sin(angle) * radius,
+                        vx: Math.cos(angle + Math.PI/2) * 2,
+                        vy: Math.sin(angle + Math.PI/2) * 2,
+                        life: 1,
+                        decay: 0.01,
+                        color: '#7b68ee'
+                    });
+                }
             }
             
             playSound(abilitySound);
@@ -1443,15 +1686,17 @@
             const head = gameState.snake[0];
             
             for (let i = 0; i < 30; i++) {
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: (Math.random() - 0.5) * 5,
-                    vy: (Math.random() - 0.5) * 5,
-                    life: 1,
-                    decay: 0.03,
-                    color: '#2ed573'
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    gameState.particles.push({
+                        x: head.x,
+                        y: head.y,
+                        vx: (Math.random() - 0.5) * 5,
+                        vy: (Math.random() - 0.5) * 5,
+                        life: 1,
+                        decay: 0.03,
+                        color: '#2ed573'
+                    });
+                }
             }
             
             playSound(abilitySound);
@@ -1478,18 +1723,20 @@
             const head = gameState.snake[0];
             
             for (let i = 0; i < 100; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 10 + 5;
-                
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 1,
-                    decay: 0.01,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 10 + 5;
+                    
+                    gameState.particles.push({
+                        x: head.x,
+                        y: head.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 1,
+                        decay: 0.01,
+                        color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                    });
+                }
             }
             
             // Animation anzeigen
@@ -1515,29 +1762,33 @@
             
             const head = gameState.snake[0];
             for (let i = 0; i < 3; i++) {
-                gameState.particles.push({
-                    x: head.x + (Math.random() - 0.5) * 20,
-                    y: head.y + (Math.random() - 0.5) * 20,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 1,
-                    decay: 0.02,
-                    color: `hsl(${15 + Math.random() * 30}, 100%, ${50 + Math.random() * 30}%)`
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    gameState.particles.push({
+                        x: head.x + (Math.random() - 0.5) * 20,
+                        y: head.y + (Math.random() - 0.5) * 20,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        life: 1,
+                        decay: 0.02,
+                        color: `hsl(${15 + Math.random() * 30}, 100%, ${50 + Math.random() * 30}%)`
+                    });
+                }
             }
         }
 
         function createFoodParticles(x, y) {
             for (let i = 0; i < CONFIG.particleCount; i++) {
-                gameState.particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    life: 1,
-                    decay: 0.05,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    gameState.particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 8,
+                        vy: (Math.random() - 0.5) * 8,
+                        life: 1,
+                        decay: 0.05,
+                        color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                    });
+                }
             }
         }
 
@@ -1603,7 +1854,7 @@
             gameState.camera.y = Math.max(0, Math.min(gameState.world.height - canvas.height, gameState.camera.y));
         }
 
-        // Zeichne Kartenbegrenzung
+        // Zeichne Kartenbegrenzung mit verbessertem Design
         function drawWorldBoundaries() {
             ctx.save();
             ctx.translate(-gameState.camera.x, -gameState.camera.y);
@@ -1615,6 +1866,10 @@
             if (gameState.camera.x < boundaryWidth) {
                 ctx.fillStyle = boundaryColor;
                 ctx.fillRect(0, 0, boundaryWidth, gameState.world.height);
+                
+                // Glüheffekt
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+                ctx.fillRect(0, 0, 5, gameState.world.height);
             }
             
             // Rechte Grenze
@@ -1626,12 +1881,20 @@
                     boundaryWidth, 
                     gameState.world.height
                 );
+                
+                // Glüheffekt
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+                ctx.fillRect(gameState.world.width - 5, 0, 5, gameState.world.height);
             }
             
             // Obere Grenze
             if (gameState.camera.y < boundaryWidth) {
                 ctx.fillStyle = boundaryColor;
                 ctx.fillRect(0, 0, gameState.world.width, boundaryWidth);
+                
+                // Glüheffekt
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+                ctx.fillRect(0, 0, gameState.world.width, 5);
             }
             
             // Untere Grenze
@@ -1643,6 +1906,10 @@
                     gameState.world.width, 
                     boundaryWidth
                 );
+                
+                // Glüheffekt
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
+                ctx.fillRect(0, gameState.world.height - 5, gameState.world.width, 5);
             }
             
             ctx.restore();
@@ -1792,15 +2059,17 @@
                     
                     // Explosionspartikel
                     for (let j = 0; j < 30; j++) {
-                        gameState.particles.push({
-                            x: enemy.segments[0].x,
-                            y: enemy.segments[0].y,
-                            vx: (Math.random() - 0.5) * 10,
-                            vy: (Math.random() - 0.5) * 10,
-                            life: 1,
-                            decay: 0.03,
-                            color: enemy.color
-                        });
+                        if (gameState.particles.length < CONFIG.maxParticles) {
+                            gameState.particles.push({
+                                x: enemy.segments[0].x,
+                                y: enemy.segments[0].y,
+                                vx: (Math.random() - 0.5) * 10,
+                                vy: (Math.random() - 0.5) * 10,
+                                life: 1,
+                                decay: 0.03,
+                                color: enemy.color
+                            });
+                        }
                     }
                     
                     gameState.enemies.splice(i, 1);
@@ -2228,16 +2497,18 @@
             
             // Explosion-Effekt
             for (let i = 0; i < 50; i++) {
-                const head = gameState.snake[0];
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: (Math.random() - 0.5) * 15,
-                    vy: (Math.random() - 0.5) * 15,
-                    life: 1,
-                    decay: 0.02,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
-                });
+                if (gameState.particles.length < CONFIG.maxParticles) {
+                    const head = gameState.snake[0];
+                    gameState.particles.push({
+                        x: head.x,
+                        y: head.y,
+                        vx: (Math.random() - 0.5) * 15,
+                        vy: (Math.random() - 0.5) * 15,
+                        life: 1,
+                        decay: 0.02,
+                        color: `hsl(${Math.random() * 360}, 100%, 70%)`
+                    });
+                }
             }
         }
 
@@ -2364,7 +2635,7 @@
             setTimeout(() => {
                 loader.style.opacity = '0';
                 loader.style.visibility = 'hidden';
-            }, 2000);
+            }, 3000);
         }
 
         // ==== HAUPTSCHLEIFE ====
@@ -2379,8 +2650,22 @@
 
         // ==== START DES SPIELS ====
         window.addEventListener('load', () => {
-            initGame();
-            requestAnimationFrame(enhancedGameLoop);
+            // Ladeanimation simulieren
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loader.style.opacity = '0';
+                        loader.style.visibility = 'hidden';
+                        initGame();
+                        requestAnimationFrame(enhancedGameLoop);
+                    }, 500);
+                }
+                loaderProgress.style.width = `${progress}%`;
+            }, 200);
         });
     </script>
 </body>
