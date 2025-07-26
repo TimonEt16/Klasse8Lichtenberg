@@ -440,13 +440,6 @@
             margin-top: -5px;
             color: #ffd700;
         }
-        
-        .world-boundary {
-            position: absolute;
-            background: rgba(255, 50, 50, 0.3);
-            z-index: 50;
-            box-shadow: 0 0 20px rgba(255, 50, 50, 0.5);
-        }
     </style>
 </head>
 <body>
@@ -542,7 +535,7 @@
                 <div id="enemiesDefeated">0</div>
             </div>
         </div>
-        <button class="restart-btn" id="restartButton">🔄 Neu starten</button>
+        <button class="restart-btn" onclick="restartGame()">🔄 Neu starten</button>
     </div>
 
     <script>
@@ -551,7 +544,6 @@
         const minimap = document.getElementById("minimap");
         const minimapCtx = minimap.getContext("2d");
         const boostOverlay = document.getElementById("boostOverlay");
-        const restartButton = document.getElementById("restartButton");
 
         // Canvas-Größe anpassen
         function resizeCanvas() {
@@ -614,8 +606,7 @@
             powerUpSpawnRate: 15000,
             blastRadius: 100,
             blastDamage: 50,
-            healAmount: 20,
-            boundaryWidth: 15  // Breite der Kartenbegrenzung
+            healAmount: 20
         };
 
         // Lokale Bestenliste
@@ -812,7 +803,6 @@
 
         // Hindernisse
         function spawnObstacles() {
-            gameState.obstacles = [];
             for (let i = 0; i < CONFIG.obstacleCount; i++) {
                 gameState.obstacles.push({
                     x: Math.random() * gameState.world.width,
@@ -1126,7 +1116,6 @@
 
         // Erweiterte Futter-Generierung
         function spawnFood() {
-            gameState.food = [];
             while (gameState.food.length < CONFIG.maxFood) {
                 let attempts = 0;
                 let newFood;
@@ -1164,51 +1153,6 @@
             // Kamera-Grenzen
             gameState.camera.x = Math.max(0, Math.min(gameState.world.width - canvas.width, gameState.camera.x));
             gameState.camera.y = Math.max(0, Math.min(gameState.world.height - canvas.height, gameState.camera.y));
-        }
-
-        // Zeichne Kartenbegrenzung
-        function drawWorldBoundaries() {
-            ctx.save();
-            ctx.translate(-gameState.camera.x, -gameState.camera.y);
-            
-            const boundaryWidth = CONFIG.boundaryWidth;
-            const boundaryColor = 'rgba(255, 50, 50, 0.5)';
-            
-            // Linke Grenze
-            if (gameState.camera.x < boundaryWidth) {
-                ctx.fillStyle = boundaryColor;
-                ctx.fillRect(0, 0, boundaryWidth, gameState.world.height);
-            }
-            
-            // Rechte Grenze
-            if (gameState.camera.x + canvas.width > gameState.world.width - boundaryWidth) {
-                ctx.fillStyle = boundaryColor;
-                ctx.fillRect(
-                    gameState.world.width - boundaryWidth, 
-                    0, 
-                    boundaryWidth, 
-                    gameState.world.height
-                );
-            }
-            
-            // Obere Grenze
-            if (gameState.camera.y < boundaryWidth) {
-                ctx.fillStyle = boundaryColor;
-                ctx.fillRect(0, 0, gameState.world.width, boundaryWidth);
-            }
-            
-            // Untere Grenze
-            if (gameState.camera.y + canvas.height > gameState.world.height - boundaryWidth) {
-                ctx.fillStyle = boundaryColor;
-                ctx.fillRect(
-                    0, 
-                    gameState.world.height - boundaryWidth, 
-                    gameState.world.width, 
-                    boundaryWidth
-                );
-            }
-            
-            ctx.restore();
         }
 
         // Hauptspiel-Update
@@ -1400,9 +1344,6 @@
 
             // Grid-System
             drawGrid();
-
-            // Zeichne Kartenbegrenzungen
-            drawWorldBoundaries();
 
             ctx.save();
             ctx.translate(-gameState.camera.x, -gameState.camera.y);
@@ -1766,7 +1707,7 @@
         }
 
         function restartGame() {
-            // Vollständiger Reset des Spielzustands
+            // Reset game state
             gameState = {
                 snake: [{ 
                     x: gameState.world.width / 2, 
@@ -1806,14 +1747,10 @@
             gameOverDiv.classList.remove("show");
             setTimeout(() => gameOverDiv.style.display = "none", 500);
             
-            // Spielwelt neu generieren
             spawnFood();
             spawnObstacles();
             updateUI();
         }
-
-        // Event-Listener für Neustart-Button
-        restartButton.addEventListener('click', restartGame);
 
         // Touch-Steuerung für Mobile
         let touchStart = null;
