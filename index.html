@@ -440,6 +440,35 @@
             margin-top: -5px;
             color: #ffd700;
         }
+        
+        /* Sound Controls */
+        .sound-controls {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .sound-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(10, 15, 25, 0.7);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            color: #d4af37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+        }
+        
+        .sound-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -477,6 +506,11 @@
             </div>
         </div>
         <button id="boostBtn">🚀 BOOST (F4)</button>
+    </div>
+    
+    <div class="sound-controls">
+        <div class="sound-btn" id="soundToggle" title="Sound an/aus">🔊</div>
+        <div class="sound-btn" id="musicToggle" title="Musik an/aus">🎵</div>
     </div>
 
     <div class="level-indicator">
@@ -549,6 +583,8 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            minimap.width = 200;
+            minimap.height = 150;
         }
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
@@ -606,11 +642,38 @@
             powerUpSpawnRate: 15000,
             blastRadius: 100,
             blastDamage: 50,
-            healAmount: 20
+            healAmount: 20,
+            enemySpeed: 2
         };
 
         // Lokale Bestenliste
         let leaderboard = JSON.parse(localStorage.getItem('astoraLeaderboard') || '[]');
+
+        // Soundeffekte
+        let soundsEnabled = true;
+        const soundEffects = {
+            boost: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            food: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            powerup: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            blast: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            shield: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            heal: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            levelup: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            gameover: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"),
+            hit: new Audio("data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+        };
+
+        // Soundeffekte initialisieren
+        Object.values(soundEffects).forEach(sound => {
+            sound.preload = "auto";
+            sound.volume = 0.5;
+        });
+
+        // Sound-Steuerung
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            soundsEnabled = !soundsEnabled;
+            document.getElementById('soundToggle').textContent = soundsEnabled ? "🔊" : "🔇";
+        });
 
         // Custom Cursor
         const cursor = document.getElementById('customCursor');
@@ -649,6 +712,11 @@
                 boostBtn.classList.add("boosting");
                 boostOverlay.classList.add("active");
                 createBoostParticles();
+                
+                if (soundsEnabled) {
+                    soundEffects.boost.currentTime = 0;
+                    soundEffects.boost.play().catch(e => console.log("Sound play error:", e));
+                }
             }
         }
         
@@ -728,7 +796,7 @@
             
             gameState.enemies.forEach(enemy => {
                 // Richtung aktualisieren
-                enemy.lastDirectionChange += deltaTime * 16.67;
+                enemy.lastDirectionChange += deltaTime;
                 
                 if (enemy.lastDirectionChange > enemy.directionChangeInterval) {
                     enemy.lastDirectionChange = 0;
@@ -796,6 +864,12 @@
                             decay: 0.05,
                             color: '#ff4757'
                         });
+                    }
+                    
+                    // Hit-Soundeffekt
+                    if (soundsEnabled && !gameState.shieldActive) {
+                        soundEffects.hit.currentTime = 0;
+                        soundEffects.hit.play().catch(e => console.log("Sound play error:", e));
                     }
                 }
             });
@@ -883,6 +957,12 @@
                     color: powerUp.color
                 });
             }
+            
+            // Power-Up-Sound
+            if (soundsEnabled) {
+                soundEffects.powerup.currentTime = 0;
+                soundEffects.powerup.play().catch(e => console.log("Sound play error:", e));
+            }
         }
 
         // Fähigkeiten
@@ -952,6 +1032,12 @@
                     }
                 }
             });
+            
+            // Blast-Sound
+            if (soundsEnabled) {
+                soundEffects.blast.currentTime = 0;
+                soundEffects.blast.play().catch(e => console.log("Sound play error:", e));
+            }
         }
 
         function useShieldAbility() {
@@ -999,6 +1085,12 @@
                     color: '#7b68ee'
                 });
             }
+            
+            // Shield-Sound
+            if (soundsEnabled) {
+                soundEffects.shield.currentTime = 0;
+                soundEffects.shield.play().catch(e => console.log("Sound play error:", e));
+            }
         }
 
         function useHealAbility() {
@@ -1037,6 +1129,12 @@
                     color: '#2ed573'
                 });
             }
+            
+            // Heal-Sound
+            if (soundsEnabled) {
+                soundEffects.heal.currentTime = 0;
+                soundEffects.heal.play().catch(e => console.log("Sound play error:", e));
+            }
         }
 
         // Level-System
@@ -1072,6 +1170,12 @@
                     decay: 0.01,
                     color: `hsl(${Math.random() * 360}, 100%, 70%)`
                 });
+            }
+            
+            // Level-Up-Sound
+            if (soundsEnabled) {
+                soundEffects.levelup.currentTime = 0;
+                soundEffects.levelup.play().catch(e => console.log("Sound play error:", e));
             }
             
             // Level 2+ Schwierigkeitserhöhung
@@ -1159,7 +1263,8 @@
         function update(currentTime) {
             if (!gameState.gameRunning) return;
             
-            const deltaTime = (currentTime - gameState.lastTime) / 16.67;
+            // DeltaTime in Sekunden berechnen
+            const deltaTime = (currentTime - gameState.lastTime) / 1000;
             gameState.lastTime = currentTime;
 
             // Boost-Partikel
@@ -1238,6 +1343,12 @@
                     createFoodParticles(food.x, food.y);
                     gameState.food.splice(i, 1);
                     
+                    // Food-Soundeffekt
+                    if (soundsEnabled) {
+                        soundEffects.food.currentTime = 0;
+                        soundEffects.food.play().catch(e => console.log("Sound play error:", e));
+                    }
+                    
                     // XP-Check für Level-Up
                     if (gameState.xp >= gameState.xpToNextLevel) {
                         levelUp();
@@ -1304,7 +1415,7 @@
             // Fähigkeiten-Cooldown
             Object.keys(gameState.abilities).forEach(ability => {
                 if (gameState.abilities[ability].cooldown > 0) {
-                    gameState.abilities[ability].cooldown -= deltaTime * 16.67;
+                    gameState.abilities[ability].cooldown -= deltaTime * 1000;
                 }
             });
 
@@ -1321,6 +1432,11 @@
             // Zufällige Power-Ups spawnen
             if (Math.random() < 0.005 * deltaTime && gameState.powerUps.length < 3) {
                 spawnPowerUp();
+            }
+
+            // Futter spawnen (nur wenn nötig)
+            if (gameState.food.length < CONFIG.maxFood && Math.random() < 0.1) {
+                spawnFood();
             }
 
             updateCamera();
@@ -1704,14 +1820,20 @@
                     color: `hsl(${Math.random() * 360}, 100%, 70%)`
                 });
             }
+            
+            // Game-Over-Sound
+            if (soundsEnabled) {
+                soundEffects.gameover.currentTime = 0;
+                soundEffects.gameover.play().catch(e => console.log("Sound play error:", e));
+            }
         }
 
         function restartGame() {
             // Reset game state
             gameState = {
                 snake: [{ 
-                    x: gameState.world.width / 2, 
-                    y: gameState.world.height / 2 
+                    x: canvas.width / 2, 
+                    y: canvas.height / 2 
                 }],
                 direction: { x: 1, y: 0 },
                 size: 10,
@@ -1725,7 +1847,7 @@
                 obstacles: [],
                 boost: false,
                 gameRunning: true,
-                lastTime: 0,
+                lastTime: performance.now(),
                 startTime: Date.now(),
                 points: 0,
                 camera: { x: 0, y: 0 },
@@ -1830,7 +1952,6 @@
 
         // Erweiterte Hauptschleife
         function enhancedGameLoop(currentTime) {
-            spawnFood();
             update(currentTime);
             draw();
             monitorPerformance();
@@ -1874,6 +1995,7 @@
 
         // Initialisierung
         function initGame() {
+            gameState.lastTime = performance.now();
             spawnFood();
             spawnObstacles();
             updateUI();
@@ -1933,4 +2055,4 @@
         requestAnimationFrame(enhancedGameLoop);
     </script>
 </body>
-</html>
+    </html>
