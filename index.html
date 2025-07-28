@@ -488,7 +488,9 @@
 
     <div class="leaderboard">
         <h3>🏆 Bestenliste</h3>
-        <div id="leaderboardList"></div>
+        <div id="leaderboardList">
+            <!-- Leaderboard entries will be populated here -->
+        </div>
     </div>
 
     <canvas class="minimap" id="minimap"></canvas>
@@ -535,7 +537,7 @@
                 <div id="enemiesDefeated">0</div>
             </div>
         </div>
-        <button class="restart-btn" onclick="restartGame()">🔄 Neu starten</button>
+        <button class="restart-btn" id="restartBtn">🔄 Neu starten</button>
     </div>
 
     <script>
@@ -544,6 +546,7 @@
         const minimap = document.getElementById("minimap");
         const minimapCtx = minimap.getContext("2d");
         const boostOverlay = document.getElementById("boostOverlay");
+        const restartBtn = document.getElementById("restartBtn");
 
         // Canvas-Größe anpassen
         function resizeCanvas() {
@@ -609,7 +612,7 @@
             blastRadius: 100,
             blastDamage: 50,
             healAmount: 20,
-            enemySpeed: 2 // Hinzugefügt: Fehlende Geschwindigkeit für Gegner
+            enemySpeed: 2 // Fehlende Eigenschaft hinzugefügt
         };
 
         // Lokale Bestenliste
@@ -815,6 +818,20 @@
                     rotation: Math.random() * Math.PI * 2
                 });
             }
+        }
+
+        // Präzise Hindernis-Kollisionserkennung
+        function checkObstacleCollision(x, y) {
+            for (const obstacle of gameState.obstacles) {
+                const distX = Math.abs(x - (obstacle.x + obstacle.width/2));
+                const distY = Math.abs(y - (obstacle.y + obstacle.height/2));
+                
+                if (distX <= (obstacle.width/2 + CONFIG.snakeRadius) && 
+                    distY <= (obstacle.height/2 + CONFIG.snakeRadius)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // Power-Ups
@@ -1122,6 +1139,7 @@
             while (gameState.food.length < CONFIG.maxFood) {
                 let attempts = 0;
                 let newFood;
+                let validPosition = false;
                 
                 do {
                     newFood = {
@@ -1131,10 +1149,19 @@
                         pulse: Math.random() * Math.PI * 2,
                         value: 1 + Math.random() * 2
                     };
+                    
+                    // Prüfe Position
+                    validPosition = !isNearSnake(newFood, 80) && 
+                                    !checkObstacleCollision(newFood.x, newFood.y);
+                    
                     attempts++;
-                } while (attempts < 15 && isNearSnake(newFood, 80));
+                } while (!validPosition && attempts < 50);
                 
-                gameState.food.push(newFood);
+                if (validPosition) {
+                    gameState.food.push(newFood);
+                } else {
+                    break; // Verhindere Endlosschleife
+                }
             }
         }
 
@@ -1163,6 +1190,9 @@
             if (!gameState.gameRunning) return;
             
             // DeltaTime in Sekunden berechnen
+            if (gameState.lastTime === 0) {
+                gameState.lastTime = currentTime;
+            }
             const deltaTime = (currentTime - gameState.lastTime) / 1000;
             gameState.lastTime = currentTime;
 
@@ -1214,15 +1244,10 @@
             }
 
             // Hindernis-Kollision
-            gameState.obstacles.forEach(obstacle => {
-                const distX = Math.abs(newHead.x - (obstacle.x + obstacle.width/2));
-                const distY = Math.abs(newHead.y - (obstacle.y + obstacle.height/2));
-                
-                if (distX <= obstacle.width/2 && distY <= obstacle.height/2) {
-                    gameOver();
-                    return;
-                }
-            });
+            if (checkObstacleCollision(newHead.x, newHead.y)) {
+                gameOver();
+                return;
+            }
 
             // Futter-Kollision
             for (let i = gameState.food.length - 1; i >= 0; i--) {
@@ -1300,7 +1325,10 @@
                 particle.y += particle.vy;
                 particle.life -= particle.decay;
                 
-                if (particle.life <= 0) {
+                // Entferne Partikel außerhalb der Welt oder mit abgelaufener Lebensdauer
+                if (particle.life <= 0 || 
+                    particle.x < 0 || particle.x > gameState.world.width || 
+                    particle.y < 0 || particle.y > gameState.world.height) {
                     gameState.particles.splice(i, 1);
                 }
             }
@@ -1327,7 +1355,7 @@
                 spawnPowerUp();
             }
 
-            // Futter spawnen (nur wenn nötig)
+            // Futter spawnen
             if (gameState.food.length < CONFIG.maxFood && Math.random() < 0.05) {
                 spawnFood();
             }
@@ -1716,6 +1744,23 @@
         }
 
         function restartGame() {
+            // Alle Fähigkeiten-Cooldowns stoppen
+            Object.values(gameState.abilities).forEach(ability => {
+                if (ability.cooldownInterval) {
+                    clearInterval(ability.cooldownInterval);
+                }
+            });
+
+            // Boost-Button zurücksetzen
+            const oldBoostBtn = document.getElementById('boostBtn');
+            const newBoostBtn = oldBoostBtn.cloneNode(true);
+            oldBoostBtn.parentNode.replaceChild(newBoostBtn, oldBoostBtn);
+            
+            // Event-Listener erneut hinzufügen
+            newBoostBtn.addEventListener("mousedown", startBoost);
+            newBoostBtn.addEventListener("mouseup", stopBoost);
+            newBoostBtn.addEventListener("mouseleave", stopBoost);
+            
             // Reset game state
             gameState = {
                 snake: [{ 
@@ -1734,7 +1779,7 @@
                 obstacles: [],
                 boost: false,
                 gameRunning: true,
-                lastTime: performance.now(),
+                lastTime: 0,
                 startTime: Date.now(),
                 points: 0,
                 camera: { x: 0, y: 0 },
@@ -1774,7 +1819,7 @@
         
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (!touchStart || !gameState.gameRunning) return;
+            if (!touchStart || !gameState.gameRunning || e.touches.length !== 1) return;
             
             const touch = e.touches[0];
             const head = gameState.snake[0];
@@ -1796,6 +1841,7 @@
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             touchStart = null;
+            stopBoost();
         });
 
         // Doppel-Touch für Boost
@@ -1882,7 +1928,6 @@
 
         // Initialisierung
         function initGame() {
-            gameState.lastTime = performance.now();
             spawnFood();
             spawnObstacles();
             updateUI();
@@ -1939,7 +1984,8 @@
 
         // Spiel starten
         initGame();
+        restartBtn.addEventListener('click', restartGame);
         requestAnimationFrame(enhancedGameLoop);
     </script>
 </body>
-</html> 
+</html>
