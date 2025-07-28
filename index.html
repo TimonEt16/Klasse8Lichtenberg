@@ -440,6 +440,30 @@
             margin-top: -5px;
             color: #ffd700;
         }
+
+        /* Sound Controls */
+        .sound-controls {
+            position: absolute;
+            bottom: 25px;
+            right: 250px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .sound-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(10, 15, 25, 0.7);
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            color: #d4af37;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -488,9 +512,7 @@
 
     <div class="leaderboard">
         <h3>🏆 Bestenliste</h3>
-        <div id="leaderboardList">
-            <!-- Leaderboard entries will be populated here -->
-        </div>
+        <div id="leaderboardList"></div>
     </div>
 
     <canvas class="minimap" id="minimap"></canvas>
@@ -507,6 +529,11 @@
         <span class="key-hint">F2</span> Schild, 
         <span class="key-hint">F3</span> Heilung,
         <span class="key-hint">F4</span> Boost
+    </div>
+
+    <div class="sound-controls">
+        <div class="sound-btn" id="soundToggle" title="Sound ein/aus">🔊</div>
+        <div class="sound-btn" id="musicToggle" title="Musik ein/aus">🎵</div>
     </div>
 
     <div id="gameOver" class="game-over">
@@ -537,16 +564,70 @@
                 <div id="enemiesDefeated">0</div>
             </div>
         </div>
-        <button class="restart-btn" id="restartBtn">🔄 Neu starten</button>
+        <button class="restart-btn" onclick="restartGame()">🔄 Neu starten</button>
     </div>
 
     <script>
+        // Soundeffekte mit Base64 codiert (kurze, einfache Sounds)
+        const soundEffects = {
+            eat: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            powerup: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            boost: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            gameOver: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            ability: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            enemyDefeat: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            levelUp: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
+            background: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==")
+        };
+
+        // Soundeinstellungen
+        let soundEnabled = true;
+        let musicEnabled = true;
+
+        // Sound-Controller
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? "🔊" : "🔇";
+        });
+
+        document.getElementById('musicToggle').addEventListener('click', () => {
+            musicEnabled = !musicEnabled;
+            document.getElementById('musicToggle').textContent = musicEnabled ? "🎵" : "🔇";
+            
+            if (musicEnabled) {
+                playBackgroundMusic();
+            } else {
+                soundEffects.background.pause();
+            }
+        });
+
+        // Hintergrundmusik abspielen
+        function playBackgroundMusic() {
+            if (musicEnabled) {
+                soundEffects.background.loop = true;
+                soundEffects.background.volume = 0.3;
+                soundEffects.background.play().catch(e => console.log("Autoplay nicht erlaubt, bitte Interaktion"));
+            }
+        }
+
+        // Sound abspielen mit Volume-Kontrolle
+        function playSound(sound, volume = 1.0) {
+            if (!soundEnabled) return;
+            
+            try {
+                const s = sound.cloneNode();
+                s.volume = volume;
+                s.play().catch(e => console.log("Sound konnte nicht abgespielt werden"));
+            } catch (e) {
+                console.log("Sound Fehler", e);
+            }
+        }
+
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const minimap = document.getElementById("minimap");
         const minimapCtx = minimap.getContext("2d");
         const boostOverlay = document.getElementById("boostOverlay");
-        const restartBtn = document.getElementById("restartBtn");
 
         // Canvas-Größe anpassen
         function resizeCanvas() {
@@ -612,7 +693,7 @@
             blastRadius: 100,
             blastDamage: 50,
             healAmount: 20,
-            enemySpeed: 2 // Fehlende Eigenschaft hinzugefügt
+            enemySpeed: 2
         };
 
         // Lokale Bestenliste
@@ -655,6 +736,7 @@
                 boostBtn.classList.add("boosting");
                 boostOverlay.classList.add("active");
                 createBoostParticles();
+                playSound(soundEffects.boost, 0.6);
             }
         }
         
@@ -803,6 +885,9 @@
                             color: '#ff4757'
                         });
                     }
+                    
+                    // Schadens-Sound
+                    playSound(soundEffects.ability, 0.4);
                 }
             });
         }
@@ -818,20 +903,6 @@
                     rotation: Math.random() * Math.PI * 2
                 });
             }
-        }
-
-        // Präzise Hindernis-Kollisionserkennung
-        function checkObstacleCollision(x, y) {
-            for (const obstacle of gameState.obstacles) {
-                const distX = Math.abs(x - (obstacle.x + obstacle.width/2));
-                const distY = Math.abs(y - (obstacle.y + obstacle.height/2));
-                
-                if (distX <= (obstacle.width/2 + CONFIG.snakeRadius) && 
-                    distY <= (obstacle.height/2 + CONFIG.snakeRadius)) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         // Power-Ups
@@ -903,6 +974,9 @@
                     color: powerUp.color
                 });
             }
+            
+            // Power-Up Sound
+            playSound(soundEffects.powerup, 0.7);
         }
 
         // Fähigkeiten
@@ -972,6 +1046,9 @@
                     }
                 }
             });
+            
+            // Blast-Sound
+            playSound(soundEffects.ability, 0.8);
         }
 
         function useShieldAbility() {
@@ -1019,6 +1096,9 @@
                     color: '#7b68ee'
                 });
             }
+            
+            // Schild-Sound
+            playSound(soundEffects.ability, 0.6);
         }
 
         function useHealAbility() {
@@ -1057,6 +1137,9 @@
                     color: '#2ed573'
                 });
             }
+            
+            // Heilungs-Sound
+            playSound(soundEffects.ability, 0.5);
         }
 
         // Level-System
@@ -1093,6 +1176,9 @@
                     color: `hsl(${Math.random() * 360}, 100%, 70%)`
                 });
             }
+            
+            // Level-Up Sound
+            playSound(soundEffects.levelUp, 0.8);
             
             // Level 2+ Schwierigkeitserhöhung
             if (gameState.level > 1) {
@@ -1139,7 +1225,6 @@
             while (gameState.food.length < CONFIG.maxFood) {
                 let attempts = 0;
                 let newFood;
-                let validPosition = false;
                 
                 do {
                     newFood = {
@@ -1149,19 +1234,10 @@
                         pulse: Math.random() * Math.PI * 2,
                         value: 1 + Math.random() * 2
                     };
-                    
-                    // Prüfe Position
-                    validPosition = !isNearSnake(newFood, 80) && 
-                                    !checkObstacleCollision(newFood.x, newFood.y);
-                    
                     attempts++;
-                } while (!validPosition && attempts < 50);
+                } while (attempts < 15 && isNearSnake(newFood, 80));
                 
-                if (validPosition) {
-                    gameState.food.push(newFood);
-                } else {
-                    break; // Verhindere Endlosschleife
-                }
+                gameState.food.push(newFood);
             }
         }
 
@@ -1190,9 +1266,6 @@
             if (!gameState.gameRunning) return;
             
             // DeltaTime in Sekunden berechnen
-            if (gameState.lastTime === 0) {
-                gameState.lastTime = currentTime;
-            }
             const deltaTime = (currentTime - gameState.lastTime) / 1000;
             gameState.lastTime = currentTime;
 
@@ -1244,10 +1317,15 @@
             }
 
             // Hindernis-Kollision
-            if (checkObstacleCollision(newHead.x, newHead.y)) {
-                gameOver();
-                return;
-            }
+            gameState.obstacles.forEach(obstacle => {
+                const distX = Math.abs(newHead.x - (obstacle.x + obstacle.width/2));
+                const distY = Math.abs(newHead.y - (obstacle.y + obstacle.height/2));
+                
+                if (distX <= obstacle.width/2 && distY <= obstacle.height/2) {
+                    gameOver();
+                    return;
+                }
+            });
 
             // Futter-Kollision
             for (let i = gameState.food.length - 1; i >= 0; i--) {
@@ -1266,6 +1344,9 @@
                     
                     createFoodParticles(food.x, food.y);
                     gameState.food.splice(i, 1);
+                    
+                    // Futter-Sound
+                    playSound(soundEffects.eat, 0.5);
                     
                     // XP-Check für Level-Up
                     if (gameState.xp >= gameState.xpToNextLevel) {
@@ -1311,6 +1392,9 @@
                     gameState.xp += 20;
                     gameState.enemiesDefeated++;
                     
+                    // Gegner-Sound
+                    playSound(soundEffects.enemyDefeat, 0.7);
+                    
                     // XP-Check für Level-Up
                     if (gameState.xp >= gameState.xpToNextLevel) {
                         levelUp();
@@ -1325,10 +1409,7 @@
                 particle.y += particle.vy;
                 particle.life -= particle.decay;
                 
-                // Entferne Partikel außerhalb der Welt oder mit abgelaufener Lebensdauer
-                if (particle.life <= 0 || 
-                    particle.x < 0 || particle.x > gameState.world.width || 
-                    particle.y < 0 || particle.y > gameState.world.height) {
+                if (particle.life <= 0) {
                     gameState.particles.splice(i, 1);
                 }
             }
@@ -1355,7 +1436,7 @@
                 spawnPowerUp();
             }
 
-            // Futter spawnen
+            // Futter spawnen (nur wenn nötig)
             if (gameState.food.length < CONFIG.maxFood && Math.random() < 0.05) {
                 spawnFood();
             }
@@ -1728,6 +1809,9 @@
             
             saveScore();
             
+            // Game Over Sound
+            playSound(soundEffects.gameOver, 0.8);
+            
             // Explosion-Effekt
             for (let i = 0; i < 50; i++) {
                 const head = gameState.snake[0];
@@ -1744,23 +1828,6 @@
         }
 
         function restartGame() {
-            // Alle Fähigkeiten-Cooldowns stoppen
-            Object.values(gameState.abilities).forEach(ability => {
-                if (ability.cooldownInterval) {
-                    clearInterval(ability.cooldownInterval);
-                }
-            });
-
-            // Boost-Button zurücksetzen
-            const oldBoostBtn = document.getElementById('boostBtn');
-            const newBoostBtn = oldBoostBtn.cloneNode(true);
-            oldBoostBtn.parentNode.replaceChild(newBoostBtn, oldBoostBtn);
-            
-            // Event-Listener erneut hinzufügen
-            newBoostBtn.addEventListener("mousedown", startBoost);
-            newBoostBtn.addEventListener("mouseup", stopBoost);
-            newBoostBtn.addEventListener("mouseleave", stopBoost);
-            
             // Reset game state
             gameState = {
                 snake: [{ 
@@ -1779,7 +1846,7 @@
                 obstacles: [],
                 boost: false,
                 gameRunning: true,
-                lastTime: 0,
+                lastTime: performance.now(),
                 startTime: Date.now(),
                 points: 0,
                 camera: { x: 0, y: 0 },
@@ -1804,6 +1871,9 @@
             spawnFood();
             spawnObstacles();
             updateUI();
+            
+            // Hintergrundmusik neu starten
+            playBackgroundMusic();
         }
 
         // Touch-Steuerung für Mobile
@@ -1819,7 +1889,7 @@
         
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (!touchStart || !gameState.gameRunning || e.touches.length !== 1) return;
+            if (!touchStart || !gameState.gameRunning) return;
             
             const touch = e.touches[0];
             const head = gameState.snake[0];
@@ -1841,7 +1911,6 @@
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             touchStart = null;
-            stopBoost();
         });
 
         // Doppel-Touch für Boost
@@ -1917,21 +1986,33 @@
                     `;
                     pauseOverlay.innerHTML = '⏸️ PAUSE<br><small style="font-size: 24px;">Drücke ESC zum Fortsetzen</small>';
                     document.body.appendChild(pauseOverlay);
+                    
+                    // Musik pausieren
+                    soundEffects.background.pause();
                 } else {
                     gameState.gameRunning = true;
                     gameState.lastTime = performance.now();
                     const pauseOverlay = document.getElementById('pauseOverlay');
                     if (pauseOverlay) pauseOverlay.remove();
+                    
+                    // Musik fortsetzen
+                    if (musicEnabled) {
+                        soundEffects.background.play();
+                    }
                 }
             }
         });
 
         // Initialisierung
         function initGame() {
+            gameState.lastTime = performance.now();
             spawnFood();
             spawnObstacles();
             updateUI();
             updateLeaderboard();
+            
+            // Hintergrundmusik starten
+            playBackgroundMusic();
             
             // Willkommensnachricht
             setTimeout(() => {
@@ -1984,8 +2065,7 @@
 
         // Spiel starten
         initGame();
-        restartBtn.addEventListener('click', restartGame);
         requestAnimationFrame(enhancedGameLoop);
     </script>
 </body>
-</html>
+    </html>
