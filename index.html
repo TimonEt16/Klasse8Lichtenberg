@@ -1,2071 +1,502 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astora - Schlange der Ewigkeit</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=MedievalSharp&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            overflow: hidden;
-            background: linear-gradient(135deg, #0a0e18, #121a2b, #0a0f15);
-            color: #e0d6c3;
-            font-family: 'MedievalSharp', 'Orbitron', monospace;
-            user-select: none;
-            cursor: none;
-            position: relative;
-        }
-
-        #gameCanvas {
-            display: block;
-            background: radial-gradient(ellipse at center, #0a111a, #070d12, #04090c);
-            position: relative;
-            z-index: 1;
-        }
-
-        .boost-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 2;
-            display: none;
-        }
-
-        .boost-overlay.active {
-            display: block;
-            animation: boostGlow 0.8s infinite alternate;
-        }
-
-        @keyframes boostGlow {
-            0% {
-                box-shadow: inset 0 0 20px 5px rgba(255, 107, 53, 0.3);
-            }
-            100% {
-                box-shadow: inset 0 0 40px 15px rgba(255, 107, 53, 0.7);
-            }
-        }
-
-        .ui {
-            position: absolute;
-            top: 25px;
-            left: 25px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .game-stats {
-            background: rgba(10, 15, 25, 0.85);
-            padding: 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(123, 90, 50, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-            border-image: linear-gradient(to bottom right, #7b5a32, #d4af37) 1;
-        }
-
-        .game-stats::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(123, 90, 50, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 8px 0;
-            font-size: 16px;
-            font-weight: 700;
-            text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
-        }
-
-        .stat-label {
-            color: #d4af37;
-        }
-
-        .stat-value {
-            color: #ffffff;
-        }
-
-        #boostBtn {
-            padding: 16px 32px;
-            font-size: 18px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #d4af37, #ffd700, #ffa500);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            color: #2a0a00;
-            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-            font-family: 'MedievalSharp', cursive;
-            border: 2px solid #7b5a32;
-        }
-
-        #boostBtn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        #boostBtn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.6);
-        }
-
-        #boostBtn:hover::before {
-            left: 100%;
-        }
-
-        #boostBtn:active {
-            transform: translateY(-1px);
-        }
-
-        #boostBtn.boosting {
-            background: linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726);
-            animation: boostPulse 0.6s infinite alternate;
-            box-shadow: 0 0 30px rgba(255, 107, 53, 0.8);
-        }
-
-        @keyframes boostPulse {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1.05) rotate(1deg); }
-        }
-
-        .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: rgba(10, 15, 25, 0.95);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            border: 2px solid #d4af37;
-            display: none;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 200;
-            border-image: linear-gradient(to bottom right, #d4af37, #ffd700) 1;
-            width: 80%;
-            max-width: 500px;
-        }
-
-        .game-over.show {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        .game-over h2 {
-            color: #d4af37;
-            margin: 0 0 20px 0;
-            font-size: 42px;
-            font-weight: 900;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-            animation: glow 2s ease-in-out infinite alternate;
-            font-family: 'MedievalSharp', cursive;
-        }
-
-        @keyframes glow {
-            from { text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
-            to { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8), 0 0 30px rgba(212, 175, 55, 0.3); }
-        }
-
-        .final-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .final-stat {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        .final-stat strong {
-            color: #d4af37;
-        }
-
-        .restart-btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #7b5a32, #d4af37);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 700;
-            margin-top: 20px;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'MedievalSharp', cursive;
-            border: 1px solid #ffd700;
-        }
-
-        .restart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-        }
-
-        .leaderboard {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: rgba(10, 15, 25, 0.85);
-            padding: 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(123, 90, 50, 0.5);
-            max-width: 300px;
-            border-image: linear-gradient(to bottom right, #7b5a32, #d4af37) 1;
-        }
-
-        .leaderboard h3 {
-            color: #d4af37;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: 900;
-            font-family: 'MedievalSharp', cursive;
-            font-size: 24px;
-        }
-
-        .score-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        .custom-cursor {
-            position: fixed;
-            width: 24px;
-            height: 24px;
-            background: radial-gradient(circle, #d4af37, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 1000;
-            mix-blend-mode: difference;
-            transition: transform 0.1s;
-        }
-
-        .particle {
-            position: absolute;
-            pointer-events: none;
-            border-radius: 50%;
-            animation: particleFloat 2s linear forwards;
-        }
-
-        @keyframes particleFloat {
-            0% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(0) translateY(-100px);
-            }
-        }
-
-        .minimap {
-            position: absolute;
-            bottom: 25px;
-            right: 25px;
-            width: 200px;
-            height: 150px;
-            background: rgba(10, 15, 25, 0.8);
-            border: 2px solid rgba(123, 90, 50, 0.5);
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
-            z-index: 100;
-        }
-
-        .ability-container {
-            position: absolute;
-            bottom: 25px;
-            left: 25px;
-            display: flex;
-            gap: 15px;
-            z-index: 100;
-        }
-
-        .ability-btn {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: rgba(10, 15, 25, 0.7);
-            border: 2px solid rgba(212, 175, 55, 0.5);
-            color: #d4af37;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-        }
-
-        .ability-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-        }
-
-        .ability-btn::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 0%;
-            background: rgba(212, 175, 55, 0.3);
-            transition: height 0.3s;
-        }
-
-        .ability-btn.cooldown::after {
-            height: 100%;
-            background: rgba(255, 0, 0, 0.3);
-        }
-
-        .level-indicator {
-            position: absolute;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10, 15, 25, 0.7);
-            padding: 10px 25px;
-            border-radius: 20px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            font-weight: bold;
-            z-index: 100;
-            font-family: 'MedievalSharp', cursive;
-            color: #d4af37;
-            border-image: linear-gradient(to right, #7b5a32, #d4af37) 1;
-        }
-
-        .xp-bar {
-            height: 6px;
-            background: rgba(123, 90, 50, 0.3);
-            border-radius: 3px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-
-        .xp-progress {
-            height: 100%;
-            background: linear-gradient(90deg, #7b5a32, #d4af37);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        
-        .controls-hint {
-            position: absolute;
-            bottom: 100px;
-            left: 25px;
-            background: rgba(10, 15, 25, 0.7);
-            padding: 10px 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            font-size: 14px;
-            z-index: 100;
-            color: #d4af37;
-            font-family: 'MedievalSharp', cursive;
-        }
-        
-        .key-hint {
-            display: inline-block;
-            background: rgba(123, 90, 50, 0.3);
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin: 0 5px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-        }
-        
-        .game-title {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #d4af37;
-            font-size: 36px;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-            z-index: 100;
-            font-family: 'MedievalSharp', cursive;
-            letter-spacing: 2px;
-            text-align: center;
-        }
-        
-        .game-title span {
-            font-size: 16px;
-            display: block;
-            letter-spacing: 4px;
-            margin-top: -5px;
-            color: #ffd700;
-        }
-
-        /* Sound Controls */
-        .sound-controls {
-            position: absolute;
-            bottom: 25px;
-            right: 250px;
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .sound-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(10, 15, 25, 0.7);
-            border: 2px solid rgba(212, 175, 55, 0.5);
-            color: #d4af37;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modernes Amerikanisches Ranch-Haus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin: 20px 0 40px;
+      max-width: 800px;
+    }
+    
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      background: linear-gradient(to right, #ffd700, #ffffff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      max-width: 1400px;
+      margin: 20px auto;
+    }
+    
+    .house-container {
+      perspective: 1500px;
+      width: 500px;
+      height: 400px;
+      position: relative;
+      margin-bottom: 30px;
+    }
+    
+    .scene {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transform: rotateX(10deg) rotateY(-25deg);
+      transition: transform 0.5s ease;
+    }
+    
+    .house {
+      width: 300px;
+      height: 200px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: -100px 0 0 -150px;
+      transform-style: preserve-3d;
+    }
+    
+    .wall, .roof, .element {
+      position: absolute;
+      background-size: cover;
+      background-position: center;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+    }
+    
+    /* Hauptwände */
+    .front {
+      width: 300px;
+      height: 180px;
+      background: linear-gradient(to bottom, #d1c0a8, #b8a692);
+      transform: translateZ(150px);
+    }
+    
+    .back {
+      width: 300px;
+      height: 180px;
+      background: linear-gradient(to bottom, #d1c0a8, #b8a692);
+      transform: rotateY(180deg) translateZ(150px);
+    }
+    
+    .left {
+      width: 300px;
+      height: 180px;
+      background: linear-gradient(to bottom, #c5b39c, #a89984);
+      transform: rotateY(90deg) translateZ(150px);
+    }
+    
+    .right {
+      width: 300px;
+      height: 180px;
+      background: linear-gradient(to bottom, #c5b39c, #a89984);
+      transform: rotateY(-90deg) translateZ(150px);
+    }
+    
+    /* Dach - moderne Walmdach-Form */
+    .roof-main {
+      width: 340px;
+      height: 200px;
+      background: #3a506b;
+      transform: rotateX(90deg) translateZ(100px) translateY(-90px);
+      top: 0;
+      left: -20px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    
+    .roof-side {
+      width: 340px;
+      height: 100px;
+      background: linear-gradient(to bottom, #2c3e50, #3a506b);
+      position: absolute;
+      top: -50px;
+      transform-origin: top;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .roof-left {
+      transform: rotateX(60deg) rotateY(0deg) translateZ(0) translateX(-170px);
+    }
+    
+    .roof-right {
+      transform: rotateX(60deg) rotateY(0deg) translateZ(0) translateX(170px);
+    }
+    
+    /* Veranda - typisches amerikanisches Element */
+    .porch {
+      width: 180px;
+      height: 100px;
+      background: linear-gradient(to bottom, #8B5E3C, #5A3924);
+      position: absolute;
+      bottom: 0;
+      left: 60px;
+      transform: translateZ(180px);
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+    }
+    
+    .porch-roof {
+      width: 200px;
+      height: 30px;
+      background: #3a506b;
+      position: absolute;
+      bottom: 100px;
+      left: 50px;
+      transform: translateZ(180px);
+    }
+    
+    .porch-pillar {
+      width: 15px;
+      height: 80px;
+      background: #5A3924;
+      position: absolute;
+      bottom: 0;
+      transform: translateZ(180px);
+    }
+    
+    .pillar-1 { left: 70px; }
+    .pillar-2 { left: 165px; }
+    
+    /* Fenster und Türen */
+    .window {
+      background: #a3d5ff;
+      border: 3px solid #5A3924;
+      position: absolute;
+      box-shadow: inset 0 0 20px rgba(173, 216, 230, 0.8);
+    }
+    
+    .window-horizontal {
+      width: 40px;
+      height: 25px;
+    }
+    
+    .window-vertical {
+      width: 25px;
+      height: 40px;
+    }
+    
+    .front-window-1 { top: 60px; left: 50px; transform: translateZ(151px); }
+    .front-window-2 { top: 60px; left: 210px; transform: translateZ(151px); }
+    .front-door {
+      width: 30px;
+      height: 60px;
+      background: #5A3924;
+      position: absolute;
+      bottom: 0;
+      left: 135px;
+      transform: translateZ(151px);
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+    }
+    
+    .left-window-1 { top: 60px; left: 50px; transform: rotateY(90deg) translateZ(151px) translateX(150px); }
+    .left-window-2 { top: 60px; left: 200px; transform: rotateY(90deg) translateZ(151px) translateX(150px); }
+    
+    /* Kreative Elemente: Solarpanels und Dachfenster */
+    .solar-panel {
+      width: 40px;
+      height: 30px;
+      background: linear-gradient(45deg, #2c3e50, #1a2a6c);
+      position: absolute;
+      top: -40px;
+      transform: rotateX(90deg) translateZ(101px);
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      border: 1px solid #1a2a6c;
+    }
+    
+    .solar-1 { left: -70px; }
+    .solar-2 { left: 0px; }
+    .solar-3 { left: 70px; }
+    
+    .skylight {
+      width: 30px;
+      height: 30px;
+      background: #a3d5ff;
+      position: absolute;
+      top: -30px;
+      left: -15px;
+      transform: rotateX(90deg) translateZ(101px);
+      border: 2px solid #3a506b;
+      box-shadow: inset 0 0 15px rgba(173, 216, 230, 0.8);
+    }
+    
+    /* Garagenelement - typisch amerikanisch */
+    .garage {
+      width: 80px;
+      height: 100px;
+      background: linear-gradient(to bottom, #a89984, #8a7b68);
+      position: absolute;
+      bottom: 0;
+      left: -100px;
+      transform: translateZ(0);
+    }
+    
+    .garage-door {
+      width: 70px;
+      height: 80px;
+      background: #5A3924;
+      position: absolute;
+      bottom: 10px;
+      left: 5px;
+      border-radius: 5px;
+    }
+    
+    /* Boden und Hintergrund */
+    .ground {
+      position: absolute;
+      width: 1000px;
+      height: 1000px;
+      background: radial-gradient(#5a7f4c, #3a5a40);
+      transform: translateY(200px) rotateX(90deg);
+      top: 50%;
+      left: 50%;
+      margin: -500px 0 0 -500px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.4);
+    }
+    
+    .tree {
+      position: absolute;
+      width: 40px;
+      height: 80px;
+      background: #2e8b57;
+      border-radius: 50%;
+      transform: translateZ(-200px) translateX(-200px);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    
+    .tree-2 {
+      transform: translateZ(100px) translateX(250px);
+    }
+    
+    /* Beschreibung und Steuerung */
+    .description {
+      background: rgba(25, 40, 65, 0.8);
+      border-radius: 15px;
+      padding: 25px;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      color: #ffd700;
+    }
+    
+    .features {
+      margin: 20px 0;
+      padding-left: 20px;
+    }
+    
+    .features li {
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      padding: 12px 25px;
+      background: linear-gradient(to right, #3a506b, #1a2a6c);
+      border: none;
+      border-radius: 50px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      background: linear-gradient(to right, #4a6280, #2a3a8c);
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+    }
+    
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1100px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .description {
+        max-width: 90%;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .house-container {
+        width: 100%;
+        height: 300px;
+      }
+      
+      .house {
+        transform: scale(0.8);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="game-title">ASTORA<span>Schlange der Ewigkeit</span></div>
-    <div class="boost-overlay" id="boostOverlay"></div>
-    <div class="custom-cursor" id="customCursor"></div>
-    
-    <canvas id="gameCanvas"></canvas>
-    
-    <div class="ui">
-        <div class="game-stats">
-            <div class="stat-item">
-                <span class="stat-label">Länge:</span>
-                <span class="stat-value" id="score">10</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Geschwindigkeit:</span>
-                <span class="stat-value" id="speed-display">2.0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Futter:</span>
-                <span class="stat-value" id="food-counter">0/75</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Punkte:</span>
-                <span class="stat-value" id="points">0</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Level:</span>
-                <span class="stat-value" id="level">1</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">XP:</span>
-                <span class="stat-value" id="xp">0%</span>
-            </div>
+  <div class="header">
+    <h1>Modernes Amerikanisches Ranch-Haus</h1>
+    <p class="subtitle">Eine kreative 3D-Darstellung, die traditionelle amerikanische Architektur mit modernen Elementen verbindet</p>
+  </div>
+  
+  <div class="container">
+    <div class="house-container">
+      <div class="scene">
+        <div class="ground"></div>
+        <div class="tree"></div>
+        <div class="tree tree-2"></div>
+        
+        <div class="house">
+          <!-- Hauptwände -->
+          <div class="wall front"></div>
+          <div class="wall back"></div>
+          <div class="wall left"></div>
+          <div class="wall right"></div>
+          
+          <!-- Dach -->
+          <div class="roof roof-main"></div>
+          <div class="roof roof-side roof-left"></div>
+          <div class="roof roof-side roof-right"></div>
+          
+          <!-- Veranda -->
+          <div class="porch"></div>
+          <div class="porch-roof"></div>
+          <div class="porch-pillar pillar-1"></div>
+          <div class="porch-pillar pillar-2"></div>
+          
+          <!-- Fenster und Türen -->
+          <div class="window window-horizontal front-window-1"></div>
+          <div class="window window-horizontal front-window-2"></div>
+          <div class="window window-vertical left-window-1"></div>
+          <div class="window window-vertical left-window-2"></div>
+          <div class="element front-door"></div>
+          
+          <!-- Moderne Elemente -->
+          <div class="element solar-panel solar-1"></div>
+          <div class="element solar-panel solar-2"></div>
+          <div class="element solar-panel solar-3"></div>
+          <div class="element skylight"></div>
+          
+          <!-- Garage -->
+          <div class="element garage">
+            <div class="garage-door"></div>
+          </div>
         </div>
-        <button id="boostBtn">🚀 BOOST (F4)</button>
-    </div>
-
-    <div class="level-indicator">
-        <div>Level <span id="current-level">1</span></div>
-        <div class="xp-bar">
-            <div class="xp-progress" id="xp-progress"></div>
-        </div>
-    </div>
-
-    <div class="leaderboard">
-        <h3>🏆 Bestenliste</h3>
-        <div id="leaderboardList"></div>
-    </div>
-
-    <canvas class="minimap" id="minimap"></canvas>
-
-    <div class="ability-container">
-        <div class="ability-btn" id="blastAbility" title="Energieblast (F1)">💥</div>
-        <div class="ability-btn" id="shieldAbility" title="Schild (F2)">🛡️</div>
-        <div class="ability-btn" id="healAbility" title="Heilung (F3)">❤️</div>
+      </div>
     </div>
     
-    <div class="controls-hint">
-        Tastenkürzel: 
-        <span class="key-hint">F1</span> Energieblast, 
-        <span class="key-hint">F2</span> Schild, 
-        <span class="key-hint">F3</span> Heilung,
-        <span class="key-hint">F4</span> Boost
+    <div class="description">
+      <h2>Design-Konzept & Merkmale</h2>
+      <p>Dieses 3D-Modell verbindet klassische amerikanische Architektur mit modernen Elementen:</p>
+      
+      <ul class="features">
+        <li><strong>Ranch-Stil Basis</strong>: Typische niedrige, langgestreckte Form mit Flachdach-Neigung</li>
+        <li><strong>Große Veranda</strong>: Charakteristisches amerikanisches Element mit Holzstruktur</li>
+        <li><strong>Integrierte Garage</strong>: Praktische Lösung für das Auto, typisch für US-Vororte</li>
+        <li><strong>Moderne Ergänzungen</strong>: Solarpanels für Energieeffizienz und Dachfenster für natürliches Licht</li>
+        <li><strong>Erdfarben-Palette</strong>: Beige und Brauntöne kombiniert mit blaugrauem Dach</li>
+        <li><strong>Große Fenster</strong>: Für viel natürliches Licht und Verbindung zur Umgebung</li>
+      </ul>
+      
+      <p>Das Design passt perfekt in amerikanische Vorstadtlandschaften, verbindet aber Tradition mit zeitgenössischer Nachhaltigkeit.</p>
+      
+      <div class="controls">
+        <button class="btn" onclick="rotateHouse(20)">Drehen</button>
+        <button class="btn" onclick="toggleDetails()">Details anzeigen</button>
+        <button class="btn" onclick="resetView()">Zurücksetzen</button>
+      </div>
     </div>
+  </div>
+  
+  <div class="footer">
+    <p>Ein kreatives 3D-Hausmodell - Kombination aus amerikanischer Tradition und modernem Design</p>
+  </div>
 
-    <div class="sound-controls">
-        <div class="sound-btn" id="soundToggle" title="Sound ein/aus">🔊</div>
-        <div class="sound-btn" id="musicToggle" title="Musik ein/aus">🎵</div>
-    </div>
-
-    <div id="gameOver" class="game-over">
-        <h2>⚔️ Game Over! ⚔️</h2>
-        <div class="final-stats">
-            <div class="final-stat">
-                <strong>Finale Länge</strong>
-                <div id="finalScore">0</div>
-            </div>
-            <div class="final-stat">
-                <strong>Max Speed</strong>
-                <div id="maxSpeed">0</div>
-            </div>
-            <div class="final-stat">
-                <strong>Punkte</strong>
-                <div id="finalPoints">0</div>
-            </div>
-            <div class="final-stat">
-                <strong>Zeit</strong>
-                <div id="gameTime">0s</div>
-            </div>
-            <div class="final-stat">
-                <strong>Level</strong>
-                <div id="finalLevel">1</div>
-            </div>
-            <div class="final-stat">
-                <strong>Gegner besiegt</strong>
-                <div id="enemiesDefeated">0</div>
-            </div>
-        </div>
-        <button class="restart-btn" onclick="restartGame()">🔄 Neu starten</button>
-    </div>
-
-    <script>
-        // Soundeffekte mit Base64 codiert (kurze, einfache Sounds)
-        const soundEffects = {
-            eat: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            powerup: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            boost: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            gameOver: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            ability: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            enemyDefeat: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            levelUp: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="),
-            background: new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==")
-        };
-
-        // Soundeinstellungen
-        let soundEnabled = true;
-        let musicEnabled = true;
-
-        // Sound-Controller
-        document.getElementById('soundToggle').addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            document.getElementById('soundToggle').textContent = soundEnabled ? "🔊" : "🔇";
-        });
-
-        document.getElementById('musicToggle').addEventListener('click', () => {
-            musicEnabled = !musicEnabled;
-            document.getElementById('musicToggle').textContent = musicEnabled ? "🎵" : "🔇";
-            
-            if (musicEnabled) {
-                playBackgroundMusic();
-            } else {
-                soundEffects.background.pause();
-            }
-        });
-
-        // Hintergrundmusik abspielen
-        function playBackgroundMusic() {
-            if (musicEnabled) {
-                soundEffects.background.loop = true;
-                soundEffects.background.volume = 0.3;
-                soundEffects.background.play().catch(e => console.log("Autoplay nicht erlaubt, bitte Interaktion"));
-            }
+  <script>
+    let rotation = -25;
+    const scene = document.querySelector('.scene');
+    
+    function rotateHouse(angle) {
+      rotation += angle;
+      scene.style.transform = `rotateX(10deg) rotateY(${rotation}deg)`;
+    }
+    
+    function resetView() {
+      rotation = -25;
+      scene.style.transform = `rotateX(10deg) rotateY(${rotation}deg)`;
+      document.querySelectorAll('.window, .garage-door, .skylight').forEach(el => {
+        el.style.backgroundColor = '#a3d5ff';
+      });
+    }
+    
+    function toggleDetails() {
+      document.querySelectorAll('.window, .garage-door, .skylight').forEach(el => {
+        if (el.style.backgroundColor === 'gold') {
+          el.style.backgroundColor = '#a3d5ff';
+          el.style.boxShadow = 'inset 0 0 20px rgba(173, 216, 230, 0.8)';
+        } else {
+          el.style.backgroundColor = 'gold';
+          el.style.boxShadow = 'inset 0 0 20px rgba(255, 215, 0, 0.8)';
         }
-
-        // Sound abspielen mit Volume-Kontrolle
-        function playSound(sound, volume = 1.0) {
-            if (!soundEnabled) return;
-            
-            try {
-                const s = sound.cloneNode();
-                s.volume = volume;
-                s.play().catch(e => console.log("Sound konnte nicht abgespielt werden"));
-            } catch (e) {
-                console.log("Sound Fehler", e);
-            }
-        }
-
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const minimap = document.getElementById("minimap");
-        const minimapCtx = minimap.getContext("2d");
-        const boostOverlay = document.getElementById("boostOverlay");
-
-        // Canvas-Größe anpassen
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            minimap.width = 200;
-            minimap.height = 150;
-        }
-        resizeCanvas();
-        window.addEventListener("resize", resizeCanvas);
-
-        // Erweiterte Spielvariablen
-        let gameState = {
-            snake: [{ x: canvas.width / 2, y: canvas.height / 2 }],
-            direction: { x: 1, y: 0 },
-            size: 10,
-            baseSpeed: 2.5,
-            currentSpeed: 2.5,
-            maxSpeed: 2.5,
-            food: [],
-            powerUps: [],
-            particles: [],
-            enemies: [],
-            obstacles: [],
-            boost: false,
-            gameRunning: true,
-            lastTime: 0,
-            startTime: Date.now(),
-            points: 0,
-            camera: { x: 0, y: 0 },
-            world: { width: 3000, height: 2000 },
-            level: 1,
-            xp: 0,
-            xpToNextLevel: 100,
-            abilities: {
-                blast: { cooldown: 0, maxCooldown: 10000, active: false },
-                shield: { cooldown: 0, maxCooldown: 15000, active: false, duration: 5000, endTime: 0 },
-                heal: { cooldown: 0, maxCooldown: 20000, active: false }
-            },
-            enemiesDefeated: 0,
-            shieldActive: false,
-            shieldEndTime: 0
-        };
-
-        const CONFIG = {
-            maxFood: 75,
-            foodRadius: 8,
-            snakeRadius: 10,
-            boostMultiplier: 2.8,
-            speedIncrease: 0.025,
-            maxSpeedLimit: 10,
-            boostShrinkRate: 0.2,
-            particleCount: 15,
-            cameraSmoothing: 0.1,
-            enemySpawnRate: 5000,
-            enemyHealth: 100,
-            enemyDamage: 10,
-            enemySize: 8,
-            obstacleCount: 20,
-            powerUpTypes: ['speed', 'growth', 'invincibility', 'points'],
-            powerUpDuration: 10000,
-            powerUpSpawnRate: 15000,
-            blastRadius: 100,
-            blastDamage: 50,
-            healAmount: 20,
-            enemySpeed: 2
-        };
-
-        // Lokale Bestenliste
-        let leaderboard = JSON.parse(localStorage.getItem('astoraLeaderboard') || '[]');
-
-        // Custom Cursor
-        const cursor = document.getElementById('customCursor');
-        let mousePos = { x: canvas.width / 2, y: canvas.height / 2 };
-        
-        document.addEventListener('mousemove', (e) => {
-            mousePos.x = e.clientX;
-            mousePos.y = e.clientY;
-            cursor.style.left = e.clientX - 12 + 'px';
-            cursor.style.top = e.clientY - 12 + 'px';
-            
-            if (!gameState.gameRunning) return;
-            
-            const head = gameState.snake[0];
-            const worldMouseX = e.clientX + gameState.camera.x;
-            const worldMouseY = e.clientY + gameState.camera.y;
-            
-            const dx = worldMouseX - head.x;
-            const dy = worldMouseY - head.y;
-            const distance = Math.hypot(dx, dy);
-            
-            if (distance > 30) {
-                gameState.direction = { 
-                    x: dx / distance, 
-                    y: dy / distance 
-                };
-            }
-        });
-
-        // Erweiterte Boost-Steuerung
-        const boostBtn = document.getElementById("boostBtn");
-        
-        function startBoost() {
-            if (gameState.gameRunning && gameState.size > 8) {
-                gameState.boost = true;
-                boostBtn.classList.add("boosting");
-                boostOverlay.classList.add("active");
-                createBoostParticles();
-                playSound(soundEffects.boost, 0.6);
-            }
-        }
-        
-        function stopBoost() {
-            gameState.boost = false;
-            boostBtn.classList.remove("boosting");
-            boostOverlay.classList.remove("active");
-        }
-
-        boostBtn.addEventListener("mousedown", startBoost);
-        boostBtn.addEventListener("mouseup", stopBoost);
-        boostBtn.addEventListener("mouseleave", stopBoost);
-        
-        window.addEventListener("keydown", (e) => {
-            // Boost (F4)
-            if (e.code === "F4") {
-                e.preventDefault();
-                startBoost();
-            }
-            
-            // Fähigkeiten
-            if (e.code === "F1") useBlastAbility();
-            if (e.code === "F2") useShieldAbility();
-            if (e.code === "F3") useHealAbility();
-        });
-        
-        window.addEventListener("keyup", (e) => {
-            if (e.code === "F4") {
-                stopBoost();
-            }
-        });
-
-        // Gegner-System
-        function spawnEnemy() {
-            if (!gameState.gameRunning || Math.random() > 0.7 || gameState.enemies.length > 15) return;
-            
-            let x, y;
-            const margin = 300;
-            
-            // Spawn außerhalb des Sichtbereichs
-            if (Math.random() > 0.5) {
-                x = Math.random() > 0.5 ? 
-                    gameState.camera.x - margin : 
-                    gameState.camera.x + canvas.width + margin;
-                y = gameState.camera.y + Math.random() * canvas.height;
-            } else {
-                x = gameState.camera.x + Math.random() * canvas.width;
-                y = Math.random() > 0.5 ? 
-                    gameState.camera.y - margin : 
-                    gameState.camera.y + canvas.height + margin;
-            }
-            
-            // Begrenzung auf Welt
-            x = Math.max(0, Math.min(gameState.world.width, x));
-            y = Math.max(0, Math.min(gameState.world.height, y));
-            
-            const enemy = {
-                x: x,
-                y: y,
-                segments: [{x: x, y: y}],
-                size: CONFIG.enemySize + Math.random() * 5,
-                speed: CONFIG.enemySpeed * (0.8 + Math.random() * 0.4),
-                direction: {x: 0, y: 0},
-                health: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
-                maxHealth: CONFIG.enemyHealth * (0.8 + Math.random() * 0.4),
-                lastDirectionChange: 0,
-                directionChangeInterval: 1000 + Math.random() * 2000,
-                color: `hsl(${Math.random() * 60}, 70%, 40%)`,
-                damage: CONFIG.enemyDamage
-            };
-            
-            gameState.enemies.push(enemy);
-        }
-
-        function updateEnemies(deltaTime) {
-            const head = gameState.snake[0];
-            
-            gameState.enemies.forEach(enemy => {
-                // Richtung aktualisieren
-                enemy.lastDirectionChange += deltaTime;
-                
-                if (enemy.lastDirectionChange > enemy.directionChangeInterval) {
-                    enemy.lastDirectionChange = 0;
-                    
-                    // Entscheidung: Spieler verfolgen oder zufällige Richtung
-                    if (Math.random() > 0.3) {
-                        // Spieler verfolgen
-                        const dx = head.x - enemy.segments[0].x;
-                        const dy = head.y - enemy.segments[0].y;
-                        const dist = Math.hypot(dx, dy);
-                        
-                        if (dist > 0) {
-                            enemy.direction = {
-                                x: dx / dist,
-                                y: dy / dist
-                            };
-                        }
-                    } else {
-                        // Zufällige Richtung
-                        const angle = Math.random() * Math.PI * 2;
-                        enemy.direction = {
-                            x: Math.cos(angle),
-                            y: Math.sin(angle)
-                        };
-                    }
-                }
-                
-                // Bewegung
-                const newHead = {
-                    x: enemy.segments[0].x + enemy.direction.x * enemy.speed * deltaTime,
-                    y: enemy.segments[0].y + enemy.direction.y * enemy.speed * deltaTime
-                };
-                
-                enemy.segments.unshift(newHead);
-                
-                // Länge anpassen
-                while (enemy.segments.length > Math.floor(enemy.size)) {
-                    enemy.segments.pop();
-                }
-                
-                // Weltgrenzen
-                if (newHead.x < 0 || newHead.x > gameState.world.width || 
-                    newHead.y < 0 || newHead.y > gameState.world.height) {
-                    // Umkehren bei Grenzen
-                    enemy.direction.x *= -1;
-                    enemy.direction.y *= -1;
-                }
-                
-                // Kollision mit Spieler
-                if (!gameState.shieldActive && Math.hypot(
-                    newHead.x - head.x, 
-                    newHead.y - head.y
-                ) < CONFIG.snakeRadius + CONFIG.enemySize) {
-                    // Schaden nehmen
-                    gameState.size = Math.max(5, gameState.size - (enemy.damage / 10));
-                    
-                    // Explosionspartikel
-                    for (let i = 0; i < 10; i++) {
-                        gameState.particles.push({
-                            x: (newHead.x + head.x) / 2,
-                            y: (newHead.y + head.y) / 2,
-                            vx: (Math.random() - 0.5) * 10,
-                            vy: (Math.random() - 0.5) * 10,
-                            life: 1,
-                            decay: 0.05,
-                            color: '#ff4757'
-                        });
-                    }
-                    
-                    // Schadens-Sound
-                    playSound(soundEffects.ability, 0.4);
-                }
-            });
-        }
-
-        // Hindernisse
-        function spawnObstacles() {
-            for (let i = 0; i < CONFIG.obstacleCount; i++) {
-                gameState.obstacles.push({
-                    x: Math.random() * gameState.world.width,
-                    y: Math.random() * gameState.world.height,
-                    width: 50 + Math.random() * 100,
-                    height: 50 + Math.random() * 100,
-                    rotation: Math.random() * Math.PI * 2
-                });
-            }
-        }
-
-        // Power-Ups
-        function spawnPowerUp() {
-            if (!gameState.gameRunning || Math.random() > 0.5 || gameState.powerUps.length >= 5) return;
-            
-            const type = CONFIG.powerUpTypes[Math.floor(Math.random() * CONFIG.powerUpTypes.length)];
-            const colors = {
-                speed: '#d4af37',
-                growth: '#2ed573',
-                invincibility: '#7b68ee',
-                points: '#ffa502'
-            };
-            
-            const powerUp = {
-                x: Math.random() * (gameState.world.width - 200) + 100,
-                y: Math.random() * (gameState.world.height - 200) + 100,
-                type: type,
-                color: colors[type],
-                radius: 15,
-                pulse: Math.random() * Math.PI * 2,
-                duration: CONFIG.powerUpDuration
-            };
-            
-            gameState.powerUps.push(powerUp);
-        }
-
-        function applyPowerUp(powerUp) {
-            switch (powerUp.type) {
-                case 'speed':
-                    gameState.baseSpeed = Math.min(
-                        CONFIG.maxSpeedLimit * 1.5,
-                        gameState.baseSpeed * 1.5
-                    );
-                    setTimeout(() => {
-                        gameState.baseSpeed = Math.min(
-                            CONFIG.maxSpeedLimit,
-                            gameState.baseSpeed / 1.5
-                        );
-                    }, powerUp.duration);
-                    break;
-                    
-                case 'growth':
-                    gameState.size += 15;
-                    break;
-                    
-                case 'invincibility':
-                    gameState.shieldActive = true;
-                    gameState.shieldEndTime = Date.now() + powerUp.duration;
-                    setTimeout(() => {
-                        gameState.shieldActive = false;
-                    }, powerUp.duration);
-                    break;
-                    
-                case 'points':
-                    gameState.points += 500;
-                    break;
-            }
-            
-            // Partikel-Effekt
-            for (let i = 0; i < 30; i++) {
-                gameState.particles.push({
-                    x: powerUp.x,
-                    y: powerUp.y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1,
-                    decay: 0.03,
-                    color: powerUp.color
-                });
-            }
-            
-            // Power-Up Sound
-            playSound(soundEffects.powerup, 0.7);
-        }
-
-        // Fähigkeiten
-        function useBlastAbility() {
-            if (gameState.abilities.blast.cooldown > 0 || !gameState.gameRunning) return;
-            
-            gameState.abilities.blast.active = true;
-            gameState.abilities.blast.cooldown = gameState.abilities.blast.maxCooldown;
-            
-            const blastBtn = document.getElementById('blastAbility');
-            blastBtn.classList.add("cooldown");
-            
-            // Cooldown-Animation
-            const cooldownInterval = setInterval(() => {
-                gameState.abilities.blast.cooldown -= 100;
-                blastBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.blast.cooldown / gameState.abilities.blast.maxCooldown * 100)}%`);
-                
-                if (gameState.abilities.blast.cooldown <= 0) {
-                    clearInterval(cooldownInterval);
-                    blastBtn.classList.remove("cooldown");
-                }
-            }, 100);
-            
-            // Energieblast-Effekt
-            const head = gameState.snake[0];
-            const blastParticles = 50;
-            
-            for (let i = 0; i < blastParticles; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 15 + 5;
-                
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 1,
-                    decay: 0.02,
-                    color: '#ff4757'
-                });
-            }
-            
-            // Gegnern Schaden zufügen
-            gameState.enemies.forEach(enemy => {
-                const dist = Math.hypot(
-                    enemy.segments[0].x - head.x,
-                    enemy.segments[0].y - head.y
-                );
-                
-                if (dist < CONFIG.blastRadius) {
-                    enemy.health -= CONFIG.blastDamage * (1 - dist / CONFIG.blastRadius);
-                    
-                    if (enemy.health <= 0) {
-                        // Gegner besiegt
-                        const index = gameState.enemies.indexOf(enemy);
-                        if (index > -1) {
-                            gameState.enemies.splice(index, 1);
-                            gameState.points += 100;
-                            gameState.xp += 20;
-                            gameState.enemiesDefeated++;
-                            
-                            // XP-Check für Level-Up
-                            if (gameState.xp >= gameState.xpToNextLevel) {
-                                levelUp();
-                            }
-                        }
-                    }
-                }
-            });
-            
-            // Blast-Sound
-            playSound(soundEffects.ability, 0.8);
-        }
-
-        function useShieldAbility() {
-            if (gameState.abilities.shield.cooldown > 0 || !gameState.gameRunning) return;
-            
-            gameState.abilities.shield.active = true;
-            gameState.abilities.shield.cooldown = gameState.abilities.shield.maxCooldown;
-            gameState.abilities.shield.endTime = Date.now() + gameState.abilities.shield.duration;
-            gameState.shieldActive = true;
-            gameState.shieldEndTime = Date.now() + gameState.abilities.shield.duration;
-            
-            const shieldBtn = document.getElementById('shieldAbility');
-            shieldBtn.classList.add("cooldown");
-            
-            // Cooldown-Animation
-            const cooldownInterval = setInterval(() => {
-                gameState.abilities.shield.cooldown -= 100;
-                shieldBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.shield.cooldown / gameState.abilities.shield.maxCooldown * 100)}%`);
-                
-                if (gameState.abilities.shield.cooldown <= 0) {
-                    clearInterval(cooldownInterval);
-                    shieldBtn.classList.remove("cooldown");
-                }
-            }, 100);
-            
-            setTimeout(() => {
-                gameState.shieldActive = false;
-                gameState.abilities.shield.active = false;
-            }, gameState.abilities.shield.duration);
-            
-            // Schild-Effekt
-            const head = gameState.snake[0];
-            
-            for (let i = 0; i < 30; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = CONFIG.snakeRadius * 2;
-                
-                gameState.particles.push({
-                    x: head.x + Math.cos(angle) * radius,
-                    y: head.y + Math.sin(angle) * radius,
-                    vx: Math.cos(angle + Math.PI/2) * 2,
-                    vy: Math.sin(angle + Math.PI/2) * 2,
-                    life: 1,
-                    decay: 0.01,
-                    color: '#7b68ee'
-                });
-            }
-            
-            // Schild-Sound
-            playSound(soundEffects.ability, 0.6);
-        }
-
-        function useHealAbility() {
-            if (gameState.abilities.heal.cooldown > 0 || !gameState.gameRunning) return;
-            
-            gameState.abilities.heal.active = true;
-            gameState.abilities.heal.cooldown = gameState.abilities.heal.maxCooldown;
-            
-            const healBtn = document.getElementById('healAbility');
-            healBtn.classList.add("cooldown");
-            
-            // Cooldown-Animation
-            const cooldownInterval = setInterval(() => {
-                gameState.abilities.heal.cooldown -= 100;
-                healBtn.style.setProperty('--cooldown', `${100 - (gameState.abilities.heal.cooldown / gameState.abilities.heal.maxCooldown * 100)}%`);
-                
-                if (gameState.abilities.heal.cooldown <= 0) {
-                    clearInterval(cooldownInterval);
-                    healBtn.classList.remove("cooldown");
-                }
-            }, 100);
-            
-            // Heilungseffekt
-            gameState.size = Math.min(gameState.size + CONFIG.healAmount, 100);
-            
-            const head = gameState.snake[0];
-            
-            for (let i = 0; i < 30; i++) {
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: (Math.random() - 0.5) * 5,
-                    vy: (Math.random() - 0.5) * 5,
-                    life: 1,
-                    decay: 0.03,
-                    color: '#2ed573'
-                });
-            }
-            
-            // Heilungs-Sound
-            playSound(soundEffects.ability, 0.5);
-        }
-
-        // Level-System
-        function levelUp() {
-            gameState.level++;
-            gameState.xp -= gameState.xpToNextLevel;
-            gameState.xpToNextLevel = Math.floor(gameState.xpToNextLevel * 1.5);
-            
-            // Verbesserungen beim Level-Up
-            gameState.maxSpeedLimit += 0.5;
-            gameState.baseSpeed = Math.min(
-                gameState.maxSpeedLimit,
-                gameState.baseSpeed + 0.3
-            );
-            
-            // UI-Update
-            document.getElementById('level').textContent = gameState.level;
-            document.getElementById('current-level').textContent = gameState.level;
-            
-            // Level-Up-Effekt
-            const head = gameState.snake[0];
-            
-            for (let i = 0; i < 100; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 10 + 5;
-                
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: Math.cos(angle) * speed,
-                    vy: Math.sin(angle) * speed,
-                    life: 1,
-                    decay: 0.01,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
-                });
-            }
-            
-            // Level-Up Sound
-            playSound(soundEffects.levelUp, 0.8);
-            
-            // Level 2+ Schwierigkeitserhöhung
-            if (gameState.level > 1) {
-                CONFIG.enemySpawnRate = Math.max(2000, CONFIG.enemySpawnRate - 500);
-                CONFIG.enemyHealth += 20;
-                CONFIG.enemyDamage += 2;
-            }
-        }
-
-        // Partikel-System
-        function createBoostParticles() {
-            if (!gameState.boost) return;
-            
-            const head = gameState.snake[0];
-            for (let i = 0; i < 3; i++) {
-                gameState.particles.push({
-                    x: head.x + (Math.random() - 0.5) * 20,
-                    y: head.y + (Math.random() - 0.5) * 20,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 1,
-                    decay: 0.02,
-                    color: `hsl(${15 + Math.random() * 30}, 100%, ${50 + Math.random() * 30}%)`
-                });
-            }
-        }
-
-        function createFoodParticles(x, y) {
-            for (let i = 0; i < CONFIG.particleCount; i++) {
-                gameState.particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    life: 1,
-                    decay: 0.05,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
-                });
-            }
-        }
-
-        // Erweiterte Futter-Generierung
-        function spawnFood() {
-            while (gameState.food.length < CONFIG.maxFood) {
-                let attempts = 0;
-                let newFood;
-                
-                do {
-                    newFood = {
-                        x: Math.random() * gameState.world.width,
-                        y: Math.random() * gameState.world.height,
-                        hue: Math.random() * 360,
-                        pulse: Math.random() * Math.PI * 2,
-                        value: 1 + Math.random() * 2
-                    };
-                    attempts++;
-                } while (attempts < 15 && isNearSnake(newFood, 80));
-                
-                gameState.food.push(newFood);
-            }
-        }
-
-        function isNearSnake(pos, minDistance) {
-            return gameState.snake.some(segment => 
-                Math.hypot(segment.x - pos.x, segment.y - pos.y) < minDistance
-            );
-        }
-
-        // Kamera-System
-        function updateCamera() {
-            const head = gameState.snake[0];
-            const targetX = head.x - canvas.width / 2;
-            const targetY = head.y - canvas.height / 2;
-            
-            gameState.camera.x += (targetX - gameState.camera.x) * CONFIG.cameraSmoothing;
-            gameState.camera.y += (targetY - gameState.camera.y) * CONFIG.cameraSmoothing;
-            
-            // Kamera-Grenzen
-            gameState.camera.x = Math.max(0, Math.min(gameState.world.width - canvas.width, gameState.camera.x));
-            gameState.camera.y = Math.max(0, Math.min(gameState.world.height - canvas.height, gameState.camera.y));
-        }
-
-        // Hauptspiel-Update
-        function update(currentTime) {
-            if (!gameState.gameRunning) return;
-            
-            // DeltaTime in Sekunden berechnen
-            const deltaTime = (currentTime - gameState.lastTime) / 1000;
-            gameState.lastTime = currentTime;
-
-            // Boost-Partikel
-            if (gameState.boost && Math.random() < 0.7) {
-                createBoostParticles();
-            }
-
-            // Geschwindigkeit
-            const boostSpeed = gameState.boost ? CONFIG.boostMultiplier : 1;
-            gameState.currentSpeed = gameState.baseSpeed * boostSpeed;
-            
-            // Snake-Bewegung
-            const head = gameState.snake[0];
-            const newHead = {
-                x: head.x + gameState.direction.x * gameState.currentSpeed * deltaTime,
-                y: head.y + gameState.direction.y * gameState.currentSpeed * deltaTime
-            };
-
-            gameState.snake.unshift(newHead);
-
-            // Snake-Länge bei Boost
-            if (gameState.boost && gameState.size > 8) {
-                gameState.size -= CONFIG.boostShrinkRate * deltaTime;
-                gameState.size = Math.max(8, gameState.size);
-            }
-
-            // Snake kürzen
-            while (gameState.snake.length > Math.floor(gameState.size)) {
-                gameState.snake.pop();
-            }
-
-            // Welt-Kollision
-            if (newHead.x < 0 || newHead.x > gameState.world.width || 
-                newHead.y < 0 || newHead.y > gameState.world.height) {
-                gameOver();
-                return;
-            }
-
-            // Selbstkollision
-            if (gameState.size > 25) {
-                for (let i = 15; i < gameState.snake.length; i++) {
-                    if (Math.hypot(newHead.x - gameState.snake[i].x, 
-                                  newHead.y - gameState.snake[i].y) < CONFIG.snakeRadius) {
-                        gameOver();
-                        return;
-                    }
-                }
-            }
-
-            // Hindernis-Kollision
-            gameState.obstacles.forEach(obstacle => {
-                const distX = Math.abs(newHead.x - (obstacle.x + obstacle.width/2));
-                const distY = Math.abs(newHead.y - (obstacle.y + obstacle.height/2));
-                
-                if (distX <= obstacle.width/2 && distY <= obstacle.height/2) {
-                    gameOver();
-                    return;
-                }
-            });
-
-            // Futter-Kollision
-            for (let i = gameState.food.length - 1; i >= 0; i--) {
-                const food = gameState.food[i];
-                const distance = Math.hypot(food.x - newHead.x, food.y - newHead.y);
-                
-                if (distance < CONFIG.foodRadius + CONFIG.snakeRadius) {
-                    gameState.size += food.value;
-                    gameState.points += Math.floor(food.value * 10);
-                    gameState.xp += Math.floor(food.value * 2);
-                    gameState.baseSpeed = Math.min(
-                        CONFIG.maxSpeedLimit, 
-                        gameState.baseSpeed + CONFIG.speedIncrease
-                    );
-                    gameState.maxSpeed = Math.max(gameState.maxSpeed, gameState.baseSpeed);
-                    
-                    createFoodParticles(food.x, food.y);
-                    gameState.food.splice(i, 1);
-                    
-                    // Futter-Sound
-                    playSound(soundEffects.eat, 0.5);
-                    
-                    // XP-Check für Level-Up
-                    if (gameState.xp >= gameState.xpToNextLevel) {
-                        levelUp();
-                    }
-                }
-            }
-
-            // Power-Up-Kollision
-            for (let i = gameState.powerUps.length - 1; i >= 0; i--) {
-                const powerUp = gameState.powerUps[i];
-                const distance = Math.hypot(powerUp.x - newHead.x, powerUp.y - newHead.y);
-                
-                if (distance < powerUp.radius + CONFIG.snakeRadius) {
-                    applyPowerUp(powerUp);
-                    gameState.powerUps.splice(i, 1);
-                }
-            }
-
-            // Gegner aktualisieren
-            updateEnemies(deltaTime);
-            
-            // Tote Gegner entfernen
-            for (let i = gameState.enemies.length - 1; i >= 0; i--) {
-                if (gameState.enemies[i].health <= 0) {
-                    const enemy = gameState.enemies[i];
-                    
-                    // Explosionspartikel
-                    for (let j = 0; j < 30; j++) {
-                        gameState.particles.push({
-                            x: enemy.segments[0].x,
-                            y: enemy.segments[0].y,
-                            vx: (Math.random() - 0.5) * 10,
-                            vy: (Math.random() - 0.5) * 10,
-                            life: 1,
-                            decay: 0.03,
-                            color: enemy.color
-                        });
-                    }
-                    
-                    gameState.enemies.splice(i, 1);
-                    gameState.points += 100;
-                    gameState.xp += 20;
-                    gameState.enemiesDefeated++;
-                    
-                    // Gegner-Sound
-                    playSound(soundEffects.enemyDefeat, 0.7);
-                    
-                    // XP-Check für Level-Up
-                    if (gameState.xp >= gameState.xpToNextLevel) {
-                        levelUp();
-                    }
-                }
-            }
-
-            // Partikel-Update
-            for (let i = gameState.particles.length - 1; i >= 0; i--) {
-                const particle = gameState.particles[i];
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                particle.life -= particle.decay;
-                
-                if (particle.life <= 0) {
-                    gameState.particles.splice(i, 1);
-                }
-            }
-
-            // Fähigkeiten-Cooldown
-            Object.keys(gameState.abilities).forEach(ability => {
-                if (gameState.abilities[ability].cooldown > 0) {
-                    gameState.abilities[ability].cooldown -= deltaTime * 1000;
-                }
-            });
-
-            // Schild-Dauer
-            if (gameState.shieldActive && Date.now() > gameState.shieldEndTime) {
-                gameState.shieldActive = false;
-            }
-
-            // Zufällige Gegner spawnen
-            if (Math.random() < 0.01 * deltaTime) {
-                spawnEnemy();
-            }
-
-            // Zufällige Power-Ups spawnen
-            if (Math.random() < 0.005 * deltaTime && gameState.powerUps.length < 3) {
-                spawnPowerUp();
-            }
-
-            // Futter spawnen (nur wenn nötig)
-            if (gameState.food.length < CONFIG.maxFood && Math.random() < 0.05) {
-                spawnFood();
-            }
-
-            updateCamera();
-            updateUI();
-            updateMinimap();
-        }
-
-        // Erweiterte Zeichenfunktionen
-        function draw() {
-            // Hintergrund-Gradient
-            const gradient = ctx.createRadialGradient(
-                canvas.width / 2, canvas.height / 2, 0,
-                canvas.width / 2, canvas.height / 2, Math.max(canvas.width, canvas.height)
-            );
-            gradient.addColorStop(0, "#0a111a");
-            gradient.addColorStop(0.5, "#070d12");
-            gradient.addColorStop(1, "#04090c");
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Grid-System
-            drawGrid();
-
-            ctx.save();
-            ctx.translate(-gameState.camera.x, -gameState.camera.y);
-
-            // Hindernisse zeichnen
-            ctx.fillStyle = 'rgba(90, 70, 40, 0.7)';
-            gameState.obstacles.forEach(obstacle => {
-                ctx.save();
-                ctx.translate(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2);
-                ctx.rotate(obstacle.rotation);
-                ctx.fillRect(-obstacle.width/2, -obstacle.height/2, obstacle.width, obstacle.height);
-                ctx.restore();
-            });
-
-            // Futter mit verbessertem Design
-            gameState.food.forEach((food, index) => {
-                food.pulse += 0.1;
-                const pulseFactor = 1 + Math.sin(food.pulse) * 0.2;
-                const radius = CONFIG.foodRadius * pulseFactor;
-                
-                const gradient = ctx.createRadialGradient(
-                    food.x, food.y, 0,
-                    food.x, food.y, radius * 2
-                );
-                gradient.addColorStop(0, `hsl(${food.hue}, 100%, 70%)`);
-                gradient.addColorStop(0.7, `hsl(${food.hue}, 100%, 50%)`);
-                gradient.addColorStop(1, `hsl(${food.hue}, 100%, 10%)`);
-                
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(food.x, food.y, radius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Glüheffekt
-                ctx.shadowColor = `hsl(${food.hue}, 100%, 50%)`;
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(food.x, food.y, radius * 0.6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            });
-
-            // Power-Ups zeichnen
-            gameState.powerUps.forEach(powerUp => {
-                powerUp.pulse += 0.05;
-                const pulseSize = 1 + Math.sin(powerUp.pulse) * 0.2;
-                
-                // Hauptkreis
-                ctx.fillStyle = powerUp.color;
-                ctx.beginPath();
-                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * pulseSize, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Glüheffekt
-                ctx.shadowColor = powerUp.color;
-                ctx.shadowBlur = 20;
-                ctx.beginPath();
-                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * 0.7, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                
-                // Symbol
-                ctx.fillStyle = 'white';
-                ctx.font = `${powerUp.radius}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                let symbol = '?';
-                switch (powerUp.type) {
-                    case 'speed': symbol = '⚡'; break;
-                    case 'growth': symbol = '⬆️'; break;
-                    case 'invincibility': symbol = '🛡️'; break;
-                    case 'points': symbol = '💰'; break;
-                }
-                
-                ctx.fillText(symbol, powerUp.x, powerUp.y);
-            });
-
-            // Gegner zeichnen
-            gameState.enemies.forEach(enemy => {
-                // Segmente
-                enemy.segments.forEach((segment, index) => {
-                    const opacity = Math.max(0.4, 1 - (index / enemy.segments.length) * 0.8);
-                    const radius = CONFIG.enemySize * (1 - index * 0.05);
-                    
-                    ctx.fillStyle = enemy.color;
-                    ctx.globalAlpha = opacity;
-                    ctx.beginPath();
-                    ctx.arc(segment.x, segment.y, radius, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Gesundheitsbalken für den Kopf
-                    if (index === 0) {
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                        ctx.fillRect(
-                            segment.x - CONFIG.enemySize,
-                            segment.y - CONFIG.enemySize - 10,
-                            CONFIG.enemySize * 2,
-                            5
-                        );
-                        
-                        ctx.fillStyle = '#ff4757';
-                        ctx.fillRect(
-                            segment.x - CONFIG.enemySize,
-                            segment.y - CONFIG.enemySize - 10,
-                            (CONFIG.enemySize * 2) * (enemy.health / enemy.maxHealth),
-                            5
-                        );
-                    }
-                });
-                
-                ctx.globalAlpha = 1;
-            });
-
-            // Snake mit Regenbogen-Effekt
-            gameState.snake.forEach((segment, index) => {
-                const opacity = Math.max(0.4, 1 - (index / gameState.snake.length) * 0.8);
-                const radius = CONFIG.snakeRadius * (1 - index * 0.008);
-                const hue = (index * 5 + Date.now() * 0.1) % 360;
-                
-                let color;
-                if (gameState.boost) {
-                    color = `hsla(${15 + Math.sin(index * 0.1) * 30}, 100%, 60%, ${opacity})`;
-                } else {
-                    color = `hsla(${120 + hue * 0.3}, 80%, 60%, ${opacity})`;
-                }
-                
-                // Schatten für Tiefe
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 10;
-                
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(segment.x, segment.y, Math.max(3, radius), 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Kopf-Highlights
-                if (index === 0) {
-                    const eyeSize = 3;
-                    const eyeOffset = CONFIG.snakeRadius * 0.6;
-                    
-                    ctx.fillStyle = "white";
-                    ctx.beginPath();
-                    ctx.arc(segment.x - eyeOffset * gameState.direction.x + eyeOffset * gameState.direction.y, 
-                           segment.y - eyeOffset * gameState.direction.y - eyeOffset * gameState.direction.x, 
-                           eyeSize, 0, Math.PI * 2);
-                    ctx.arc(segment.x - eyeOffset * gameState.direction.x - eyeOffset * gameState.direction.y, 
-                           segment.y - eyeOffset * gameState.direction.y + eyeOffset * gameState.direction.x, 
-                           eyeSize, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Schild-Effekt
-                    if (gameState.shieldActive) {
-                        ctx.strokeStyle = '#7b68ee';
-                        ctx.lineWidth = 2;
-                        ctx.globalAlpha = 0.5;
-                        ctx.beginPath();
-                        ctx.arc(segment.x, segment.y, CONFIG.snakeRadius * 1.5, 0, Math.PI * 2);
-                        ctx.stroke();
-                        ctx.globalAlpha = 1;
-                    }
-                }
-                
-                ctx.shadowBlur = 0;
-            });
-
-            // Partikel rendern
-            gameState.particles.forEach(particle => {
-                ctx.globalAlpha = particle.life;
-                ctx.fillStyle = particle.color;
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, 2 + particle.life * 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            });
-
-            ctx.restore();
-        }
-
-        function drawGrid() {
-            const gridSize = 50;
-            const startX = Math.floor(gameState.camera.x / gridSize) * gridSize;
-            const startY = Math.floor(gameState.camera.y / gridSize) * gridSize;
-            
-            ctx.strokeStyle = "rgba(123, 90, 50, 0.1)";
-            ctx.lineWidth = 1;
-            
-            for (let x = startX; x < gameState.camera.x + canvas.width + gridSize; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x - gameState.camera.x, 0);
-                ctx.lineTo(x - gameState.camera.x, canvas.height);
-                ctx.stroke();
-            }
-            
-            for (let y = startY; y < gameState.camera.y + canvas.height + gridSize; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y - gameState.camera.y);
-                ctx.lineTo(canvas.width, y - gameState.camera.y);
-                ctx.stroke();
-            }
-        }
-
-        function updateMinimap() {
-            minimapCtx.fillStyle = "rgba(10, 15, 25, 0.8)";
-            minimapCtx.fillRect(0, 0, minimap.width, minimap.height);
-            
-            const scaleX = minimap.width / gameState.world.width;
-            const scaleY = minimap.height / gameState.world.height;
-            
-            // Hindernisse auf Minimap
-            minimapCtx.fillStyle = 'rgba(90, 70, 40, 0.5)';
-            gameState.obstacles.forEach(obstacle => {
-                minimapCtx.fillRect(
-                    obstacle.x * scaleX,
-                    obstacle.y * scaleY,
-                    obstacle.width * scaleX,
-                    obstacle.height * scaleY
-                );
-            });
-            
-            // Futter auf Minimap
-            gameState.food.forEach(food => {
-                minimapCtx.fillStyle = `hsl(${food.hue}, 100%, 50%)`;
-                minimapCtx.beginPath();
-                minimapCtx.arc(
-                    food.x * scaleX,
-                    food.y * scaleY,
-                    2, 0, Math.PI * 2
-                );
-                minimapCtx.fill();
-            });
-            
-            // Power-Ups auf Minimap
-            gameState.powerUps.forEach(powerUp => {
-                minimapCtx.fillStyle = powerUp.color;
-                minimapCtx.beginPath();
-                minimapCtx.arc(
-                    powerUp.x * scaleX,
-                    powerUp.y * scaleY,
-                    3, 0, Math.PI * 2
-                );
-                minimapCtx.fill();
-            });
-            
-            // Gegner auf Minimap
-            gameState.enemies.forEach(enemy => {
-                minimapCtx.fillStyle = enemy.color;
-                minimapCtx.beginPath();
-                minimapCtx.arc(
-                    enemy.segments[0].x * scaleX,
-                    enemy.segments[0].y * scaleY,
-                    2, 0, Math.PI * 2
-                );
-                minimapCtx.fill();
-            });
-            
-            // Snake auf Minimap
-            minimapCtx.fillStyle = "#00ff00";
-            minimapCtx.beginPath();
-            minimapCtx.arc(
-                gameState.snake[0].x * scaleX,
-                gameState.snake[0].y * scaleY,
-                3, 0, Math.PI * 2
-            );
-            minimapCtx.fill();
-            
-            // Kamera-View
-            minimapCtx.strokeStyle = "#d4af37";
-            minimapCtx.lineWidth = 2;
-            minimapCtx.strokeRect(
-                gameState.camera.x * scaleX,
-                gameState.camera.y * scaleY,
-                canvas.width * scaleX,
-                canvas.height * scaleY
-            );
-        }
-
-        function updateUI() {
-            document.getElementById("score").textContent = Math.floor(gameState.size);
-            document.getElementById("speed-display").textContent = gameState.baseSpeed.toFixed(1);
-            document.getElementById("food-counter").textContent = `${gameState.food.length}/${CONFIG.maxFood}`;
-            document.getElementById("points").textContent = gameState.points;
-            document.getElementById("level").textContent = gameState.level;
-            document.getElementById("xp").textContent = `${Math.floor((gameState.xp / gameState.xpToNextLevel) * 100)}%`;
-            document.getElementById("xp-progress").style.width = `${(gameState.xp / gameState.xpToNextLevel) * 100}%`;
-            document.getElementById("current-level").textContent = gameState.level;
-        }
-
-        function updateLeaderboard() {
-            const list = document.getElementById("leaderboardList");
-            list.innerHTML = "";
-            
-            leaderboard.slice(0, 5).forEach((entry, index) => {
-                const div = document.createElement("div");
-                div.className = "score-entry";
-                div.innerHTML = `
-                    <span>${index + 1}. Länge ${entry.size}</span>
-                    <span>${entry.points}pts</span>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function saveScore() {
-            const gameTime = Math.floor((Date.now() - gameState.startTime) / 1000);
-            const newEntry = {
-                size: Math.floor(gameState.size),
-                points: gameState.points,
-                speed: gameState.maxSpeed,
-                time: gameTime,
-                level: gameState.level,
-                enemiesDefeated: gameState.enemiesDefeated,
-                date: new Date().toLocaleDateString()
-            };
-            
-            leaderboard.push(newEntry);
-            leaderboard.sort((a, b) => b.points - a.points);
-            leaderboard = leaderboard.slice(0, 10);
-            
-            try {
-                localStorage.setItem('astoraLeaderboard', JSON.stringify(leaderboard));
-            } catch (e) {
-                console.log('Speichern der Bestenliste nicht möglich');
-            }
-            
-            updateLeaderboard();
-        }
-
-        function gameOver() {
-            gameState.gameRunning = false;
-            stopBoost();
-            
-            const gameTime = Math.floor((Date.now() - gameState.startTime) / 1000);
-            
-            document.getElementById("finalScore").textContent = Math.floor(gameState.size);
-            document.getElementById("maxSpeed").textContent = gameState.maxSpeed.toFixed(1);
-            document.getElementById("finalPoints").textContent = gameState.points;
-            document.getElementById("gameTime").textContent = `${gameTime}s`;
-            document.getElementById("finalLevel").textContent = gameState.level;
-            document.getElementById("enemiesDefeated").textContent = gameState.enemiesDefeated;
-            
-            const gameOverDiv = document.getElementById("gameOver");
-            gameOverDiv.style.display = "block";
-            setTimeout(() => gameOverDiv.classList.add("show"), 10);
-            
-            saveScore();
-            
-            // Game Over Sound
-            playSound(soundEffects.gameOver, 0.8);
-            
-            // Explosion-Effekt
-            for (let i = 0; i < 50; i++) {
-                const head = gameState.snake[0];
-                gameState.particles.push({
-                    x: head.x,
-                    y: head.y,
-                    vx: (Math.random() - 0.5) * 15,
-                    vy: (Math.random() - 0.5) * 15,
-                    life: 1,
-                    decay: 0.02,
-                    color: `hsl(${Math.random() * 360}, 100%, 70%)`
-                });
-            }
-        }
-
-        function restartGame() {
-            // Reset game state
-            gameState = {
-                snake: [{ 
-                    x: canvas.width / 2, 
-                    y: canvas.height / 2 
-                }],
-                direction: { x: 1, y: 0 },
-                size: 10,
-                baseSpeed: 2.5,
-                currentSpeed: 2.5,
-                maxSpeed: 2.5,
-                food: [],
-                powerUps: [],
-                particles: [],
-                enemies: [],
-                obstacles: [],
-                boost: false,
-                gameRunning: true,
-                lastTime: performance.now(),
-                startTime: Date.now(),
-                points: 0,
-                camera: { x: 0, y: 0 },
-                world: { width: 3000, height: 2000 },
-                level: 1,
-                xp: 0,
-                xpToNextLevel: 100,
-                abilities: {
-                    blast: { cooldown: 0, maxCooldown: 10000, active: false },
-                    shield: { cooldown: 0, maxCooldown: 15000, active: false, duration: 5000, endTime: 0 },
-                    heal: { cooldown: 0, maxCooldown: 20000, active: false }
-                },
-                enemiesDefeated: 0,
-                shieldActive: false,
-                shieldEndTime: 0
-            };
-            
-            const gameOverDiv = document.getElementById("gameOver");
-            gameOverDiv.classList.remove("show");
-            setTimeout(() => gameOverDiv.style.display = "none", 500);
-            
-            spawnFood();
-            spawnObstacles();
-            updateUI();
-            
-            // Hintergrundmusik neu starten
-            playBackgroundMusic();
-        }
-
-        // Touch-Steuerung für Mobile
-        let touchStart = null;
-        
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchStart = {
-                x: e.touches[0].clientX,
-                y: e.touches[0].clientY
-            };
-        });
-        
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!touchStart || !gameState.gameRunning) return;
-            
-            const touch = e.touches[0];
-            const head = gameState.snake[0];
-            const worldTouchX = touch.clientX + gameState.camera.x;
-            const worldTouchY = touch.clientY + gameState.camera.y;
-            
-            const dx = worldTouchX - head.x;
-            const dy = worldTouchY - head.y;
-            const distance = Math.hypot(dx, dy);
-            
-            if (distance > 30) {
-                gameState.direction = { 
-                    x: dx / distance, 
-                    y: dy / distance 
-                };
-            }
-        });
-        
-        canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            touchStart = null;
-        });
-
-        // Doppel-Touch für Boost
-        let lastTouchTime = 0;
-        canvas.addEventListener('touchstart', (e) => {
-            const currentTime = Date.now();
-            if (currentTime - lastTouchTime < 300) {
-                startBoost();
-                setTimeout(stopBoost, 500);
-            }
-            lastTouchTime = currentTime;
-        });
-
-        // Fähigkeiten für Touch
-        document.getElementById('blastAbility').addEventListener('click', useBlastAbility);
-        document.getElementById('shieldAbility').addEventListener('click', useShieldAbility);
-        document.getElementById('healAbility').addEventListener('click', useHealAbility);
-
-        // Performance-Monitoring
-        let frameCount = 0;
-        let lastFPSTime = Date.now();
-        
-        function monitorPerformance() {
-            frameCount++;
-            const currentTime = Date.now();
-            
-            if (currentTime - lastFPSTime >= 1000) {
-                const fps = Math.round((frameCount * 1000) / (currentTime - lastFPSTime));
-                
-                // FPS zu niedrig? Partikel reduzieren
-                if (fps < 30 && CONFIG.particleCount > 5) {
-                    CONFIG.particleCount = Math.max(5, CONFIG.particleCount - 2);
-                } else if (fps > 50 && CONFIG.particleCount < 15) {
-                    CONFIG.particleCount = Math.min(15, CONFIG.particleCount + 1);
-                }
-                
-                frameCount = 0;
-                lastFPSTime = currentTime;
-            }
-        }
-
-        // Erweiterte Hauptschleife
-        function enhancedGameLoop(currentTime) {
-            update(currentTime);
-            draw();
-            monitorPerformance();
-            requestAnimationFrame(enhancedGameLoop);
-        }
-
-        // Pause-Funktionalität
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-                e.preventDefault();
-                if (gameState.gameRunning) {
-                    gameState.gameRunning = false;
-                    // Pause-Overlay anzeigen
-                    const pauseOverlay = document.createElement('div');
-                    pauseOverlay.id = 'pauseOverlay';
-                    pauseOverlay.style.cssText = `
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0,0,0,0.8);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 48px;
-                        color: #d4af37;
-                        z-index: 1000;
-                        font-family: 'MedievalSharp', cursive;
-                    `;
-                    pauseOverlay.innerHTML = '⏸️ PAUSE<br><small style="font-size: 24px;">Drücke ESC zum Fortsetzen</small>';
-                    document.body.appendChild(pauseOverlay);
-                    
-                    // Musik pausieren
-                    soundEffects.background.pause();
-                } else {
-                    gameState.gameRunning = true;
-                    gameState.lastTime = performance.now();
-                    const pauseOverlay = document.getElementById('pauseOverlay');
-                    if (pauseOverlay) pauseOverlay.remove();
-                    
-                    // Musik fortsetzen
-                    if (musicEnabled) {
-                        soundEffects.background.play();
-                    }
-                }
-            }
-        });
-
-        // Initialisierung
-        function initGame() {
-            gameState.lastTime = performance.now();
-            spawnFood();
-            spawnObstacles();
-            updateUI();
-            updateLeaderboard();
-            
-            // Hintergrundmusik starten
-            playBackgroundMusic();
-            
-            // Willkommensnachricht
-            setTimeout(() => {
-                if (gameState.gameRunning) {
-                    const welcome = document.createElement('div');
-                    welcome.style.cssText = `
-                        position: fixed;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: rgba(10, 15, 25, 0.95);
-                        padding: 30px;
-                        border-radius: 15px;
-                        color: #d4af37;
-                        text-align: center;
-                        z-index: 1000;
-                        font-family: 'MedievalSharp', cursive;
-                        border: 2px solid #d4af37;
-                        width: 90%;
-                        max-width: 500px;
-                    `;
-                    welcome.innerHTML = `
-                        <h3>🐍 ASTORA 🏰</h3>
-                        <p>Schlange der Ewigkeit</p>
-                        <hr style="border-color: rgba(212,175,55,0.3); margin: 15px 0;">
-                        <p>Steuerung: Maus bewegen</p>
-                        <p>Boost: <span class="key-hint">F4</span> oder Leertaste</p>
-                        <p>Fähigkeiten: 
-                            <span class="key-hint">F1</span> Energieblast, 
-                            <span class="key-hint">F2</span> Schild, 
-                            <span class="key-hint">F3</span> Heilung
-                        </p>
-                        <p>Pause: <span class="key-hint">ESC</span></p>
-                        <button onclick="this.parentElement.remove()" style="
-                            margin-top: 15px;
-                            padding: 10px 20px;
-                            background: #d4af37;
-                            border: none;
-                            border-radius: 5px;
-                            color: #2a0a00;
-                            cursor: pointer;
-                            font-weight: bold;
-                            font-family: 'MedievalSharp', cursive;
-                        ">Beginne die Reise! 🚀</button>
-                    `;
-                    document.body.appendChild(welcome);
-                }
-            }, 1000);
-        }
-
-        // Spiel starten
-        initGame();
-        requestAnimationFrame(enhancedGameLoop);
-    </script>
+      });
+    }
+    
+    // Initial rotation animation
+    setTimeout(() => {
+      rotateHouse(5);
+    }, 1000);
+  </script>
 </body>
-    </html>
+</html>
