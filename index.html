@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offertly - KI-Angebotsgenerator für Selbstständige</title>
+    <meta name="description" content="Professionelle Angebote in Minuten erstellen mit künstlicher Intelligenz für Handwerker, Freelancer und Selbstständige">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://offertly.example.com/">
+    <meta property="og:title" content="Offertly - KI-Angebotsgenerator">
+    <meta property="og:description" content="Professionelle Angebote in Minuten erstellen mit KI">
+    <meta property="og:image" content="https://offertly.example.com/images/social-preview.jpg">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://offertly.example.com/">
+    <meta property="twitter:title" content="Offertly - KI-Angebotsgenerator">
+    <meta property="twitter:description" content="Professionelle Angebote in Minuten erstellen mit KI">
+    <meta property="twitter:image" content="https://offertly.example.com/images/social-preview.jpg">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,8 +25,8 @@
         :root {
             --primary: #4361ee;
             --primary-dark: #2a4bc9;
-            --secondary: #6c63ff;
-            --accent: #06d6a0;
+            --secondary: #3a0ca3;
+            --accent: #4cc9f0;
             --light: #ffffff;
             --dark: #121826;
             --gray: #6c757d;
@@ -22,18 +36,21 @@
             --transition: all 0.3s ease;
             --card-shadow: 0 8px 24px rgba(0,0,0,0.04);
             --header-height: 80px;
+            --error: #e53e3e;
+            --success: #38a169;
+            --warning: #dd6b20;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
             background-color: var(--light-gray);
-            color: #4a5568;
+            color: var(--dark);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -84,7 +101,7 @@
         nav {
             margin-left: auto;
             display: flex;
-            gap: 25px;
+            gap: 15px;
             align-items: center;
         }
 
@@ -93,9 +110,6 @@
             text-decoration: none;
             font-weight: 500;
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .nav-link:hover {
@@ -110,7 +124,7 @@
             cursor: pointer;
             transition: var(--transition);
             border: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -167,7 +181,7 @@
         }
 
         .hero-title {
-            font-size: 44px;
+            font-size: 36px;
             font-weight: 800;
             line-height: 1.2;
             color: var(--dark);
@@ -182,63 +196,12 @@
         }
 
         .hero-subtitle {
-            font-size: 20px;
+            font-size: 18px;
             color: #4a5568;
             margin-bottom: 30px;
             font-weight: 400;
         }
 
-        .hero-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 40px;
-        }
-
-        .stat-card {
-            background: var(--light);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: var(--gray);
-        }
-
-        .hero-image {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .image-container {
-            width: 100%;
-            height: 400px;
-            background: linear-gradient(135deg, #4361ee 0%, #6c63ff 100%);
-            border-radius: var(--border-radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.2);
-        }
-
-        .image-container img {
-            max-width: 80%;
-            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15));
-        }
-
-        /* App Container */
         .app-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -330,7 +293,7 @@
 
         .required::after {
             content: " *";
-            color: #e53e3e;
+            color: var(--error);
         }
 
         input, textarea, select {
@@ -366,6 +329,25 @@
             display: flex;
             gap: 15px;
             margin-top: 10px;
+        }
+
+        /* Error Styling */
+        .error-message {
+            color: var(--error);
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .has-error input,
+        .has-error textarea,
+        .has-error select {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+        }
+
+        .has-error .error-message {
+            display: block;
         }
 
         /* Custom Branch Input */
@@ -591,25 +573,80 @@
             opacity: 1;
         }
 
+        .toast.error {
+            background: var(--error);
+            color: white;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 90;
+            display: none;
+        }
+
+        .mobile-menu-overlay.show {
+            display: block;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 100;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            transition: var(--transition);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .mobile-nav.show {
+            right: 0;
+        }
+
+        .mobile-nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .mobile-nav-link {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
         /* Footer */
         footer {
             background: var(--dark);
             color: #a0aec0;
-            padding: 60px 5% 40px;
+            padding: 40px 5% 30px;
         }
 
         .footer-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 40px;
             max-width: 1400px;
             margin: 0 auto;
-        }
-
-        @media (max-width: 1024px) {
-            .footer-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
         }
 
         @media (max-width: 768px) {
@@ -633,28 +670,6 @@
             line-height: 1.7;
         }
 
-        .social-links {
-            display: flex;
-            gap: 15px;
-        }
-
-        .social-link {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: var(--transition);
-        }
-
-        .social-link:hover {
-            background: var(--primary);
-            transform: translateY(-3px);
-        }
-
         .footer-heading {
             font-size: 18px;
             font-weight: 600;
@@ -672,18 +687,10 @@
             color: #a0aec0;
             text-decoration: none;
             transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .footer-link:hover {
             color: white;
-        }
-
-        .footer-link i {
-            width: 20px;
-            text-align: center;
         }
 
         .copyright {
@@ -693,6 +700,91 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             color: #718096;
             font-size: 14px;
+        }
+
+        /* Legal Pages */
+        .legal-page {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+        }
+
+        .legal-page h1 {
+            color: var(--primary);
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .legal-page h2 {
+            color: var(--primary);
+            margin: 25px 0 15px;
+        }
+
+        .legal-page p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .legal-page ul {
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .app-card,
+        body.dark-mode .preview-container,
+        body.dark-mode .legal-page {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode input,
+        body.dark-mode textarea,
+        body.dark-mode select {
+            background-color: #4a5568;
+            color: #f7fafc;
+            border-color: #4a5568;
+        }
+
+        body.dark-mode .customer-info,
+        body.dark-mode .service-description,
+        body.dark-mode .price-section {
+            background-color: rgba(74, 85, 104, 0.5);
+        }
+
+        body.dark-mode header {
+            background-color: #2d3748;
+        }
+
+        body.dark-mode .logo-text {
+            color: #f7fafc;
+        }
+
+        body.dark-mode .nav-link {
+            color: #cbd5e0;
+        }
+
+        body.dark-mode .nav-link:hover {
+            color: var(--accent);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 20px;
+            margin-left: 15px;
         }
 
         /* Responsive Adjustments */
@@ -706,20 +798,12 @@
                 font-size: 18px;
             }
             
-            .nav-link span {
-                display: none;
-            }
-            
             .hero-title {
-                font-size: 32px;
+                font-size: 28px;
             }
             
             .hero-subtitle {
-                font-size: 18px;
-            }
-            
-            .hero-stats {
-                grid-template-columns: 1fr;
+                font-size: 16px;
             }
             
             .main-container {
@@ -737,6 +821,14 @@
             .btn {
                 width: 100%;
             }
+            
+            nav {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
         }
         
         @media (max-width: 480px) {
@@ -747,19 +839,27 @@
             }
             
             .hero-title {
-                font-size: 28px;
+                font-size: 24px;
             }
             
             .hero-subtitle {
                 font-size: 16px;
             }
-            
-            .stat-card {
-                padding: 15px;
-            }
-            
-            .stat-value {
-                font-size: 24px;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+                margin-left: auto;
             }
         }
     </style>
@@ -769,54 +869,147 @@
     <header>
         <div class="logo-container">
             <i class="fas fa-file-invoice-dollar logo-icon"></i>
-            <div class="logo-text">Offertly <span class="ai-badge">KI-POWERED</span></div>
+            <div class="logo-text">Offertly</div>
+            <span class="ai-badge">KI-Powered</span>
         </div>
         
-        <nav>
-            <a href="#" class="nav-link"><i class="fas fa-home"></i> <span>Start</span></a>
-            <a href="#" class="nav-link"><i class="fas fa-lightbulb"></i> <span>Funktionen</span></a>
-            <a href="#" class="nav-link"><i class="fas fa-dollar-sign"></i> <span>Preise</span></a>
-            <a href="#" class="nav-link"><i class="fas fa-question-circle"></i> <span>Hilfe</span></a>
-            <button class="btn btn-secondary"><i class="fas fa-user"></i> Anmelden</button>
-            <button class="btn btn-primary"><i class="fas fa-rocket"></i> Kostenlos starten</button>
+        <nav id="desktopNav">
+            <a href="#" class="nav-link">Start</a>
+            <a href="#features" class="nav-link">Funktionen</a>
+            <a href="#pricing" class="nav-link">Preise</a>
+            <a href="#impressum" class="nav-link">Impressum</a>
+            <button class="theme-toggle" id="themeToggle" title="Dark Mode umschalten">
+                <i class="fas fa-moon"></i>
+            </button>
         </nav>
+        
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
     </header>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-header">
+            <div class="logo-container">
+                <i class="fas fa-file-invoice-dollar logo-icon"></i>
+                <div class="logo-text">Offertly</div>
+            </div>
+            <button class="mobile-menu-btn" id="mobileCloseBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <a href="#" class="mobile-nav-link">Start</a>
+        <a href="#features" class="mobile-nav-link">Funktionen</a>
+        <a href="#pricing" class="mobile-nav-link">Preise</a>
+        <a href="#impressum" class="mobile-nav-link">Impressum</a>
+        <a href="datenschutz.html" class="mobile-nav-link">Datenschutz</a>
+        <a href="agb.html" class="mobile-nav-link">AGB</a>
+        <button class="btn btn-secondary" id="mobileThemeToggle">
+            <i class="fas fa-moon"></i> Dark Mode
+        </button>
+    </div>
 
     <!-- Hero Section -->
     <div class="main-container">
         <section class="hero-section">
             <div class="hero-text">
-                <h1 class="hero-title">Erstellen Sie <span>professionelle Angebote</span> in Minuten, nicht Stunden</h1>
-                <p class="hero-subtitle">Mit künstlicher Intelligenz generierte Angebote für Handwerker, Freelancer und Selbstständige. Sparen Sie Zeit und überzeugen Sie Ihre Kunden.</p>
+                <h1 class="hero-title">Professionelle Angebote <span>in Minuten</span> erstellen</h1>
+                <p class="hero-subtitle">KI-generierte Angebote für Handwerker, Freelancer und Selbstständige. Sparen Sie Zeit und überzeugen Sie Ihre Kunden.</p>
                 
                 <div class="form-actions">
                     <button class="btn btn-primary" style="padding: 14px 28px; font-size: 16px;" id="heroGenerateBtn">
                         <i class="fas fa-bolt"></i> Jetzt Angebot erstellen
                     </button>
-                    <button class="btn btn-secondary" style="padding: 14px 28px; font-size: 16px;" id="heroDemoBtn">
-                        <i class="fas fa-play-circle"></i> Demo ansehen
+                    <button class="btn btn-secondary" style="padding: 14px 28px; font-size: 16px;" id="learnMoreBtn">
+                        <i class="fas fa-info-circle"></i> Mehr erfahren
                     </button>
-                </div>
-                
-                <div class="hero-stats">
-                    <div class="stat-card">
-                        <div class="stat-value">5.2k+</div>
-                        <div class="stat-label">Zufriedene Nutzer</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">27k+</div>
-                        <div class="stat-label">Erstellte Angebote</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">94%</div>
-                        <div class="stat-label">Kundenzufriedenheit</div>
-                    </div>
                 </div>
             </div>
             
             <div class="hero-image">
-                <div class="image-container">
-                    <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Offertly Dashboard">
+                <div style="width: 100%; height: 400px; background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%); border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 40px rgba(67, 97, 238, 0.2);">
+                    <div style="text-align: center; color: white; padding: 20px;">
+                        <i class="fas fa-file-invoice" style="font-size: 80px; margin-bottom: 20px;"></i>
+                        <h2 style="font-size: 28px; margin-bottom: 15px;">KI-Angebotsgenerator</h2>
+                        <p style="font-size: 18px;">Schnell, einfach und professionell</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section" id="features" style="margin-bottom: 60px;">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 40px; color: var(--dark);">Unsere Funktionen</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow);">
+                    <div style="width: 60px; height: 60px; background: rgba(67, 97, 238, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--primary); font-size: 24px;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 style="font-size: 20px; margin-bottom: 15px; color: var(--dark);">KI-optimierte Texte</h3>
+                    <p style="color: var(--gray);">Unsere KI formuliert professionelle Angebotstexte basierend auf Ihren Eingaben, angepasst an Ihre Branche.</p>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow);">
+                    <div style="width: 60px; height: 60px; background: rgba(67, 97, 238, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--primary); font-size: 24px;">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <h3 style="font-size: 20px; margin-bottom: 15px; color: var(--dark);">PDF-Export</h3>
+                    <p style="color: var(--gray);">Exportieren Sie Ihr Angebot als hochwertiges PDF mit einem Klick, bereit zum Versand an Ihre Kunden.</p>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow);">
+                    <div style="width: 60px; height: 60px; background: rgba(67, 97, 238, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: var(--primary); font-size: 24px;">
+                        <i class="fas fa-save"></i>
+                    </div>
+                    <h3 style="font-size: 20px; margin-bottom: 15px; color: var(--dark);">Automatisches Speichern</h3>
+                    <p style="color: var(--gray);">Ihre Entwürfe werden automatisch gespeichert, sodass Sie später weiterarbeiten können.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section class="pricing-section" id="pricing" style="margin-bottom: 60px;">
+            <h2 style="text-align: center; font-size: 32px; margin-bottom: 40px; color: var(--dark);">Preise</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1000px; margin: 0 auto;">
+                <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); text-align: center; border: 2px solid var(--primary);">
+                    <h3 style="font-size: 24px; margin-bottom: 15px; color: var(--primary);">Basis</h3>
+                    <div style="font-size: 40px; font-weight: 700; margin-bottom: 20px; color: var(--dark);">€0<span style="font-size: 16px; color: var(--gray);">/Monat</span></div>
+                    <ul style="text-align: left; margin-bottom: 30px; list-style: none;">
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> 5 Angebote/Monat</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> PDF-Export</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> Basis-Vorlagen</li>
+                        <li style="padding: 8px 0;"><i class="fas fa-times" style="color: var(--gray); margin-right: 10px;"></i> <span style="color: var(--gray);">Keine KI-Optimierung</span></li>
+                    </ul>
+                    <button class="btn btn-secondary" style="width: 100%;">Kostenlos starten</button>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); text-align: center; border: 2px solid var(--accent); position: relative;">
+                    <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--dark); padding: 5px 15px; border-radius: 20px; font-weight: 600; font-size: 14px;">Empfohlen</div>
+                    <h3 style="font-size: 24px; margin-bottom: 15px; color: var(--primary);">Profi</h3>
+                    <div style="font-size: 40px; font-weight: 700; margin-bottom: 20px; color: var(--dark);">€9<span style="font-size: 16px; color: var(--gray);">/Monat</span></div>
+                    <ul style="text-align: left; margin-bottom: 30px; list-style: none;">
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> Unbegrenzte Angebote</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> PDF-Export</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> Premium-Vorlagen</li>
+                        <li style="padding: 8px 0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> KI-Optimierung</li>
+                    </ul>
+                    <button class="btn btn-primary" style="width: 100%;">Jetzt upgraden</button>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--card-shadow); text-align: center; border: 2px solid var(--primary);">
+                    <h3 style="font-size: 24px; margin-bottom: 15px; color: var(--primary);">Unternehmen</h3>
+                    <div style="font-size: 40px; font-weight: 700; margin-bottom: 20px; color: var(--dark);">€29<span style="font-size: 16px; color: var(--gray);">/Monat</span></div>
+                    <ul style="text-align: left; margin-bottom: 30px; list-style: none;">
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> Unbegrenzte Angebote</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> PDF-Export</li>
+                        <li style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> Premium-Vorlagen</li>
+                        <li style="padding: 8px 0;"><i class="fas fa-check" style="color: var(--success); margin-right: 10px;"></i> Erweiterte KI-Optimierung</li>
+                    </ul>
+                    <button class="btn btn-secondary" style="width: 100%;">Für Teams</button>
                 </div>
             </div>
         </section>
@@ -844,6 +1037,7 @@
                             <label for="businessName" class="required">Ihr Firmenname</label>
                             <input type="text" id="businessName" name="businessName" required 
                                    placeholder="z.B. Malerbetrieb Schmidt GmbH">
+                            <div class="error-message" id="businessNameError">Bitte geben Sie einen Firmennamen ein</div>
                         </div>
 
                         <div class="form-group">
@@ -879,12 +1073,14 @@
                             <label for="customBranch" class="required">Bitte Branche angeben</label>
                             <input type="text" id="customBranch" name="customBranch" 
                                    placeholder="z.B. Eventmanagement, Tierpflege...">
+                            <div class="error-message" id="customBranchError">Bitte geben Sie Ihre Branche an</div>
                         </div>
 
                         <div class="form-group">
                             <label for="customerName" class="required">Kundenname</label>
                             <input type="text" id="customerName" name="customerName" required 
                                    placeholder="Max Mustermann">
+                            <div class="error-message" id="customerNameError">Bitte geben Sie einen Kundennamen ein</div>
                         </div>
 
                         <div class="form-group">
@@ -897,6 +1093,7 @@
                             <label for="serviceDescription" class="required">Leistungsbeschreibung</label>
                             <textarea id="serviceDescription" name="serviceDescription" required
                                       placeholder="z.B. Streichen von 40m² Wandfläche, 2 Anstriche, inkl. Material"></textarea>
+                            <div class="error-message" id="serviceDescriptionError">Bitte beschreiben Sie die Leistung</div>
                             <div class="input-hint">Beschreiben Sie kurz, was Sie anbieten. Die KI erstellt daraus professionelle Formulierungen.</div>
                         </div>
 
@@ -905,14 +1102,13 @@
                                 <label for="totalPrice" class="required">Gesamtpreis (€)</label>
                                 <input type="number" id="totalPrice" name="totalPrice" required 
                                        step="0.01" placeholder="480.00" min="0">
+                                <div class="error-message" id="totalPriceError">Bitte geben Sie einen gültigen Preis ein</div>
                             </div>
                             <div class="form-group">
                                 <label for="vatRate">MwSt. (%)</label>
-                                <select id="vatRate" name="vatRate">
-                                    <option value="19">19% (Standard)</option>
-                                    <option value="7">7% (ermäßigt)</option>
-                                    <option value="0">0% (Kleinunternehmer)</option>
-                                </select>
+                                <input type="number" id="vatRate" name="vatRate" step="0.1" 
+                                       placeholder="19" value="19" min="0" max="100">
+                                <div class="error-message" id="vatRateError">Bitte geben Sie einen gültigen MwSt.-Satz ein (0-100%)</div>
                             </div>
                         </div>
 
@@ -936,6 +1132,9 @@
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="generateBtn" style="flex: 1; padding: 16px;">
                                 <i class="fas fa-robot"></i> Angebot erstellen
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="saveDraftBtn" style="flex: 1; padding: 16px;">
+                                <i class="fas fa-save"></i> Entwurf speichern
                             </button>
                         </div>
                     </form>
@@ -971,17 +1170,101 @@
                                 <button class="btn btn-secondary" id="demoBtn">
                                     <i class="fas fa-magic"></i> Demo anzeigen
                                 </button>
+                                <button class="btn btn-secondary" id="loadDraftBtn" style="margin-top: 15px;">
+                                    <i class="fas fa-folder-open"></i> Entwurf laden
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+        
+        <!-- Impressum Section -->
+        <section class="legal-page" id="impressum">
+            <h1>Impressum</h1>
+            
+            <h2>Angaben gemäß § 5 TMG:</h2>
+            <p>Offertly GmbH<br>
+            Musterstraße 123<br>
+            12345 Musterstadt</p>
+            
+            <h2>Vertreten durch:</h2>
+            <p>Geschäftsführer: Max Mustermann</p>
+            
+            <h2>Kontakt:</h2>
+            <p>Telefon: +49 (0) 123 456789<br>
+            E-Mail: info@offertly.example.com</p>
+            
+            <h2>Registereintrag:</h2>
+            <p>Eintragung im Handelsregister.<br>
+            Registergericht: Amtsgericht Musterstadt<br>
+            Registernummer: HRB 12345</p>
+            
+            <h2>Umsatzsteuer-ID:</h2>
+            <p>Umsatzsteuer-Identifikationsnummer gemäß §27a Umsatzsteuergesetz:<br>
+            DE123456789</p>
+            
+            <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</h2>
+            <p>Max Mustermann<br>
+            Musterstraße 123<br>
+            12345 Musterstadt</p>
+            
+            <h2>Haftungsausschluss:</h2>
+            <h3>Haftung für Inhalte</h3>
+            <p>Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich.</p>
+            
+            <h3>Haftung für Links</h3>
+            <p>Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+            
+            <h3>Urheberrecht</h3>
+            <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.</p>
+        </section>
+
+        <!-- Datenschutz Section (hidden by default) -->
+        <section class="legal-page" id="datenschutz" style="display: none;">
+            <h1>Datenschutzerklärung</h1>
+            
+            <h2>1. Datenschutz auf einen Blick</h2>
+            <h3>Allgemeine Hinweise</h3>
+            <p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie unsere Website besuchen.</p>
+            
+            <h3>Datenerfassung auf unserer Website</h3>
+            <p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Impressum dieser Website entnehmen.</p>
+            
+            <h2>2. Allgemeine Hinweise und Pflichtinformationen</h2>
+            <h3>Datenschutz</h3>
+            <p>Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften.</p>
+            
+            <h2>3. Datenerfassung auf unserer Website</h2>
+            <h3>Cookies</h3>
+            <p>Die Internetseiten verwenden teilweise so genannte Cookies. Cookies richten auf Ihrem Rechner keinen Schaden an und enthalten keine Viren.</p>
+            
+            <h3>Server-Log-Dateien</h3>
+            <p>Der Provider der Seiten erhebt und speichert automatisch Informationen in so genannten Server-Log-Dateien, die Ihr Browser automatisch an uns übermittelt.</p>
+        </section>
+
+        <!-- AGB Section (hidden by default) -->
+        <section class="legal-page" id="agb" style="display: none;">
+            <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
+            
+            <h2>1. Geltungsbereich</h2>
+            <p>Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge, die zwischen der Offertly GmbH und dem Kunden geschlossen werden.</p>
+            
+            <h2>2. Vertragsschluss</h2>
+            <p>Der Vertrag kommt zustande durch Annahme des Angebots des Kunden durch Offertly GmbH.</p>
+            
+            <h2>3. Leistungen</h2>
+            <p>Offertly GmbH stellt eine Plattform zur Erstellung von Angeboten zur Verfügung. Die genauen Leistungen ergeben sich aus der Produktbeschreibung.</p>
+            
+            <h2>4. Preise und Zahlungsbedingungen</h2>
+            <p>Die Preise verstehen sich in Euro zuzüglich der gesetzlichen Mehrwertsteuer. Die Zahlung erfolgt im Voraus per Banküberweisung oder Kreditkarte.</p>
+        </section>
     </div>
 
     <!-- Toast Notification -->
     <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
+        <i class="fas fa-check-circle" id="toastIcon"></i>
         <span id="toastMessage">Vorgang erfolgreich abgeschlossen</span>
     </div>
 
@@ -997,44 +1280,27 @@
                     Professionelle Angebote in Minuten erstellen mit künstlicher Intelligenz. 
                     Speziell entwickelt für Handwerker, Freelancer und Selbstständige.
                 </p>
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            </div>
+            
+            <div>
+                <h3 class="footer-heading">Rechtliches</h3>
+                <div class="footer-links">
+                    <a href="#impressum" class="footer-link">Impressum</a>
+                    <a href="javascript:showLegalPage('datenschutz')" class="footer-link">Datenschutzerklärung</a>
+                    <a href="javascript:showLegalPage('agb')" class="footer-link">AGB</a>
                 </div>
             </div>
             
             <div>
-                <h3 class="footer-heading">Produkt</h3>
+                <h3 class="footer-heading">Kontakt</h3>
                 <div class="footer-links">
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Funktionen</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Preise</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Integrationen</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Updates</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Demo</a>
-                </div>
-            </div>
-            
-            <div>
-                <h3 class="footer-heading">Ressourcen</h3>
-                <div class="footer-links">
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Dokumentation</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Blog</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Tutorials</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Support</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Community</a>
-                </div>
-            </div>
-            
-            <div>
-                <h3 class="footer-heading">Unternehmen</h3>
-                <div class="footer-links">
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Über uns</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Karriere</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Partner</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Kontakt</a>
-                    <a href="#" class="footer-link"><i class="fas fa-angle-right"></i> Presse</a>
+                    <a href="mailto:info@example.com" class="footer-link">info@example.com</a>
+                    <a href="tel:+49123456789" class="footer-link">+49 123 456789</a>
+                    <div style="margin-top: 15px;">
+                        <a href="#" style="color: #a0aec0; margin-right: 15px; font-size: 18px;"><i class="fab fa-facebook"></i></a>
+                        <a href="#" style="color: #a0aec0; margin-right: 15px; font-size: 18px;"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="color: #a0aec0; font-size: 18px;"><i class="fab fa-linkedin"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1047,6 +1313,7 @@
     <script>
         // Globale Variablen
         let currentOfferData = null;
+        let savedDrafts = [];
         const { jsPDF } = window.jspdf;
         
         // DOM-Elemente
@@ -1054,7 +1321,6 @@
         const generateBtn = document.getElementById('generateBtn');
         const resetBtn = document.getElementById('resetBtn');
         const demoBtn = document.getElementById('demoBtn');
-        const heroDemoBtn = document.getElementById('heroDemoBtn');
         const heroGenerateBtn = document.getElementById('heroGenerateBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const previewContainer = document.getElementById('previewContainer');
@@ -1062,9 +1328,19 @@
         const loading = document.getElementById('loading');
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
         const businessTypeSelect = document.getElementById('businessType');
         const customBranchContainer = document.getElementById('customBranchContainer');
         const customBranchInput = document.getElementById('customBranch');
+        const saveDraftBtn = document.getElementById('saveDraftBtn');
+        const loadDraftBtn = document.getElementById('loadDraftBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileCloseBtn = document.getElementById('mobileCloseBtn');
+        const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+        const mobileNav = document.getElementById('mobileNav');
+        const learnMoreBtn = document.getElementById('learnMoreBtn');
         
         // Initialisierung
         function init() {
@@ -1075,14 +1351,187 @@
             offerForm.addEventListener('submit', generateOffer);
             resetBtn.addEventListener('click', resetForm);
             demoBtn.addEventListener('click', loadDemoData);
-            heroDemoBtn.addEventListener('click', loadDemoData);
-            heroGenerateBtn.addEventListener('click', () => {
-                document.querySelector('.app-container').scrollIntoView({ behavior: 'smooth' });
-            });
+            heroGenerateBtn.addEventListener('click', scrollToForm);
+            learnMoreBtn.addEventListener('click', scrollToFeatures);
             downloadBtn.addEventListener('click', generatePDF);
+            saveDraftBtn.addEventListener('click', saveDraft);
+            loadDraftBtn.addEventListener('click', loadDraft);
             
             // Branchen-Änderung Event-Listener
             businessTypeSelect.addEventListener('change', toggleCustomBranch);
+            
+            // Theme Toggle
+            themeToggle.addEventListener('click', toggleTheme);
+            mobileThemeToggle.addEventListener('click', toggleTheme);
+            
+            // Mobile Navigation
+            mobileMenuBtn.addEventListener('click', openMobileMenu);
+            mobileCloseBtn.addEventListener('click', closeMobileMenu);
+            mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+            
+            // Lade gespeicherte Entwürfe
+            loadSavedDrafts();
+            
+            // Initialisiere Formularvalidierung
+            initFormValidation();
+            
+            // Setze Dark Mode wenn bevorzugt
+            if (localStorage.getItem('darkMode') === 'enabled' || 
+                (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-mode');
+                updateThemeIcons(true);
+            }
+        }
+        
+        // Scroll zu Formular
+        function scrollToForm() {
+            document.querySelector('.app-container').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Scroll zu Features
+        function scrollToFeatures() {
+            document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Mobile Menu öffnen
+        function openMobileMenu() {
+            mobileNav.classList.add('show');
+            mobileMenuOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Mobile Menu schließen
+        function closeMobileMenu() {
+            mobileNav.classList.remove('show');
+            mobileMenuOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        // Theme umschalten
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            if (isDarkMode) {
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                localStorage.setItem('darkMode', 'disabled');
+            }
+            
+            updateThemeIcons(isDarkMode);
+        }
+        
+        // Theme Icons aktualisieren
+        function updateThemeIcons(isDarkMode) {
+            const icon = isDarkMode ? 'fa-sun' : 'fa-moon';
+            themeToggle.innerHTML = `<i class="fas ${icon}"></i>`;
+            mobileThemeToggle.innerHTML = `<i class="fas ${icon}"></i> ${isDarkMode ? 'Light' : 'Dark'} Mode`;
+        }
+        
+        // Rechtsseiten anzeigen
+        function showLegalPage(pageId) {
+            // Alle Legal Pages verstecken
+            document.querySelectorAll('.legal-page').forEach(page => {
+                page.style.display = 'none';
+            });
+            
+            // Gewünschte Seite anzeigen
+            document.getElementById(pageId).style.display = 'block';
+            
+            // Zur Seite scrollen
+            document.getElementById(pageId).scrollIntoView({ behavior: 'smooth' });
+            
+            // Mobile Menu schließen falls offen
+            closeMobileMenu();
+        }
+        
+        // Formularvalidierung initialisieren
+        function initFormValidation() {
+            const requiredFields = [
+                { id: 'businessName', errorId: 'businessNameError' },
+                { id: 'customerName', errorId: 'customerNameError' },
+                { id: 'serviceDescription', errorId: 'serviceDescriptionError' },
+                { id: 'totalPrice', errorId: 'totalPriceError' },
+                { id: 'vatRate', errorId: 'vatRateError' }
+            ];
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const error = document.getElementById(field.errorId);
+                
+                input.addEventListener('input', () => {
+                    validateField(input, error);
+                });
+            });
+        }
+        
+        // Feld validieren
+        function validateField(input, errorElement) {
+            if (input.required && !input.value.trim()) {
+                input.parentElement.classList.add('has-error');
+                return false;
+            }
+            
+            if (input.type === 'number') {
+                const value = parseFloat(input.value);
+                const min = parseFloat(input.min) || -Infinity;
+                const max = parseFloat(input.max) || Infinity;
+                
+                if (isNaN(value) || value < min || value > max) {
+                    input.parentElement.classList.add('has-error');
+                    return false;
+                }
+            }
+            
+            input.parentElement.classList.remove('has-error');
+            return true;
+        }
+        
+        // Formular validieren
+        function validateForm() {
+            let isValid = true;
+            
+            // Erforderliche Felder validieren
+            const requiredFields = [
+                { id: 'businessName', errorId: 'businessNameError', message: 'Bitte geben Sie einen Firmennamen ein' },
+                { id: 'customerName', errorId: 'customerNameError', message: 'Bitte geben Sie einen Kundennamen ein' },
+                { id: 'serviceDescription', errorId: 'serviceDescriptionError', message: 'Bitte beschreiben Sie die Leistung' },
+                { id: 'totalPrice', errorId: 'totalPriceError', message: 'Bitte geben Sie einen gültigen Preis ein' }
+            ];
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const error = document.getElementById(field.errorId);
+                
+                if (!validateField(input, error)) {
+                    error.textContent = field.message;
+                    isValid = false;
+                }
+            });
+            
+            // MwSt validieren
+            const vatInput = document.getElementById('vatRate');
+            const vatError = document.getElementById('vatRateError');
+            const vatValue = parseFloat(vatInput.value);
+            
+            if (isNaN(vatValue) || vatValue < 0 || vatValue > 100) {
+                vatInput.parentElement.classList.add('has-error');
+                vatError.textContent = 'Bitte geben Sie einen gültigen MwSt-Satz ein (0-100%)';
+                isValid = false;
+            } else {
+                vatInput.parentElement.classList.remove('has-error');
+            }
+            
+            // Benutzerdefinierte Branche validieren
+            if (businessTypeSelect.value === 'sonstiges' && !customBranchInput.value.trim()) {
+                customBranchContainer.classList.add('has-error');
+                document.getElementById('customBranchError').textContent = 'Bitte geben Sie Ihre Branche an';
+                isValid = false;
+            } else {
+                customBranchContainer.classList.remove('has-error');
+            }
+            
+            return isValid;
         }
         
         // Branchen-Eingabe anzeigen/verstecken
@@ -1097,10 +1546,22 @@
         }
         
         // Toast anzeigen
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             toastMessage.textContent = message;
-            toast.classList.add('show');
             
+            // Icon und Farbe basierend auf Typ setzen
+            if (type === 'error') {
+                toast.className = 'toast error show';
+                toastIcon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'success') {
+                toast.className = 'toast success show';
+                toastIcon.className = 'fas fa-check-circle';
+            } else {
+                toast.className = 'toast show';
+                toastIcon.className = 'fas fa-info-circle';
+            }
+            
+            // Nach 3 Sekunden ausblenden
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
@@ -1110,6 +1571,7 @@
         function resetForm() {
             offerForm.reset();
             document.getElementById('offerDate').valueAsDate = new Date();
+            document.getElementById('vatRate').value = "19";
             previewContent.innerHTML = `
                 <div class="empty-preview">
                     <i class="fas fa-file-alt empty-icon"></i>
@@ -1118,10 +1580,14 @@
                     <button class="btn btn-secondary" id="demoBtn">
                         <i class="fas fa-magic"></i> Demo anzeigen
                     </button>
+                    <button class="btn btn-secondary" id="loadDraftBtn" style="margin-top: 15px;">
+                        <i class="fas fa-folder-open"></i> Entwurf laden
+                    </button>
                 </div>
             `;
             // Event-Listener für Demo-Button neu setzen
             document.getElementById('demoBtn').addEventListener('click', loadDemoData);
+            document.getElementById('loadDraftBtn').addEventListener('click', loadDraft);
             toggleCustomBranch(); // Zurücksetzen der Branchen-Anzeige
             showToast('Formular zurückgesetzt');
         }
@@ -1130,8 +1596,9 @@
         function generateOfferNumber() {
             const year = new Date().getFullYear();
             const month = String(new Date().getMonth() + 1).padStart(2, '0');
+            const day = String(new Date().getDate()).padStart(2, '0');
             const random = Math.floor(Math.random() * 999) + 1;
-            return `${year}${month}-${random.toString().padStart(3, '0')}`;
+            return `${year}${month}${day}-${random.toString().padStart(3, '0')}`;
         }
         
         // KI-Textgenerierung
@@ -1261,9 +1728,66 @@
             showToast('Demo-Daten geladen');
         }
         
+        // Gespeicherte Entwürfe laden
+        function loadSavedDrafts() {
+            const drafts = localStorage.getItem('offertlyDrafts');
+            if (drafts) {
+                savedDrafts = JSON.parse(drafts);
+            }
+        }
+        
+        // Entwurf speichern
+        function saveDraft() {
+            if (!validateForm()) {
+                showToast('Bitte korrigieren Sie die Fehler im Formular', 'error');
+                return;
+            }
+            
+            const formData = new FormData(offerForm);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Entwurfsdatum hinzufügen
+            data.draftDate = new Date().toISOString();
+            
+            // Entwurf speichern
+            savedDrafts.push(data);
+            localStorage.setItem('offertlyDrafts', JSON.stringify(savedDrafts));
+            
+            showToast('Entwurf erfolgreich gespeichert');
+        }
+        
+        // Entwurf laden
+        function loadDraft() {
+            if (savedDrafts.length === 0) {
+                showToast('Keine gespeicherten Entwürfe gefunden', 'error');
+                return;
+            }
+            
+            // Neuesten Entwurf laden
+            const latestDraft = savedDrafts[savedDrafts.length - 1];
+            
+            // Formular mit Entwurfsdaten füllen
+            Object.keys(latestDraft).forEach(key => {
+                const element = document.getElementById(key);
+                if (element && key !== 'draftDate') {
+                    element.value = latestDraft[key];
+                }
+            });
+            
+            // Branchen-Anzeige aktualisieren
+            toggleCustomBranch();
+            
+            showToast('Entwurf erfolgreich geladen');
+        }
+        
         // Angebot generieren
         function generateOffer(e) {
             e.preventDefault();
+            
+            if (!validateForm()) {
+                showToast('Bitte korrigieren Sie die Fehler im Formular', 'error');
+                return;
+            }
             
             const formData = new FormData(offerForm);
             const data = Object.fromEntries(formData.entries());
@@ -1271,17 +1795,6 @@
             // Wenn "Sonstiges" ausgewählt ist, benutzerdefinierte Branche hinzufügen
             if (data.businessType === 'sonstiges') {
                 data.businessType = data.customBranch || 'sonstiges';
-            }
-            
-            // Validierung
-            if (!data.businessName || !data.customerName || !data.serviceDescription || !data.totalPrice) {
-                showToast('Bitte füllen Sie alle Pflichtfelder aus');
-                return;
-            }
-            
-            if (isNaN(parseFloat(data.totalPrice))) {
-                showToast('Bitte geben Sie einen gültigen Preis ein');
-                return;
             }
             
             // Loading anzeigen
@@ -1405,13 +1918,13 @@
                 generateBtn.innerHTML = '<i class="fas fa-robot"></i> Angebot erstellen';
                 
                 showToast('Angebot erfolgreich generiert!');
-            }, 2000);
+            }, 1500);
         }
         
         // PDF generieren
         function generatePDF() {
             if (!currentOfferData) {
-                showToast('Bitte erstellen Sie zuerst ein Angebot');
+                showToast('Bitte erstellen Sie zuerst ein Angebot', 'error');
                 return;
             }
             
@@ -1465,7 +1978,7 @@
                     showToast('PDF erfolgreich heruntergeladen!');
                 }).catch(error => {
                     console.error('PDF Generation Error:', error);
-                    showToast('Fehler beim Erstellen des PDFs');
+                    showToast('Fehler beim Erstellen des PDFs', 'error');
                     downloadBtn.innerHTML = '<i class="fas fa-download"></i> PDF';
                     downloadBtn.disabled = false;
                 });
@@ -1473,7 +1986,14 @@
         }
         
         // Initialisierung beim Laden
-        window.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Google Analytics (falls gewünscht)
+        // Hier würde normalerweise der Tracking-Code stehen
+        // window.dataLayer = window.dataLayer || [];
+        // function gtag(){dataLayer.push(arguments);}
+        // gtag('js', new Date());
+        // gtag('config', 'GA_MEASUREMENT_ID');
     </script>
 </body>
     </html>
