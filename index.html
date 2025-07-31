@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offertly - KI-Angebotsgenerator für Selbstständige</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -369,6 +368,16 @@
             margin-top: 10px;
         }
 
+        /* Custom Branch Input */
+        .custom-branch {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .custom-branch.show {
+            display: block;
+        }
+
         /* Preview Styling */
         .preview-container {
             background: white;
@@ -517,6 +526,71 @@
             margin-bottom: 25px;
         }
 
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            z-index: 10;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e2e8f0;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--accent);
+            color: var(--dark);
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
         /* Footer */
         footer {
             background: var(--dark);
@@ -655,6 +729,38 @@
             .card-body {
                 padding: 20px;
             }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .card-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .hero-title {
+                font-size: 28px;
+            }
+            
+            .hero-subtitle {
+                font-size: 16px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
@@ -684,10 +790,10 @@
                 <p class="hero-subtitle">Mit künstlicher Intelligenz generierte Angebote für Handwerker, Freelancer und Selbstständige. Sparen Sie Zeit und überzeugen Sie Ihre Kunden.</p>
                 
                 <div class="form-actions">
-                    <button class="btn btn-primary" style="padding: 14px 28px; font-size: 16px;">
+                    <button class="btn btn-primary" style="padding: 14px 28px; font-size: 16px;" id="heroGenerateBtn">
                         <i class="fas fa-bolt"></i> Jetzt Angebot erstellen
                     </button>
-                    <button class="btn btn-secondary" style="padding: 14px 28px; font-size: 16px;">
+                    <button class="btn btn-secondary" style="padding: 14px 28px; font-size: 16px;" id="heroDemoBtn">
                         <i class="fas fa-play-circle"></i> Demo ansehen
                     </button>
                 </div>
@@ -727,7 +833,7 @@
                         Angebot erstellen
                     </div>
                     <div>
-                        <button class="btn btn-secondary">
+                        <button class="btn btn-secondary" id="resetBtn">
                             <i class="fas fa-redo"></i> Zurücksetzen
                         </button>
                     </div>
@@ -766,6 +872,13 @@
                                 <label for="offerDate">Angebotsdatum</label>
                                 <input type="date" id="offerDate" name="offerDate">
                             </div>
+                        </div>
+                        
+                        <!-- Custom Branch Input -->
+                        <div class="form-group custom-branch" id="customBranchContainer">
+                            <label for="customBranch" class="required">Bitte Branche angeben</label>
+                            <input type="text" id="customBranch" name="customBranch" 
+                                   placeholder="z.B. Eventmanagement, Tierpflege...">
                         </div>
 
                         <div class="form-group">
@@ -839,25 +952,37 @@
                         Angebotsvorschau
                     </div>
                     <div>
-                        <button class="btn btn-secondary">
+                        <button class="btn btn-secondary" id="downloadBtn">
                             <i class="fas fa-download"></i> PDF
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="preview-container" id="previewContainer">
-                        <div class="empty-preview">
-                            <i class="fas fa-file-alt empty-icon"></i>
-                            <h3 class="empty-title">Ihr Angebot erscheint hier</h3>
-                            <p class="empty-text">Füllen Sie das Formular aus und klicken Sie auf "Angebot erstellen", um eine professionelle Angebotsvorlage zu generieren.</p>
-                            <button class="btn btn-secondary">
-                                <i class="fas fa-magic"></i> Demo anzeigen
-                            </button>
+                        <div class="loading" id="loading">
+                            <div class="loader"></div>
+                            <div class="loading-text">KI generiert Ihr Angebot...</div>
+                        </div>
+                        <div id="previewContent">
+                            <div class="empty-preview">
+                                <i class="fas fa-file-alt empty-icon"></i>
+                                <h3 class="empty-title">Ihr Angebot erscheint hier</h3>
+                                <p class="empty-text">Füllen Sie das Formular aus und klicken Sie auf "Angebot erstellen", um eine professionelle Angebotsvorlage zu generieren.</p>
+                                <button class="btn btn-secondary" id="demoBtn">
+                                    <i class="fas fa-magic"></i> Demo anzeigen
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Vorgang erfolgreich abgeschlossen</span>
     </div>
 
     <!-- Footer -->
@@ -920,101 +1045,435 @@
     </footer>
 
     <script>
-        // Set current date
-        document.getElementById('offerDate').valueAsDate = new Date();
+        // Globale Variablen
+        let currentOfferData = null;
+        const { jsPDF } = window.jspdf;
         
-        // Demo functionality
-        const demoBtn = document.querySelector('.btn-secondary');
-        demoBtn.addEventListener('click', function() {
-            const previewContainer = document.getElementById('previewContainer');
-            previewContainer.innerHTML = `
-                <div class="offer-header">
-                    <div class="company-info">
-                        <div class="company-name">Musterbetrieb GmbH</div>
-                        <div class="company-address">Musterstraße 123<br>12345 Musterstadt<br>Tel: 0123 456789<br>info@musterbetrieb.de</div>
-                    </div>
-                    <div class="offer-meta">
-                        <div class="offer-number">Angebot Nr.: 2023-045</div>
-                        <div class="offer-date">Datum: ${new Date().toLocaleDateString('de-DE')}</div>
-                    </div>
-                </div>
-                
-                <div class="customer-info">
-                    <div class="customer-title">Kunde:</div>
-                    Max Mustermann<br>
-                    Beispielstraße 45<br>
-                    54321 Musterdorf
-                </div>
-                
-                <div class="offer-content">
-                    <div class="offer-greeting">
-                        <p>Sehr geehrter Herr Mustermann,</p>
-                        <br>
-                        <p>vielen Dank für Ihre Anfrage. Wir freuen uns, Ihnen folgendes Angebot für die Malerarbeiten unterbreiten zu dürfen:</p>
-                    </div>
-                    
-                    <div class="service-description">
-                        <strong>Leistungsbeschreibung:</strong><br><br>
-                        Streichen von ca. 45 m² Wandfläche im Wohnzimmer und Flur mit hochwertiger Dispersionsfarbe, inklusive Abkleben, Abdecken, Grundierung und zwei Anstriche. Verwendung von schadstoffarmer Innenfarbe.
-                        
-                        <div style="margin-top: 15px;">
-                            <strong>Inkludierte Leistungen:</strong>
-                            <ul style="margin-top: 8px; padding-left: 20px;">
-                                <li>Fachgerechte Vorbereitung der Untergründe</li>
-                                <li>Verwendung hochwertiger, schadstoffarmer Farben</li>
-                                <li>Sorgfältiges Abkleben und Abdecken aller Flächen</li>
-                                <li>Grundierung der Oberflächen für optimale Haftung</li>
-                                <li>Zwei Deckanstriche mit Premium-Dispersionsfarbe</li>
-                                <li>Saubere Ausführung und Entsorgung von Materialresten</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="price-section">
-                        <div class="price-row">
-                            <span>Nettopreis:</span>
-                            <span>650,00 €</span>
-                        </div>
-                        
-                        <div class="price-row">
-                            <span>zzgl. 19% MwSt.:</span>
-                            <span>123,50 €</span>
-                        </div>
-                        <div class="price-row price-total">
-                            <span>Gesamtpreis:</span>
-                            <span>773,50 €</span>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 25px;">
-                        <strong>Zahlungsbedingungen:</strong><br>
-                        50% Anzahlung bei Auftragserteilung, Restzahlung bei Fertigstellung
-                    </div>
-                    
-                    <div style="margin-top: 20px;">
-                        <strong>Ausführungszeitraum:</strong><br>
-                        KW 35/2023 (nach Absprache)
-                    </div>
-                    
-                    <br>
-                    <p>Wir stehen für Rückfragen gerne zur Verfügung und freuen uns auf eine mögliche Zusammenarbeit.</p>
-                    <br>
-                    <p>Mit freundlichen Grüßen</p>
-                    <p style="margin-top: 10px;"><strong>Musterbetrieb GmbH</strong></p>
-                </div>
-                
-                <div class="terms-section">
-                    <strong>Hinweise:</strong><br>
-                    • Dieses Angebot ist 30 Tage ab Ausstellungsdatum gültig<br>
-                    • Alle Preise verstehen sich zuzüglich der gesetzlichen Mehrwertsteuer, sofern nicht anders angegeben<br>
-                    • Änderungen und Zusatzleistungen werden gesondert berechnet<br>
-                    • Es gelten unsere Allgemeinen Geschäftsbedingungen
+        // DOM-Elemente
+        const offerForm = document.getElementById('offerForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const demoBtn = document.getElementById('demoBtn');
+        const heroDemoBtn = document.getElementById('heroDemoBtn');
+        const heroGenerateBtn = document.getElementById('heroGenerateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewContent = document.getElementById('previewContent');
+        const loading = document.getElementById('loading');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const businessTypeSelect = document.getElementById('businessType');
+        const customBranchContainer = document.getElementById('customBranchContainer');
+        const customBranchInput = document.getElementById('customBranch');
+        
+        // Initialisierung
+        function init() {
+            // Aktuelles Datum setzen
+            document.getElementById('offerDate').valueAsDate = new Date();
+            
+            // Event-Listener
+            offerForm.addEventListener('submit', generateOffer);
+            resetBtn.addEventListener('click', resetForm);
+            demoBtn.addEventListener('click', loadDemoData);
+            heroDemoBtn.addEventListener('click', loadDemoData);
+            heroGenerateBtn.addEventListener('click', () => {
+                document.querySelector('.app-container').scrollIntoView({ behavior: 'smooth' });
+            });
+            downloadBtn.addEventListener('click', generatePDF);
+            
+            // Branchen-Änderung Event-Listener
+            businessTypeSelect.addEventListener('change', toggleCustomBranch);
+        }
+        
+        // Branchen-Eingabe anzeigen/verstecken
+        function toggleCustomBranch() {
+            if (businessTypeSelect.value === 'sonstiges') {
+                customBranchContainer.classList.add('show');
+                customBranchInput.required = true;
+            } else {
+                customBranchContainer.classList.remove('show');
+                customBranchInput.required = false;
+            }
+        }
+        
+        // Toast anzeigen
+        function showToast(message) {
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Formular zurücksetzen
+        function resetForm() {
+            offerForm.reset();
+            document.getElementById('offerDate').valueAsDate = new Date();
+            previewContent.innerHTML = `
+                <div class="empty-preview">
+                    <i class="fas fa-file-alt empty-icon"></i>
+                    <h3 class="empty-title">Ihr Angebot erscheint hier</h3>
+                    <p class="empty-text">Füllen Sie das Formular aus und klicken Sie auf "Angebot erstellen", um eine professionelle Angebotsvorlage zu generieren.</p>
+                    <button class="btn btn-secondary" id="demoBtn">
+                        <i class="fas fa-magic"></i> Demo anzeigen
+                    </button>
                 </div>
             `;
+            // Event-Listener für Demo-Button neu setzen
+            document.getElementById('demoBtn').addEventListener('click', loadDemoData);
+            toggleCustomBranch(); // Zurücksetzen der Branchen-Anzeige
+            showToast('Formular zurückgesetzt');
+        }
+        
+        // Angebotsnummer generieren
+        function generateOfferNumber() {
+            const year = new Date().getFullYear();
+            const month = String(new Date().getMonth() + 1).padStart(2, '0');
+            const random = Math.floor(Math.random() * 999) + 1;
+            return `${year}${month}-${random.toString().padStart(3, '0')}`;
+        }
+        
+        // KI-Textgenerierung
+        function generateOfferText(data) {
+            const branchTemplates = {
+                maler: {
+                    greeting: `Sehr geehrte ${data.customerName.split(' ')[0] === 'Familie' ? 'Familie' : 'Herr/Frau'} ${data.customerName.split(' ').pop()},`,
+                    intro: 'vielen Dank für Ihre Anfrage bezüglich der Malerarbeiten. Wir freuen uns, Ihnen folgendes Angebot unterbreiten zu dürfen:',
+                    services: [
+                        'Fachgerechte Vorbereitung der Untergründe',
+                        'Verwendung hochwertiger, schadstoffarmer Farben und Materialien',
+                        'Sorgfältiges Abkleben und Abdecken aller Flächen',
+                        'Grundierung der Oberflächen für optimale Haftung',
+                        'Zwei Deckanstriche mit Premium-Dispersionsfarbe',
+                        'Saubere Ausführung und Entsorgung von Materialresten'
+                    ],
+                    closing: 'Wir stehen für Rückfragen gerne zur Verfügung und freuen uns auf eine mögliche Zusammenarbeit.'
+                },
+                elektriker: {
+                    greeting: `Sehr geehrte/r ${data.customerName.split(' ')[0]},`,
+                    intro: 'herzlichen Dank für Ihre Anfrage. Gerne unterbreiten wir Ihnen unser Angebot für die Elektroarbeiten:',
+                    services: [
+                        'Fachgerechte Installation nach aktuellen VDE-Vorschriften',
+                        'Verwendung von geprüften Materialien und Komponenten',
+                        'Dokumentation aller durchgeführten Arbeiten',
+                        'Abschlussmessung und Abnahme der Anlagen',
+                        'Einweisung in die Funktion der installierten Systeme'
+                    ],
+                    closing: 'Für weitere Informationen stehen wir Ihnen gerne zur Verfügung.'
+                },
+                it: {
+                    greeting: `Sehr geehrte/r ${data.customerName.split(' ')[0]},`,
+                    intro: 'vielen Dank für Ihr Interesse an unseren IT-Dienstleistungen. Wir freuen uns, Ihnen folgendes Angebot vorlegen zu können:',
+                    services: [
+                        'Individuelle Konzeption und Planung',
+                        'Moderne und responsive Umsetzung',
+                        'Testing und Qualitätssicherung',
+                        'Dokumentation aller Entwicklungen',
+                        'Einweisung und Schulung',
+                        'Technischer Support nach Vereinbarung'
+                    ],
+                    closing: 'Wir freuen uns auf Ihre Rückmeldung und eine mögliche Zusammenarbeit.'
+                },
+                beratung: {
+                    greeting: `Sehr geehrte/r ${data.customerName.split(' ')[0]},`,
+                    intro: 'vielen Dank für Ihr Interesse an unseren Beratungsdienstleistungen. Gerne unterbreiten wir Ihnen folgendes Angebot:',
+                    services: [
+                        'Individuelle Bedarfsanalyse',
+                        'Maßgeschneiderte Konzepte und Lösungen',
+                        'Praktische Umsetzungsbegleitung',
+                        'Dokumentation und Ergebnispräsentation',
+                        'Nachbetreuung und Follow-up'
+                    ],
+                    closing: 'Wir stehen für weitere Fragen gerne zur Verfügung.'
+                },
+                default: {
+                    greeting: `Sehr geehrte/r ${data.customerName.split(' ')[0]},`,
+                    intro: 'vielen Dank für Ihre Anfrage. Gerne unterbreiten wir Ihnen folgendes Angebot:',
+                    services: [
+                        'Fachgerechte Durchführung der vereinbarten Leistungen',
+                        'Verwendung hochwertiger Materialien und Werkzeuge',
+                        'Termingerechte Ausführung',
+                        'Sorgfältige Arbeitsweise',
+                        'Gewährleistung gemäß gesetzlicher Bestimmungen'
+                    ],
+                    closing: 'Für Rückfragen stehen wir Ihnen gerne zur Verfügung.'
+                }
+            };
             
-            // Show success message
-            alert("Demo-Angebot erfolgreich geladen!");
-        });
+            // Wenn "Sonstiges" ausgewählt ist, verwende den benutzerdefinierten Branchennamen
+            let branch = data.businessType;
+            if (branch === 'sonstiges' && data.customBranch) {
+                branch = data.customBranch.toLowerCase();
+            }
+            
+            const template = branchTemplates[branch] || branchTemplates.default;
+            
+            return {
+                greeting: template.greeting,
+                intro: template.intro,
+                services: [...template.services, ...data.serviceDescription.split('. ').filter(item => item.trim())],
+                closing: template.closing
+            };
+        }
+        
+        // Zahlungsbedingungen-Text
+        function getPaymentTermsText(paymentTerms) {
+            const terms = {
+                'sofort': 'Zahlung bei Auftragserteilung',
+                'abnahme': 'Zahlung bei Abnahme der Leistung',
+                '14tage': 'Zahlung innerhalb von 14 Tagen nach Rechnungsstellung',
+                '30tage': 'Zahlung innerhalb von 30 Tagen nach Rechnungsstellung',
+                'anzahlung': '50% Anzahlung bei Auftragserteilung, Restzahlung bei Fertigstellung'
+            };
+            return terms[paymentTerms] || terms['abnahme'];
+        }
+        
+        // Demo-Daten laden
+        function loadDemoData() {
+            const demoData = {
+                businessName: 'Malerbetrieb Schmidt GmbH',
+                businessAddress: 'Handwerkerstraße 45\n12345 Musterstadt\nTel: 0123/456789\ninfo@maler-schmidt.de',
+                businessType: 'maler',
+                customerName: 'Familie Müller',
+                customerAddress: 'Eichenstraße 123\n54321 Beispielstadt',
+                serviceDescription: 'Streichen von ca. 45 m² Wandfläche im Wohnzimmer und Flur mit hochwertiger Dispersionsfarbe, inklusive Abkleben, Abdecken, Grundierung und zwei Anstriche. Verwendung von schadstoffarmer Innenfarbe.',
+                totalPrice: '650.00',
+                vatRate: '19',
+                deliveryTime: 'KW 35/2025 (nach Absprache)',
+                paymentTerms: 'abnahme'
+            };
+
+            // Formular mit Demo-Daten füllen
+            Object.keys(demoData).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = demoData[key];
+                }
+            });
+
+            // Branchen-Anzeige aktualisieren
+            toggleCustomBranch();
+            
+            // Angebot generieren
+            generateOffer({ preventDefault: () => {} });
+            
+            showToast('Demo-Daten geladen');
+        }
+        
+        // Angebot generieren
+        function generateOffer(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(offerForm);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Wenn "Sonstiges" ausgewählt ist, benutzerdefinierte Branche hinzufügen
+            if (data.businessType === 'sonstiges') {
+                data.businessType = data.customBranch || 'sonstiges';
+            }
+            
+            // Validierung
+            if (!data.businessName || !data.customerName || !data.serviceDescription || !data.totalPrice) {
+                showToast('Bitte füllen Sie alle Pflichtfelder aus');
+                return;
+            }
+            
+            if (isNaN(parseFloat(data.totalPrice))) {
+                showToast('Bitte geben Sie einen gültigen Preis ein');
+                return;
+            }
+            
+            // Loading anzeigen
+            loading.classList.add('show');
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird erstellt...';
+            
+            // Simulation der KI-Verarbeitung
+            setTimeout(() => {
+                const offerNumber = generateOfferNumber();
+                const aiText = generateOfferText(data);
+                
+                // Preisberechnung
+                const netPrice = parseFloat(data.totalPrice);
+                const vatRate = parseFloat(data.vatRate);
+                const vatAmount = netPrice * (vatRate / 100);
+                const grossPrice = netPrice + vatAmount;
+                
+                // Angebots-HTML erstellen
+                const offerHTML = `
+                    <div class="offer-header">
+                        <div class="company-info">
+                            <div class="company-name">${data.businessName}</div>
+                            <div class="company-address">${data.businessAddress.replace(/\n/g, '<br>')}</div>
+                        </div>
+                        <div class="offer-meta">
+                            <div class="offer-number">Angebot Nr.: ${offerNumber}</div>
+                            <div class="offer-date">Datum: ${new Date(data.offerDate).toLocaleDateString('de-DE')}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="customer-info">
+                        <div class="customer-title">Kunde:</div>
+                        ${data.customerName}<br>
+                        ${data.customerAddress.replace(/\n/g, '<br>')}
+                    </div>
+                    
+                    <div class="offer-content">
+                        <div class="offer-greeting">
+                            <p>${aiText.greeting}</p>
+                            <br>
+                            <p>${aiText.intro}</p>
+                        </div>
+                        
+                        <div class="service-description">
+                            <strong>Leistungsbeschreibung:</strong><br><br>
+                            ${data.serviceDescription.replace(/\n/g, '<br>')}
+                            
+                            <div style="margin-top: 15px;">
+                                <strong>Inkludierte Leistungen:</strong>
+                                <ul style="margin-top: 8px; padding-left: 20px;">
+                                    ${aiText.services.map(service => `<li>${service}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="price-section">
+                            <div class="price-row">
+                                <span>Nettopreis:</span>
+                                <span>${netPrice.toFixed(2)} €</span>
+                            </div>
+                            
+                            ${vatRate > 0 ? `
+                                <div class="price-row">
+                                    <span>zzgl. ${vatRate}% MwSt.:</span>
+                                    <span>${vatAmount.toFixed(2)} €</span>
+                                </div>
+                                <div class="price-row price-total">
+                                    <span>Gesamtpreis:</span>
+                                    <span>${grossPrice.toFixed(2)} €</span>
+                                </div>
+                            ` : `
+                                <div class="price-row price-total">
+                                    <span>Gesamtpreis:</span>
+                                    <span>${netPrice.toFixed(2)} € (inkl. USt. gem. §19 UStG)</span>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <div style="margin-top: 25px;">
+                            <strong>Zahlungsbedingungen:</strong><br>
+                            ${getPaymentTermsText(data.paymentTerms)}
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <strong>Ausführungszeitraum:</strong><br>
+                            ${data.deliveryTime || 'Nach Vereinbarung'}
+                        </div>
+                        
+                        <br>
+                        <p>${aiText.closing}</p>
+                        <br>
+                        <p>Mit freundlichen Grüßen</p>
+                        <p style="margin-top: 10px;"><strong>${data.businessName}</strong></p>
+                    </div>
+                    
+                    <div class="terms-section">
+                        <strong>Hinweise:</strong><br>
+                        • Dieses Angebot ist 30 Tage ab Ausstellungsdatum gültig<br>
+                        • Alle Preise verstehen sich zuzüglich der gesetzlichen Mehrwertsteuer, sofern nicht anders angegeben<br>
+                        • Änderungen und Zusatzleistungen werden gesondert berechnet<br>
+                        • Es gelten unsere Allgemeinen Geschäftsbedingungen
+                    </div>
+                `;
+                
+                previewContent.innerHTML = offerHTML;
+                
+                // Daten für PDF speichern
+                currentOfferData = {
+                    html: offerHTML,
+                    data: data,
+                    offerNumber: offerNumber,
+                    netPrice: netPrice,
+                    vatAmount: vatAmount,
+                    grossPrice: grossPrice
+                };
+                
+                // Loading ausblenden
+                loading.classList.remove('show');
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-robot"></i> Angebot erstellen';
+                
+                showToast('Angebot erfolgreich generiert!');
+            }, 2000);
+        }
+        
+        // PDF generieren
+        function generatePDF() {
+            if (!currentOfferData) {
+                showToast('Bitte erstellen Sie zuerst ein Angebot');
+                return;
+            }
+            
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird erstellt...';
+            downloadBtn.disabled = true;
+            
+            // Erstelle ein temporäres Element für html2canvas
+            const tempDiv = document.createElement('div');
+            tempDiv.style.width = '794px'; // A4 width in pixels (210mm)
+            tempDiv.style.padding = '40px';
+            tempDiv.style.background = 'white';
+            tempDiv.style.fontFamily = 'Georgia, serif';
+            tempDiv.innerHTML = currentOfferData.html;
+            
+            // Füge es dem Dokument hinzu (unsichtbar)
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            // Erstelle das PDF nach einer kurzen Verzögerung
+            setTimeout(() => {
+                html2canvas(tempDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    
+                    const imgWidth = 210; // A4 width in mm
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    
+                    // Dateinamen generieren
+                    const fileName = `Angebot_${currentOfferData.offerNumber}_${currentOfferData.data.customerName.replace(/\s+/g, '_')}.pdf`;
+                    
+                    // PDF speichern
+                    pdf.save(fileName);
+                    
+                    // Temporäres Element entfernen
+                    document.body.removeChild(tempDiv);
+                    
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> PDF';
+                    downloadBtn.disabled = false;
+                    
+                    showToast('PDF erfolgreich heruntergeladen!');
+                }).catch(error => {
+                    console.error('PDF Generation Error:', error);
+                    showToast('Fehler beim Erstellen des PDFs');
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> PDF';
+                    downloadBtn.disabled = false;
+                });
+            }, 500);
+        }
+        
+        // Initialisierung beim Laden
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
-</html>
+    </html>
