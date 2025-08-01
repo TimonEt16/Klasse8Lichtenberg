@@ -2,9 +2,14 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://www.gstatic.com https://cdnjs.cloudflare.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https://offertly.example.com;">
     <title>Offertly - KI-Angebotsgenerator für Selbstständige</title>
     <meta name="description" content="Professionelle Angebote in Minuten erstellen mit künstlicher Intelligenz für Handwerker, Freelancer und Selbstständige">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="canonical" href="https://offertly.example.com/" />
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style">
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://offertly.example.com/">
@@ -17,6 +22,23 @@
     <meta property="twitter:title" content="Offertly - KI-Angebotsgenerator">
     <meta property="twitter:description" content="Professionelle Angebote in Minuten erstellen mit KI">
     <meta property="twitter:image" content="https://offertly.example.com/images/social-preview.jpg">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Offertly - KI-Angebotsgenerator",
+      "description": "Professionelle Angebote in Minuten erstellen mit künstlicher Intelligenz für Handwerker, Freelancer und Selbstständige",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "9.00",
+        "priceCurrency": "EUR"
+      }
+    }
+    </script>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -113,6 +135,14 @@
             font-size: 12px;
             font-weight: 600;
             margin-left: 10px;
+        }
+
+        .premium-badge {
+            background: linear-gradient(135deg, #f72585 0%, #7209b7 100%) !important;
+        }
+
+        .enterprise-badge {
+            background: linear-gradient(135deg, #ff9a00 0%, #ff5e00 100%) !important;
         }
 
         nav {
@@ -1200,6 +1230,99 @@
                 margin-left: auto;
             }
         }
+
+        /* Document Zoom Controls */
+        .zoom-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+
+        .zoom-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Signature Line */
+        .signature-line {
+            margin-top: 60px;
+            border-top: 1px solid var(--gray);
+            width: 200px;
+            padding-top: 10px;
+            text-align: center;
+        }
+
+        /* Document Versions */
+        .version-badge {
+            background: var(--light-gray);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Document Comments */
+        .comment-bubble {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* PWA Install Prompt */
+        .pwa-install {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+        }
+
+        .pwa-install.show {
+            display: flex;
+        }
+
+        .pwa-close {
+            margin-left: 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -1212,6 +1335,13 @@
                 <button id="reject-cookies" style="background:transparent;color:#aaa;border:1px solid #aaa;padding:8px 15px;cursor:pointer;">Ablehnen</button>
             </div>
         </div>
+    </div>
+
+    <!-- PWA Install Prompt -->
+    <div class="pwa-install" id="pwaInstall">
+        <i class="fas fa-download"></i>
+        Offertly installieren
+        <span class="pwa-close" id="pwaClose">&times;</span>
     </div>
 
     <!-- Header -->
@@ -1932,6 +2062,13 @@
         <span id="toastMessage">Vorgang erfolgreich abgeschlossen</span>
     </div>
 
+    <!-- Zoom Controls (hidden by default) -->
+    <div class="zoom-controls" id="zoomControls" style="display: none;">
+        <button class="zoom-btn" id="zoomIn"><i class="fas fa-search-plus"></i></button>
+        <button class="zoom-btn" id="zoomOut"><i class="fas fa-search-minus"></i></button>
+        <button class="zoom-btn" id="zoomReset"><i class="fas fa-expand"></i></button>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="footer-container">
@@ -1974,6 +2111,19 @@
         </div>
     </footer>
 
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('ServiceWorker registration successful');
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+
     <script>
         // Firebase-Konfiguration
         const firebaseConfig = {
@@ -1989,6 +2139,16 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        
+        // Firestore Offline Persistence aktivieren
+        db.enablePersistence()
+          .catch((err) => {
+              if (err.code == 'failed-precondition') {
+                  console.log("Offline-Persistence ist nur in einem Tab gleichzeitig möglich");
+              } else if (err.code == 'unimplemented') {
+                  console.log("Der Browser unterstützt keine Offline-Persistence");
+              }
+          });
 
         // Globale Variablen
         let currentUser = null;
@@ -2057,9 +2217,16 @@
         const cookieBanner = document.getElementById('cookie-banner');
         const acceptCookiesBtn = document.getElementById('accept-cookies');
         const rejectCookiesBtn = document.getElementById('reject-cookies');
+        const zoomControls = document.getElementById('zoomControls');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        const zoomResetBtn = document.getElementById('zoomReset');
+        const pwaInstall = document.getElementById('pwaInstall');
+        const pwaClose = document.getElementById('pwaClose');
         
         let currentPlan = 'profi';
         let currentStep = 1;
+        let currentZoom = 1;
 
         // Initialisierung
         function init() {
@@ -2385,6 +2552,52 @@
                 cookieBanner.style.display = 'none';
             });
             
+            // Zoom Controls
+            zoomInBtn.addEventListener('click', () => {
+                currentZoom += 0.1;
+                previewContent.style.transform = `scale(${currentZoom})`;
+                previewContent.style.transformOrigin = 'top left';
+            });
+            
+            zoomOutBtn.addEventListener('click', () => {
+                if (currentZoom > 0.5) {
+                    currentZoom -= 0.1;
+                    previewContent.style.transform = `scale(${currentZoom})`;
+                    previewContent.style.transformOrigin = 'top left';
+                }
+            });
+            
+            zoomResetBtn.addEventListener('click', () => {
+                currentZoom = 1;
+                previewContent.style.transform = 'scale(1)';
+            });
+            
+            // PWA Install Prompt
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                pwaInstall.classList.add('show');
+            });
+            
+            pwaInstall.addEventListener('click', () => {
+                pwaInstall.classList.remove('show');
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+            
+            pwaClose.addEventListener('click', (e) => {
+                e.stopPropagation();
+                pwaInstall.classList.remove('show');
+            });
+            
             // Lade gespeicherte Entwürfe
             loadSavedDrafts();
             
@@ -2427,6 +2640,9 @@
                         if (userData.companyName) {
                             document.getElementById('businessName').value = userData.companyName;
                         }
+                        
+                        // Abo-Status anzeigen
+                        updateSubscriptionUI(userData.subscription || 'free');
                     }
                 })
                 .catch((error) => {
@@ -2459,10 +2675,14 @@
                     let html = '';
                     querySnapshot.forEach(doc => {
                         const data = doc.data();
+                        const version = data.version || '1.0';
+                        const hasComments = data.comments && data.comments.length > 0;
+                        
                         html += `
                             <div class="document-card">
-                                <div class="document-title">Angebot ${data.offerNumber}</div>
+                                <div class="document-title">Angebot ${data.offerNumber} <span class="version-badge">v${version}</span></div>
                                 <div class="document-meta">Erstellt am ${data.createdAt.toDate().toLocaleDateString('de-DE')}</div>
+                                ${hasComments ? '<div class="comment-bubble" title="Kommentare"><i class="fas fa-comment"></i></div>' : ''}
                                 <div class="document-actions">
                                     <button class="btn btn-secondary" onclick="viewDocument('${doc.id}')">
                                         <i class="fas fa-eye"></i> Ansehen
@@ -2638,6 +2858,12 @@
                     input.parentElement.classList.add('has-error');
                     return false;
                 }
+            }
+            
+            if (input.type === 'email' && input.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) {
+                input.parentElement.classList.add('has-error');
+                errorElement.textContent = 'Bitte geben Sie eine gültige E-Mail-Adresse ein';
+                return false;
             }
             
             input.parentElement.classList.remove('has-error');
@@ -3035,6 +3261,10 @@
                         <br>
                         <p>Mit freundlichen Grüßen</p>
                         <p style="margin-top: 10px;"><strong>${data.businessName}</strong></p>
+                        
+                        <div class="signature-line">
+                            Unterschrift / Stempel
+                        </div>
                     </div>
                     
                     <div class="terms-section">
@@ -3047,6 +3277,7 @@
                 `;
                 
                 previewContent.innerHTML = offerHTML;
+                zoomControls.style.display = 'flex';
                 
                 // Daten für PDF speichern
                 currentOfferData = {
@@ -3064,7 +3295,8 @@
                         offerNumber: offerNumber,
                         data: data,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        html: offerHTML
+                        html: offerHTML,
+                        version: '1.0'
                     })
                     .then(() => {
                         console.log("Offer saved to Firestore");
@@ -3141,6 +3373,12 @@
                     downloadBtn.disabled = false;
                     
                     showToast('PDF erfolgreich heruntergeladen!');
+                    
+                    // Analytics Event tracken
+                    gtag('event', 'pdf_download', {
+                        'event_category': 'engagement',
+                        'event_label': currentOfferData.offerNumber
+                    });
                 }).catch(error => {
                     console.error('PDF Generation Error:', error);
                     showToast('Fehler beim Erstellen des PDFs', 'error');
@@ -3247,19 +3485,22 @@
         
         // Abo-UI aktualisieren
         function updateSubscriptionUI(plan) {
-            // Beispiel: Premium-Badge im Header anzeigen
-            const existingBadge = document.querySelector('.premium-badge');
+            // Premium-Badge im Header anzeigen
+            const existingBadge = document.querySelector('.premium-badge, .enterprise-badge');
             if (existingBadge) existingBadge.remove();
             
-            if (plan !== 'basis') {
+            if (plan === 'profi') {
                 const premiumBadge = document.createElement('span');
                 premiumBadge.className = 'ai-badge premium-badge';
                 premiumBadge.style.marginLeft = '10px';
-                premiumBadge.style.background = plan === 'profi' 
-                    ? 'linear-gradient(135deg, #f72585 0%, #7209b7 100%)' 
-                    : 'linear-gradient(135deg, #ff9a00 0%, #ff5e00 100%)';
-                premiumBadge.textContent = plan === 'profi' ? 'PRO' : 'ENTERPRISE';
+                premiumBadge.textContent = 'PRO';
                 document.querySelector('.logo-container').appendChild(premiumBadge);
+            } else if (plan === 'unternehmen') {
+                const enterpriseBadge = document.createElement('span');
+                enterpriseBadge.className = 'ai-badge enterprise-badge';
+                enterpriseBadge.style.marginLeft = '10px';
+                enterpriseBadge.textContent = 'ENTERPRISE';
+                document.querySelector('.logo-container').appendChild(enterpriseBadge);
             }
             
             // Beispiel: Premium-Features aktivieren
@@ -3278,6 +3519,7 @@
                             data: data.data,
                             offerNumber: data.offerNumber
                         };
+                        zoomControls.style.display = 'flex';
                         showToast('Dokument geladen');
                     } else {
                         showToast('Dokument nicht gefunden', 'error');
