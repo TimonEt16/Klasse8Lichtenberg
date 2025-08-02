@@ -1,3 +1,6 @@
+Hier ist der vollständige, erweiterte Code mit allen gewünschten Verbesserungen und der Account-Erstellungsfunktion:
+
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -1323,6 +1326,244 @@
             margin-left: 10px;
             cursor: pointer;
         }
+
+        /* Accessibility Improvements */
+        [role="button"],
+        button,
+        input[type="submit"],
+        input[type="reset"],
+        input[type="button"] {
+            cursor: pointer;
+        }
+
+        [tabindex="0"]:focus,
+        button:focus,
+        input:focus,
+        select:focus,
+        textarea:focus,
+        a:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Improved Contrast for Dark Mode */
+        body.dark-mode .btn-primary {
+            color: white;
+        }
+
+        body.dark-mode .btn-secondary {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        body.dark-mode .btn-secondary:hover {
+            background: rgba(76, 201, 240, 0.1);
+        }
+
+        /* Form Validation Improvements */
+        .has-success input,
+        .has-success textarea,
+        .has-success select {
+            border-color: var(--success);
+            box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.1);
+        }
+
+        .has-success .success-message {
+            display: block;
+            color: var(--success);
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        /* Loading Animation for Buttons */
+        .btn-loading {
+            position: relative;
+        }
+
+        .btn-loading::after {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            right: 10px;
+        }
+
+        /* Tooltip Styling */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+            margin-bottom: 5px;
+        }
+
+        /* Animation for Transitions */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Improved Form Feedback */
+        .form-feedback {
+            display: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .form-feedback.visible {
+            display: block;
+        }
+
+        .form-feedback.success {
+            background-color: rgba(56, 161, 105, 0.1);
+            color: var(--success);
+            border-left: 3px solid var(--success);
+        }
+
+        .form-feedback.error {
+            background-color: rgba(229, 62, 62, 0.1);
+            color: var(--error);
+            border-left: 3px solid var(--error);
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 15px;
+        }
+
+        .lang-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .lang-btn.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Offline Notification */
+        .offline-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--warning);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+
+        .offline-notification.show {
+            display: block;
+        }
+
+        /* Feedback Button */
+        .feedback-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        /* Feedback Modal */
+        .feedback-modal {
+            position: fixed;
+            bottom: 140px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            z-index: 101;
+            display: none;
+        }
+
+        .feedback-modal.show {
+            display: block;
+        }
+
+        .feedback-textarea {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        /* Analytics Opt-out */
+        .analytics-opt-out {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow);
+            max-width: 90%;
+        }
+
+        .analytics-opt-out.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -1344,6 +1585,35 @@
         <span class="pwa-close" id="pwaClose">&times;</span>
     </div>
 
+    <!-- Offline Notification -->
+    <div class="offline-notification" id="offlineNotification">
+        <i class="fas fa-wifi"></i> Sie sind offline. Einige Funktionen sind möglicherweise eingeschränkt.
+    </div>
+
+    <!-- Analytics Opt-out -->
+    <div class="analytics-opt-out" id="analyticsOptOut">
+        <p>Möchten Sie das Tracking durch Google Analytics deaktivieren?</p>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-secondary" id="disableAnalytics">Ja, deaktivieren</button>
+            <button class="btn btn-primary" id="keepAnalytics">Nein, beibehalten</button>
+        </div>
+    </div>
+
+    <!-- Feedback Button -->
+    <div class="feedback-btn" id="feedbackBtn" aria-label="Feedback geben" role="button" tabindex="0">
+        <i class="fas fa-comment-alt"></i>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="feedback-modal" id="feedbackModal">
+        <h3 style="margin-bottom: 10px;">Feedback senden</h3>
+        <textarea class="feedback-textarea" placeholder="Ihr Feedback..."></textarea>
+        <div style="display: flex; justify-content: space-between;">
+            <button class="btn btn-secondary" id="cancelFeedback">Abbrechen</button>
+            <button class="btn btn-primary" id="submitFeedback">Senden</button>
+        </div>
+    </div>
+
     <!-- Header -->
     <header>
         <div class="logo-container">
@@ -1357,7 +1627,11 @@
             <a href="#features" class="nav-link">Funktionen</a>
             <a href="#pricing" class="nav-link">Preise</a>
             <a href="#impressum" class="nav-link">Impressum</a>
-            <button class="theme-toggle" id="themeToggle" title="Dark Mode umschalten">
+            <div class="lang-toggle" aria-label="Sprachauswahl">
+                <button class="lang-btn active" data-lang="de">DE</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+            <button class="theme-toggle" id="themeToggle" title="Dark Mode umschalten" aria-label="Dark Mode umschalten">
                 <i class="fas fa-moon"></i>
             </button>
         </nav>
@@ -1371,7 +1645,7 @@
             </button>
         </div>
         
-        <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Menü öffnen">
             <i class="fas fa-bars"></i>
         </button>
     </header>
@@ -1384,7 +1658,7 @@
                 <i class="fas fa-file-invoice-dollar logo-icon"></i>
                 <div class="logo-text">Offertly</div>
             </div>
-            <button class="mobile-menu-btn" id="mobileCloseBtn">
+            <button class="mobile-menu-btn" id="mobileCloseBtn" aria-label="Menü schließen">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -1410,11 +1684,13 @@
             <form id="loginForm">
                 <div class="form-group">
                     <label for="loginEmail">E-Mail</label>
-                    <input type="email" id="loginEmail" required>
+                    <input type="email" id="loginEmail" required aria-required="true">
+                    <div class="form-feedback error" id="loginEmailError"></div>
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">Passwort</label>
-                    <input type="password" id="loginPassword" required>
+                    <input type="password" id="loginPassword" required aria-required="true">
+                    <div class="form-feedback error" id="loginPasswordError"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Anmelden</button>
                 <p style="text-align: center; margin-top: 15px;">
@@ -1432,19 +1708,24 @@
             <form id="registerForm">
                 <div class="form-group">
                     <label for="regName">Name</label>
-                    <input type="text" id="regName" required>
+                    <input type="text" id="regName" required aria-required="true">
+                    <div class="form-feedback error" id="regNameError"></div>
                 </div>
                 <div class="form-group">
                     <label for="regEmail">E-Mail</label>
-                    <input type="email" id="regEmail" required>
+                    <input type="email" id="regEmail" required aria-required="true">
+                    <div class="form-feedback error" id="regEmailError"></div>
                 </div>
                 <div class="form-group">
                     <label for="regPassword">Passwort</label>
-                    <input type="password" id="regPassword" required minlength="8">
+                    <input type="password" id="regPassword" required aria-required="true" minlength="8">
+                    <div class="input-hint">Mindestens 8 Zeichen</div>
+                    <div class="form-feedback error" id="regPasswordError"></div>
                 </div>
                 <div class="form-group">
                     <label for="regConfirmPassword">Passwort bestätigen</label>
-                    <input type="password" id="regConfirmPassword" required>
+                    <input type="password" id="regConfirmPassword" required aria-required="true">
+                    <div class="form-feedback error" id="regConfirmPasswordError"></div>
                 </div>
                 <button type="submit" class="btn btn-primary">Konto erstellen</button>
             </form>
@@ -1460,27 +1741,32 @@
             <form id="accountForm">
                 <div class="form-group">
                     <label for="accountName">Name</label>
-                    <input type="text" id="accountName" required>
+                    <input type="text" id="accountName" required aria-required="true">
+                    <div class="form-feedback error" id="accountNameError"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="accountEmail">E-Mail</label>
-                    <input type="email" id="accountEmail" required>
+                    <input type="email" id="accountEmail" required aria-required="true">
+                    <div class="form-feedback error" id="accountEmailError"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="currentPassword">Aktuelles Passwort</label>
                     <input type="password" id="currentPassword">
+                    <div class="form-feedback error" id="currentPasswordError"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="newPassword">Neues Passwort</label>
                     <input type="password" id="newPassword">
+                    <div class="form-feedback error" id="newPasswordError"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirmPassword">Passwort bestätigen</label>
                     <input type="password" id="confirmPassword">
+                    <div class="form-feedback error" id="confirmPasswordError"></div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Speichern</button>
@@ -1504,7 +1790,7 @@
                 <div class="subscription-step active" id="step1">
                     <h3>Wählen Sie Ihren Plan</h3>
                     <div class="plan-options">
-                        <div class="plan-option" data-plan="basis">
+                        <div class="plan-option" data-plan="basis" tabindex="0" role="button" aria-label="Basis-Plan auswählen">
                             <h4>Basis</h4>
                             <div class="plan-price">€0<span>/Monat</span></div>
                             <ul>
@@ -1513,7 +1799,7 @@
                                 <li><i class="fas fa-times"></i> Keine KI-Optimierung</li>
                             </ul>
                         </div>
-                        <div class="plan-option selected" data-plan="profi">
+                        <div class="plan-option selected" data-plan="profi" tabindex="0" role="button" aria-label="Profi-Plan auswählen">
                             <div class="popular-badge">Empfohlen</div>
                             <h4>Profi</h4>
                             <div class="plan-price">€9<span>/Monat</span></div>
@@ -1523,7 +1809,7 @@
                                 <li><i class="fas fa-check"></i> Vollständige KI-Optimierung</li>
                             </ul>
                         </div>
-                        <div class="plan-option" data-plan="unternehmen">
+                        <div class="plan-option" data-plan="unternehmen" tabindex="0" role="button" aria-label="Unternehmens-Plan auswählen">
                             <h4>Unternehmen</h4>
                             <div class="plan-price">€29<span>/Monat</span></div>
                             <ul>
@@ -1540,17 +1826,17 @@
                 <div class="subscription-step" id="step2">
                     <h3>Zahlungsinformationen</h3>
                     <div class="payment-methods">
-                        <div class="payment-method active" data-method="creditcard">
+                        <div class="payment-method active" data-method="creditcard" tabindex="0" role="button" aria-label="Kreditkarte als Zahlungsmethode auswählen">
                             <i class="fab fa-cc-visa"></i>
                             <i class="fab fa-cc-mastercard"></i>
                             <i class="fab fa-cc-amex"></i>
                             Kreditkarte
                         </div>
-                        <div class="payment-method" data-method="paypal">
+                        <div class="payment-method" data-method="paypal" tabindex="0" role="button" aria-label="PayPal als Zahlungsmethode auswählen">
                             <i class="fab fa-paypal"></i>
                             PayPal
                         </div>
-                        <div class="payment-method" data-method="sepa">
+                        <div class="payment-method" data-method="sepa" tabindex="0" role="button" aria-label="SEPA-Lastschrift als Zahlungsmethode auswählen">
                             <i class="fas fa-bank"></i>
                             SEPA-Lastschrift
                         </div>
@@ -1560,22 +1846,22 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="cardNumber">Kartennummer</label>
-                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
+                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" aria-label="Kartennummer eingeben">
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="cardExpiry">Ablaufdatum</label>
-                                <input type="text" id="cardExpiry" placeholder="MM/JJ">
+                                <input type="text" id="cardExpiry" placeholder="MM/JJ" aria-label="Ablaufdatum der Karte eingeben">
                             </div>
                             <div class="form-group">
                                 <label for="cardCvc">Sicherheitscode</label>
-                                <input type="text" id="cardCvc" placeholder="CVC">
+                                <input type="text" id="cardCvc" placeholder="CVC" aria-label="Sicherheitscode der Karte eingeben">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="cardName">Name auf der Karte</label>
-                            <input type="text" id="cardName">
+                            <input type="text" id="cardName" aria-label="Name auf der Karte eingeben">
                         </div>
                     </div>
 
@@ -1586,16 +1872,16 @@
                     <div class="payment-details" id="sepaDetails" style="display:none;">
                         <div class="form-group">
                             <label for="iban">IBAN</label>
-                            <input type="text" id="iban" placeholder="DE00 1234 5678 9012 3456 78">
+                            <input type="text" id="iban" placeholder="DE00 1234 5678 9012 3456 78" aria-label="IBAN eingeben">
                         </div>
                         <div class="form-group">
                             <label for="accountName">Kontoinhaber</label>
-                            <input type="text" id="accountName">
+                            <input type="text" id="accountName" aria-label="Name des Kontoinhabers eingeben">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <input type="checkbox" id="termsAgree">
+                        <input type="checkbox" id="termsAgree" aria-label="AGB und Widerrufsbelehrung akzeptieren">
                         <label for="termsAgree">Ich akzeptiere die <a href="#">AGB</a> und <a href="#">Widerrufsbelehrung</a></label>
                     </div>
 
@@ -1860,21 +2146,21 @@
                         <div class="form-group">
                             <label for="businessName" class="required">Ihr Firmenname</label>
                             <input type="text" id="businessName" name="businessName" required 
-                                   placeholder="z.B. Malerbetrieb Schmidt GmbH">
+                                   placeholder="z.B. Malerbetrieb Schmidt GmbH" aria-required="true">
                             <div class="error-message" id="businessNameError">Bitte geben Sie einen Firmennamen ein</div>
                         </div>
 
                         <div class="form-group">
                             <label for="businessAddress">Ihre Firmenadresse</label>
                             <textarea id="businessAddress" name="businessAddress" 
-                                      placeholder="Firmenstraße 123&#10;12345 Stadt&#10;Tel: 0123/456789"></textarea>
+                                      placeholder="Firmenstraße 123&#10;12345 Stadt&#10;Tel: 0123/456789" aria-label="Firmenadresse eingeben"></textarea>
                             <div class="input-hint">Wird im Angebot als Absender angezeigt</div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="businessType">Branche</label>
-                                <select id="businessType" name="businessType">
+                                <select id="businessType" name="businessType" aria-label="Branche auswählen">
                                     <option value="handwerk">Handwerk</option>
                                     <option value="maler">Maler/Lackierer</option>
                                     <option value="elektriker">Elektriker</option>
@@ -1888,7 +2174,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="offerDate">Angebotsdatum</label>
-                                <input type="date" id="offerDate" name="offerDate">
+                                <input type="date" id="offerDate" name="offerDate" aria-label="Angebotsdatum auswählen">
                             </div>
                         </div>
                         
@@ -1896,27 +2182,27 @@
                         <div class="form-group custom-branch" id="customBranchContainer">
                             <label for="customBranch" class="required">Bitte Branche angeben</label>
                             <input type="text" id="customBranch" name="customBranch" 
-                                   placeholder="z.B. Eventmanagement, Tierpflege...">
+                                   placeholder="z.B. Eventmanagement, Tierpflege..." aria-required="true">
                             <div class="error-message" id="customBranchError">Bitte geben Sie Ihre Branche an</div>
                         </div>
 
                         <div class="form-group">
                             <label for="customerName" class="required">Kundenname</label>
                             <input type="text" id="customerName" name="customerName" required 
-                                   placeholder="Max Mustermann">
+                                   placeholder="Max Mustermann" aria-required="true">
                             <div class="error-message" id="customerNameError">Bitte geben Sie einen Kundennamen ein</div>
                         </div>
 
                         <div class="form-group">
                             <label for="customerAddress">Kundenadresse</label>
                             <textarea id="customerAddress" name="customerAddress" 
-                                      placeholder="Musterstraße 123&#10;12345 Musterstadt"></textarea>
+                                      placeholder="Musterstraße 123&#10;12345 Musterstadt" aria-label="Kundenadresse eingeben"></textarea>
                         </div>
 
                         <div class="form-group">
                             <label for="serviceDescription" class="required">Leistungsbeschreibung</label>
                             <textarea id="serviceDescription" name="serviceDescription" required
-                                      placeholder="z.B. Streichen von 40m² Wandfläche, 2 Anstriche, inkl. Material"></textarea>
+                                      placeholder="z.B. Streichen von 40m² Wandfläche, 2 Anstriche, inkl. Material" aria-required="true"></textarea>
                             <div class="error-message" id="serviceDescriptionError">Bitte beschreiben Sie die Leistung</div>
                             <div class="input-hint">Beschreiben Sie kurz, was Sie anbieten. Die KI erstellt daraus professionelle Formulierungen.</div>
                         </div>
@@ -1925,13 +2211,13 @@
                             <div class="form-group">
                                 <label for="totalPrice" class="required">Gesamtpreis (€)</label>
                                 <input type="number" id="totalPrice" name="totalPrice" required 
-                                       step="0.01" placeholder="480.00" min="0">
+                                       step="0.01" placeholder="480.00" min="0" aria-required="true">
                                 <div class="error-message" id="totalPriceError">Bitte geben Sie einen gültigen Preis ein</div>
                             </div>
                             <div class="form-group">
                                 <label for="vatRate">MwSt. (%)</label>
                                 <input type="number" id="vatRate" name="vatRate" step="0.1" 
-                                       placeholder="19" value="19" min="0" max="100">
+                                       placeholder="19" value="19" min="0" max="100" aria-label="Mehrwertsteuersatz eingeben">
                                 <div class="error-message" id="vatRateError">Bitte geben Sie einen gültigen MwSt.-Satz ein (0-100%)</div>
                             </div>
                         </div>
@@ -1939,12 +2225,12 @@
                         <div class="form-group">
                             <label for="deliveryTime">Ausführungszeitraum</label>
                             <input type="text" id="deliveryTime" name="deliveryTime" 
-                                   placeholder="z.B. KW 32/2025 oder nach Vereinbarung">
+                                   placeholder="z.B. KW 32/2025 oder nach Vereinbarung" aria-label="Ausführungszeitraum eingeben">
                         </div>
 
                         <div class="form-group">
                             <label for="paymentTerms">Zahlungsbedingungen</label>
-                            <select id="paymentTerms" name="paymentTerms">
+                            <select id="paymentTerms" name="paymentTerms" aria-label="Zahlungsbedingungen auswählen">
                                 <option value="sofort">Zahlung bei Auftragserteilung</option>
                                 <option value="abnahme">Zahlung bei Abnahme</option>
                                 <option value="14tage">Zahlung innerhalb 14 Tagen</option>
@@ -2057,16 +2343,16 @@
     </div>
 
     <!-- Toast Notification -->
-    <div class="toast" id="toast">
+    <div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <i class="fas fa-check-circle" id="toastIcon"></i>
         <span id="toastMessage">Vorgang erfolgreich abgeschlossen</span>
     </div>
 
     <!-- Zoom Controls (hidden by default) -->
     <div class="zoom-controls" id="zoomControls" style="display: none;">
-        <button class="zoom-btn" id="zoomIn"><i class="fas fa-search-plus"></i></button>
-        <button class="zoom-btn" id="zoomOut"><i class="fas fa-search-minus"></i></button>
-        <button class="zoom-btn" id="zoomReset"><i class="fas fa-expand"></i></button>
+        <button class="zoom-btn" id="zoomIn" aria-label="Vergrößern"><i class="fas fa-search-plus"></i></button>
+        <button class="zoom-btn" id="zoomOut" aria-label="Verkleinern"><i class="fas fa-search-minus"></i></button>
+        <button class="zoom-btn" id="zoomReset" aria-label="Originalgröße"><i class="fas fa-expand"></i></button>
     </div>
 
     <!-- Footer -->
@@ -2223,10 +2509,20 @@
         const zoomResetBtn = document.getElementById('zoomReset');
         const pwaInstall = document.getElementById('pwaInstall');
         const pwaClose = document.getElementById('pwaClose');
+        const offlineNotification = document.getElementById('offlineNotification');
+        const feedbackBtn = document.getElementById('feedbackBtn');
+        const feedbackModal = document.getElementById('feedbackModal');
+        const cancelFeedback = document.getElementById('cancelFeedback');
+        const submitFeedback = document.getElementById('submitFeedback');
+        const analyticsOptOut = document.getElementById('analyticsOptOut');
+        const disableAnalytics = document.getElementById('disableAnalytics');
+        const keepAnalytics = document.getElementById('keepAnalytics');
+        const langBtns = document.querySelectorAll('.lang-btn');
         
         let currentPlan = 'profi';
         let currentStep = 1;
         let currentZoom = 1;
+        let deferredPrompt = null;
 
         // Initialisierung
         function init() {
@@ -2237,6 +2533,11 @@
             if (!localStorage.getItem('cookieConsent')) {
                 cookieBanner.style.display = 'block';
             }
+            
+            // Offline-Status überwachen
+            updateOnlineStatus();
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
             
             // Event-Listener
             offerForm.addEventListener('submit', generateOffer);
@@ -2290,6 +2591,17 @@
                 const email = document.getElementById('loginEmail').value;
                 const password = document.getElementById('loginPassword').value;
                 
+                // Validierung
+                if (!validateEmail(email)) {
+                    showFormError('loginEmailError', 'Bitte geben Sie eine gültige E-Mail-Adresse ein');
+                    return;
+                }
+                
+                if (!password) {
+                    showFormError('loginPasswordError', 'Bitte geben Sie Ihr Passwort ein');
+                    return;
+                }
+                
                 auth.signInWithEmailAndPassword(email, password)
                     .then((userCredential) => {
                         currentUser = userCredential.user;
@@ -2300,6 +2612,11 @@
                     })
                     .catch((error) => {
                         showToast(error.message, 'error');
+                        if (error.code === 'auth/user-not-found') {
+                            showFormError('loginEmailError', 'Kein Konto mit dieser E-Mail gefunden');
+                        } else if (error.code === 'auth/wrong-password') {
+                            showFormError('loginPasswordError', 'Falsches Passwort');
+                        }
                     });
             });
             
@@ -2311,8 +2628,24 @@
                 const password = document.getElementById('regPassword').value;
                 const confirmPassword = document.getElementById('regConfirmPassword').value;
                 
+                // Validierung
+                if (!name) {
+                    showFormError('regNameError', 'Bitte geben Sie Ihren Namen ein');
+                    return;
+                }
+                
+                if (!validateEmail(email)) {
+                    showFormError('regEmailError', 'Bitte geben Sie eine gültige E-Mail-Adresse ein');
+                    return;
+                }
+                
+                if (password.length < 8) {
+                    showFormError('regPasswordError', 'Das Passwort muss mindestens 8 Zeichen lang sein');
+                    return;
+                }
+                
                 if (password !== confirmPassword) {
-                    showToast('Passwörter stimmen nicht überein', 'error');
+                    showFormError('regConfirmPasswordError', 'Passwörter stimmen nicht überein');
                     return;
                 }
                 
@@ -2336,6 +2669,11 @@
                     })
                     .catch((error) => {
                         showToast(error.message, 'error');
+                        if (error.code === 'auth/email-already-in-use') {
+                            showFormError('regEmailError', 'Diese E-Mail ist bereits registriert');
+                        } else if (error.code === 'auth/weak-password') {
+                            showFormError('regPasswordError', 'Das Passwort ist zu schwach');
+                        }
                     });
             });
             
@@ -2386,6 +2724,17 @@
                     currentPlan = option.dataset.plan;
                     updatePaymentButton();
                 });
+                
+                // Tastatur-Navigation für Planauswahl
+                option.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        planOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        currentPlan = option.dataset.plan;
+                        updatePaymentButton();
+                    }
+                });
             });
             
             // Zahlungsmethoden
@@ -2397,6 +2746,17 @@
                     // Zahlungsdetails anzeigen
                     document.querySelectorAll('.payment-details').forEach(d => d.style.display = 'none');
                     document.getElementById(`${method.dataset.method}Details`).style.display = 'block';
+                });
+                
+                // Tastatur-Navigation für Zahlungsmethoden
+                method.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        paymentMethods.forEach(m => m.classList.remove('active'));
+                        method.classList.add('active');
+                        document.querySelectorAll('.payment-details').forEach(d => d.style.display = 'none');
+                        document.getElementById(`${method.dataset.method}Details`).style.display = 'block';
+                    }
                 });
             });
             
@@ -2550,6 +2910,10 @@
             rejectCookiesBtn.addEventListener('click', () => {
                 localStorage.setItem('cookieConsent', 'false');
                 cookieBanner.style.display = 'none';
+                // Google Analytics deaktivieren
+                gtag('consent', 'update', {
+                    'analytics_storage': 'denied'
+                });
             });
             
             // Zoom Controls
@@ -2573,7 +2937,6 @@
             });
             
             // PWA Install Prompt
-            let deferredPrompt;
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
@@ -2596,6 +2959,36 @@
             pwaClose.addEventListener('click', (e) => {
                 e.stopPropagation();
                 pwaInstall.classList.remove('show');
+            });
+            
+            // Feedback Button
+            feedbackBtn.addEventListener('click', toggleFeedbackModal);
+            cancelFeedback.addEventListener('click', toggleFeedbackModal);
+            submitFeedback.addEventListener('click', submitFeedbackForm);
+            
+            // Analytics Opt-out
+            disableAnalytics.addEventListener('click', () => {
+                localStorage.setItem('analyticsDisabled', 'true');
+                analyticsOptOut.style.display = 'none';
+                // Google Analytics deaktivieren
+                gtag('consent', 'update', {
+                    'analytics_storage': 'denied'
+                });
+            });
+            
+            keepAnalytics.addEventListener('click', () => {
+                localStorage.setItem('analyticsDisabled', 'false');
+                analyticsOptOut.style.display = 'none';
+            });
+            
+            // Sprache umschalten
+            langBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    langBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    // Hier würde die Sprachumschaltung implementiert werden
+                    showToast('Sprache geändert');
+                });
             });
             
             // Lade gespeicherte Entwürfe
@@ -2622,6 +3015,55 @@
                     updateAuthUI(false);
                 }
             });
+            
+            // Zeige Analytics-Opt-out nach 5 Sekunden, wenn nicht bereits entschieden
+            setTimeout(() => {
+                if (!localStorage.getItem('analyticsDisabled') && !localStorage.getItem('cookieConsent')) {
+                    analyticsOptOut.classList.add('show');
+                }
+            }, 5000);
+        }
+        
+        // Online/Offline Status aktualisieren
+        function updateOnlineStatus() {
+            if (navigator.onLine) {
+                offlineNotification.classList.remove('show');
+            } else {
+                offlineNotification.classList.add('show');
+            }
+        }
+        
+        // Feedback Modal anzeigen/verstecken
+        function toggleFeedbackModal() {
+            feedbackModal.classList.toggle('show');
+        }
+        
+        // Feedback absenden
+        function submitFeedbackForm() {
+            const feedbackText = document.querySelector('.feedback-textarea').value;
+            if (!feedbackText) {
+                showToast('Bitte geben Sie Feedback ein', 'error');
+                return;
+            }
+            
+            // Hier würde das Feedback an den Server gesendet werden
+            console.log('Feedback received:', feedbackText);
+            showToast('Vielen Dank für Ihr Feedback!');
+            toggleFeedbackModal();
+            document.querySelector('.feedback-textarea').value = '';
+        }
+        
+        // E-Mail validieren
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        // Formularfehler anzeigen
+        function showFormError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.classList.add('visible');
         }
         
         // Benutzerdaten laden
@@ -3390,176 +3832,3 @@
         
         // Auth-UI aktualisieren
         function updateAuthUI(isLoggedIn) {
-            const authButtons = document.querySelector('.auth-buttons');
-            
-            if (isLoggedIn) {
-                authButtons.innerHTML = `
-                    <div class="user-menu">
-                        <button class="btn btn-secondary" id="userBtn">
-                            <i class="fas fa-user-circle"></i> Mein Konto
-                        </button>
-                    </div>
-                `;
-                
-                // Event-Listener für Kontobutton
-                document.getElementById('userBtn').addEventListener('click', () => {
-                    accountSection.style.display = 'block';
-                    documentsSection.style.display = 'none';
-                    teamSection.style.display = 'none';
-                    accountSection.scrollIntoView({ behavior: 'smooth' });
-                });
-            } else {
-                authButtons.innerHTML = `
-                    <button class="btn btn-secondary" id="loginBtn">
-                        <i class="fas fa-sign-in-alt"></i> Anmelden
-                    </button>
-                    <button class="btn btn-primary" id="registerBtn">
-                        <i class="fas fa-user-plus"></i> Registrieren
-                    </button>
-                `;
-                
-                // Event-Listener neu setzen
-                document.getElementById('loginBtn').addEventListener('click', () => loginModal.style.display = 'block');
-                document.getElementById('registerBtn').addEventListener('click', () => registerModal.style.display = 'block');
-                
-                accountSection.style.display = 'none';
-                documentsSection.style.display = 'none';
-                teamSection.style.display = 'none';
-            }
-        }
-        
-        // Abo-Schritte anzeigen
-        function showStep(step) {
-            currentStep = step;
-            document.querySelectorAll('.subscription-step').forEach(s => s.classList.remove('active'));
-            document.getElementById(`step${step}`).classList.add('active');
-            
-            // Button-Text aktualisieren
-            if (step === 2) {
-                updatePaymentButton();
-            }
-        }
-        
-        // Zahlungsbutton aktualisieren
-        function updatePaymentButton() {
-            const prices = {
-                basis: 0,
-                profi: 9,
-                unternehmen: 29
-            };
-            completePaymentBtn.innerHTML = `<i class="fas fa-lock"></i> Zahlung abschließen (€${prices[currentPlan]}/Monat)`;
-        }
-        
-        // Zahlung simulieren
-        function simulatePayment() {
-            // Ladeanimation anzeigen
-            completePaymentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird verarbeitet...';
-            completePaymentBtn.disabled = true;
-            
-            // Simuliere Zahlungsverarbeitung
-            setTimeout(() => {
-                // In der echten Implementierung würden Sie hier:
-                // 1. Die Zahlung beim Payment-Provider verarbeiten
-                // 2. Das Abo in Ihrer Datenbank aktivieren
-                if (currentUser) {
-                    db.collection('users').doc(currentUser.uid).update({
-                        subscription: currentPlan,
-                        subscriptionDate: firebase.firestore.FieldValue.serverTimestamp()
-                    })
-                    .then(() => {
-                        showStep(3);
-                        showToast('Abonnement erfolgreich aktiviert!');
-                        updateSubscriptionUI(currentPlan);
-                    })
-                    .catch((error) => {
-                        console.error("Error updating subscription:", error);
-                        showToast('Fehler bei der Aktivierung des Abos', 'error');
-                    });
-                } else {
-                    showStep(3);
-                    showToast('Abonnement erfolgreich aktiviert!');
-                    updateSubscriptionUI(currentPlan);
-                }
-            }, 2000);
-        }
-        
-        // Abo-UI aktualisieren
-        function updateSubscriptionUI(plan) {
-            // Premium-Badge im Header anzeigen
-            const existingBadge = document.querySelector('.premium-badge, .enterprise-badge');
-            if (existingBadge) existingBadge.remove();
-            
-            if (plan === 'profi') {
-                const premiumBadge = document.createElement('span');
-                premiumBadge.className = 'ai-badge premium-badge';
-                premiumBadge.style.marginLeft = '10px';
-                premiumBadge.textContent = 'PRO';
-                document.querySelector('.logo-container').appendChild(premiumBadge);
-            } else if (plan === 'unternehmen') {
-                const enterpriseBadge = document.createElement('span');
-                enterpriseBadge.className = 'ai-badge enterprise-badge';
-                enterpriseBadge.style.marginLeft = '10px';
-                enterpriseBadge.textContent = 'ENTERPRISE';
-                document.querySelector('.logo-container').appendChild(enterpriseBadge);
-            }
-            
-            // Beispiel: Premium-Features aktivieren
-            console.log(`Premium features activated for ${plan} plan`);
-        }
-        
-        // Dokument anzeigen
-        function viewDocument(docId) {
-            db.collection('users').doc(currentUser.uid).collection('offers').doc(docId).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        previewContent.innerHTML = data.html;
-                        currentOfferData = {
-                            html: data.html,
-                            data: data.data,
-                            offerNumber: data.offerNumber
-                        };
-                        zoomControls.style.display = 'flex';
-                        showToast('Dokument geladen');
-                    } else {
-                        showToast('Dokument nicht gefunden', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error("Error loading document:", error);
-                    showToast('Fehler beim Laden des Dokuments', 'error');
-                });
-        }
-        
-        // Dokument herunterladen
-        function downloadDocument(docId) {
-            db.collection('users').doc(currentUser.uid).collection('offers').doc(docId).get()
-                .then(doc => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        currentOfferData = {
-                            html: data.html,
-                            data: data.data,
-                            offerNumber: data.offerNumber
-                        };
-                        generatePDF();
-                    } else {
-                        showToast('Dokument nicht gefunden', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error("Error loading document:", error);
-                    showToast('Fehler beim Laden des Dokuments', 'error');
-                });
-        }
-        
-        // Initialisierung beim Laden
-        document.addEventListener('DOMContentLoaded', init);
-        
-        // Globale Funktionen für Event-Listener
-        window.viewDocument = viewDocument;
-        window.downloadDocument = downloadDocument;
-        window.showLegalPage = showLegalPage;
-    </script>
-</body>
-    </html>
