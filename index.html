@@ -1,802 +1,1119 @@
-<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mein Wochenplaner (privat)</title>
+// src/app/page.tsx
+import { useState, useEffect, useCallback } from 'react';
+import { Moon, Sun, Calendar, ChevronLeft, ChevronRight, Plus, Edit2, Trash2, X, Save, Check, Bell, AlertTriangle, Target, BookOpen, Download, Repeat, Clock } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
-  <!-- Tailwind Play CDN (für Single-File ohne Build) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Kleine Ergänzungen / Animationen */
-    .fade-in { animation: fadeIn .25s ease-out both; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .shake { animation: shake .35s; }
-    @keyframes shake { 10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); } 30%, 50%, 70% { transform: translateX(-6px); } 40%, 60% { transform: translateX(6px); } }
-    .task-dragging { opacity: 0.85; transform: scale(1.02); box-shadow: 0 8px 22px rgba(0,0,0,.12); }
-    .day-drop-hover { background: linear-gradient(90deg, rgba(99,102,241,0.06), rgba(79,70,229,0.03)); }
-    .no-select { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-    /* small screens tuning */
-    @media (max-width: 640px) {
-      .day-column { min-width: 230px; }
+interface Task {
+  id: number;
+  type: string;
+  title: string;
+  time: string;
+  recurring: boolean;
+  editable: boolean;
+  date?: string;
+  studyDays?: number;
+  notes?: string;
+  notification?: boolean;
+  isCustom?: boolean;
+}
+
+interface Schedule {
+  [key: number]: Task[];
+}
+
+const WeeklyPlanner = () => {
+  const { toast } = useToast();
+  const [password, setPassword] = useState('');
+  const [authenticated, setAuthenticated] = useState(false);
+  const [currentDay, setCurrentDay] = useState(new Date().getDay());
+  const [showNotification, setShowNotification] = useState(false);
+  const [editingItem, setEditingItem] = useState<number | null>(null);
+  const [newTaskForm, setNewTaskForm] = useState<{ show: boolean; day: number }>({ show: false, day: 0 });
+  const [schedule, setSchedule] = useState<Schedule>({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showWeekView, setShowWeekView] = useState(false);
+  const [filters, setFilters] = useState<{ type: string }>({ type: 'all' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
+  const [dragItem, setDragItem] = useState<{ day: number; index: number } | null>(null);
+  const [notificationTime] = useState(6); // Notification at 6 AM
+
+  const days = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+  const dayEmojis = ['😴', '🏫', '🏫', '🏫', '🏫', '🏫', '🏋️'];
+
+  // Password protection
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'Timon1605') {
+      setAuthenticated(true);
+      localStorage.setItem('authenticated', 'true');
+    } else {
+      toast({
+        title: "Falsches Passwort",
+        description: "Bitte versuche es erneut.",
+        variant: "destructive",
+      });
     }
-  </style>
+  };
 
-  <!-- SortableJS für Drag & Drop (kein React nötig) -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen antialiased">
+  // Load schedule with proper weekly reset and recurring tasks
+  const loadSchedule = useCallback((): Schedule => {
+    const saved = localStorage.getItem('weeklyPlannerSchedule');
+    const lastWeek = localStorage.getItem('currentWeekNumber');
+    const now = new Date();
+    
+    // Get proper week number (Monday = start of week)
+    const currentWeekNumber = getWeekNumber(now);
+    
+    // If new week, restore base schedule but keep user modifications for recurring tasks
+    if (!saved || !lastWeek || parseInt(lastWeek) !== currentWeekNumber) {
+      localStorage.setItem('currentWeekNumber', currentWeekNumber.toString());
+      const baseSchedule = getInitialSchedule();
+      
+      // If we have saved data, merge recurring user tasks with base schedule
+      if (saved) {
+        const oldSchedule = JSON.parse(saved);
+        return mergeRecurringTasks(baseSchedule, oldSchedule);
+      }
+      
+      return baseSchedule;
+    }
+    
+    return saved ? JSON.parse(saved) : getInitialSchedule();
+  }, []);
 
-  <!-- Password Modal -->
-  <div id="pw-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div id="pw-box" class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 shadow-2xl transform transition-transform fade-in">
-      <h2 class="text-2xl font-bold mb-2">Zugang</h2>
-      <p class="mb-4 text-sm text-slate-600">Diese Seite ist privat. Bitte Passwort eingeben.</p>
-      <input id="pw-input" type="password" placeholder="Passwort" class="w-full px-4 py-2 rounded-lg border border-slate-200 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
-      <div class="flex gap-2">
-        <button id="pw-submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Öffnen</button>
-        <button id="pw-cancel" class="py-2 px-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">Schließen</button>
-      </div>
-      <p id="pw-error" class="text-red-600 text-sm mt-3 hidden">Falsches Passwort.</p>
-    </div>
-  </div>
-
-  <!-- Main App -->
-  <div id="app" class="max-w-6xl mx-auto p-4 md:p-6 hidden">
-    <div class="rounded-2xl bg-white shadow-lg overflow-hidden">
-      <!-- Header -->
-      <div class="p-5 bg-gradient-to-r from-indigo-600 to-indigo-400 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold">📅 Mein Wochenplaner</h1>
-          <p class="text-sm opacity-90 mt-1">Nur für mich — kein Teilen, keine Werbung.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="export-ical" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition">ICS export</button>
-          <button id="toggle-view" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition">Wochen-/Tagesansicht</button>
-          <button id="clear-all" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white text-sm transition">Alles löschen</button>
-        </div>
-      </div>
-
-      <!-- Stats + Controls -->
-      <div class="p-4 border-b bg-slate-50 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div class="flex gap-3 items-center">
-          <div class="p-3 rounded-lg bg-white border shadow-sm text-center min-w-[80px]">
-            <div id="stat-work" class="text-lg font-bold">0h</div>
-            <div class="text-xs text-slate-500">Arbeitszeit</div>
-          </div>
-          <div class="p-3 rounded-lg bg-white border shadow-sm text-center min-w-[80px]">
-            <div id="stat-study" class="text-lg font-bold">0</div>
-            <div class="text-xs text-slate-500">Lernaufgaben</div>
-          </div>
-          <div class="p-3 rounded-lg bg-white border shadow-sm text-center min-w-[80px]">
-            <div id="stat-sport" class="text-lg font-bold">0</div>
-            <div class="text-xs text-slate-500">Sport</div>
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <input id="search" class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-200" placeholder="Aufgaben suchen..." />
-          <button id="add-task-open" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Aufgabe hinzufügen</button>
-        </div>
-      </div>
-
-      <!-- Content -->
-      <div id="content" class="p-4">
-        <!-- Tages/Wochenansicht (default Tagesansicht) -->
-        <div id="day-view" class="fade-in">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-3">
-              <button id="prev-day" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200">&lt;</button>
-              <h2 id="current-day-title" class="text-2xl font-bold">Montag</h2>
-              <button id="next-day" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200">&gt;</button>
-              <div id="day-task-count" class="text-sm text-slate-500">0 Aufgaben</div>
-            </div>
-            <div class="text-sm text-slate-500">Ziehe Aufgaben, um sie zu verschieben</div>
-          </div>
-
-          <!-- Tasks list -->
-          <div id="day-tasks" class="space-y-3"></div>
-        </div>
-
-        <div id="week-view" class="hidden fade-in">
-          <div class="flex overflow-x-auto gap-3 py-2 pb-4">
-            <!-- Wochen-Spalten (werden dynamisch gefüllt) -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer / Report button -->
-    <div class="max-w-6xl mx-auto mt-4 p-2 text-sm text-slate-600">
-      <div class="flex gap-2 items-center">
-        <button id="open-report" class="px-3 py-1 bg-slate-100 rounded hover:bg-slate-200 transition">Kurzer Bericht (lesen)</button>
-        <span class="text-xs opacity-80">Keine Werbung — nur privat.</span>
-      </div>
-      <div id="report" class="mt-3 p-3 bg-white border rounded hidden text-sm text-slate-700">
-        <!-- Report wird hier eingefügt -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Add/Edit Task Modal -->
-  <div id="task-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl p-6 w-full max-w-xl shadow-2xl">
-      <h3 id="task-modal-title" class="text-lg font-semibold mb-2">Aufgabe hinzufügen</h3>
-      <div class="grid grid-cols-1 gap-3">
-        <input id="task-title" placeholder="Titel" class="px-3 py-2 border rounded" />
-        <input id="task-time" placeholder="Zeit (z.B. 19:00 – 20:00)" class="px-3 py-2 border rounded" />
-        <select id="task-type" class="px-3 py-2 border rounded">
-          <option value="school">Schule</option>
-          <option value="study" selected>Schulvorbereitung</option>
-          <option value="work">Arbeit</option>
-          <option value="sport">Sport</option>
-          <option value="music">Musik</option>
-          <option value="free">Freizeit</option>
-          <option value="test">Test/Klausur</option>
-          <option value="appointment">Termin</option>
-          <option value="hobby">Hobby</option>
-        </select>
-        <label class="flex items-center gap-2">
-          <input id="task-recurring" type="checkbox" /> Wöchentlich wiederkehrend
-        </label>
-        <label class="flex items-center gap-2">
-          <input id="task-notify" type="checkbox" /> Erinnerung (Browser-Benachrichtigung)
-        </label>
-        <div class="flex gap-2 justify-end">
-          <button id="task-cancel" class="px-4 py-2 rounded bg-slate-100 hover:bg-slate-200">Abbrechen</button>
-          <button id="task-save" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Speichern</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-<script>
-/* ===============================
-   Single-file Wochenplaner (DE)
-   - localStorage-basiert
-   - wöchentlicher Reset mit merge recurring
-   - Drag & Drop (SortableJS)
-   - Passwort-Modal (Timon1605)
-   - Sonntag: Schulvorbereitung 20:30–21:00 automatisch
-   - Keine Werbung / privat
-   =============================== */
-
-(() => {
-  'use strict';
-
-  /* ---------- Konfiguration ---------- */
-  const PASSWORD = 'Timon1605';
-  const STORAGE_KEY = 'weeklyPlannerSchedule_v1';
-  const WEEK_KEY = 'weeklyPlannerWeek_v1';
-
-  const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-  const dayEmojis = ['😴','🏫','🏫','🏫','🏫','🏫','🏋️‍♀️'];
-
-  /* ---------- Hilfsfunktionen ---------- */
-  function safeParse(json) {
-    try { return JSON.parse(json); } catch (e) { return null; }
-  }
-  function safeSetItem(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
-    catch (e) { console.error('localStorage set failed', e); return false; }
-  }
-  function safeGetItem(k) {
-    try { return localStorage.getItem(k); } catch(e){ console.error('localStorage get failed', e); return null; }
-  }
-  function weekNumber(date = new Date()) {
+  // Get ISO week number (Monday as first day)
+  const getWeekNumber = (date: Date): number => {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    return Math.ceil((((d - yearStart)/86400000)+1)/7);
-  }
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  };
 
-  /* ---------- Initial Schedule (Base) ---------- */
-  function getBaseSchedule() {
-    // ensure Sunday has 'Schulvorbereitung 20:30 – 21:00'
-    return {
-      0: [ { id: idGen(), type:'study', title:'Schulvorbereitung', time:'20:30 – 21:00', recurring:true, editable:true, notification:false } ],
-      1: [ { id: idGen(), type:'school', title:'Schule', time:'08:00 – 15:15', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'music', title:'Musikunterricht', time:'15:30 – 16:30', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'study', title:'Schulvorbereitung', time:'19:00 – 20:00', recurring:true, editable:true, notification:false } ],
-      2: [ { id: idGen(), type:'school', title:'Schule', time:'08:00 – 15:15', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'work', title:'Kaufland', time:'16:00 – 18:30', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'study', title:'Schulvorbereitung', time:'19:00 – 20:00', recurring:true, editable:true, notification:false } ],
-      3: [ { id: idGen(), type:'school', title:'Schule', time:'08:00 – 13:10', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'sport', title:'Tischtennis', time:'17:00 – 18:30', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'study', title:'Schulvorbereitung', time:'19:00 – 20:00', recurring:true, editable:true, notification:false } ],
-      4: [ { id: idGen(), type:'school', title:'Schule', time:'08:00 – 15:15', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'work', title:'Kaufland', time:'16:30 – 19:00', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'study', title:'Schulvorbereitung', time:'19:30 – 20:30', recurring:true, editable:true, notification:false } ],
-      5: [ { id: idGen(), type:'school', title:'Schule', time:'08:00 – 13:10', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'sport', title:'Schwimmen', time:'16:30 – 17:15', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'study', title:'Schulnachbereitung', time:'20:00 – 21:00', recurring:true, editable:true, notification:false } ],
-      6: [ { id: idGen(), type:'sport', title:'Gym', time:'08:30 – 10:00', recurring:true, editable:true, notification:false },
-           { id: idGen(), type:'work', title:'Kaufland', time:'10:30 – 13:30', recurring:true, editable:true, notification:false } ]
-    };
-  }
-
-  /* ID Generator (simple) */
-  function idGen() {
-    return Math.floor(Date.now() + Math.random()*10000);
-  }
-
-  /* Merge recurring user tasks into base schedule for new week */
-  function mergeRecurring(base, old) {
-    const merged = JSON.parse(JSON.stringify(base));
-    if (!old) return merged;
-    Object.keys(old).forEach(k => {
-      const day = parseInt(k,10);
-      const tasks = old[k] || [];
-      const userRecurring = tasks.filter(t => t.recurring && t.editable && !isBase(t, day, base));
-      if (userRecurring.length) {
-        merged[day] = [...merged[day] || [], ...userRecurring.map(t => ({ ...t, id: idGen() }))];
+  // Merge recurring tasks with base schedule for new week
+  const mergeRecurringTasks = (baseSchedule: Schedule, oldSchedule: Schedule): Schedule => {
+    const newSchedule = { ...baseSchedule };
+    
+    Object.keys(oldSchedule).forEach(dayKey => {
+      const day = parseInt(dayKey);
+      const oldTasks = oldSchedule[day] || [];
+      
+      // Find user-added recurring tasks
+      const userRecurringTasks = oldTasks.filter(task => 
+        task.recurring && task.editable && (task.isCustom || !isBaseTask(task, day))
+      );
+      
+      // Add user recurring tasks to new week
+      if (userRecurringTasks.length > 0) {
+        newSchedule[day] = [...(newSchedule[day] || []), ...userRecurringTasks];
       }
     });
-    return merged;
-  }
+    
+    return newSchedule;
+  };
 
-  function isBase(task, day, base) {
-    const baseTasks = (base && base[day]) || [];
-    return baseTasks.some(bt => bt.title === task.title && bt.type === task.type && bt.time === task.time);
-  }
+  // Check if task is from base schedule
+  const isBaseTask = (task: Task, day: number): boolean => {
+    const baseTasks = getInitialSchedule()[day] || [];
+    return baseTasks.some(baseTask => 
+      baseTask.title === task.title && baseTask.type === task.type
+    );
+  };
 
-  /* ---------- App State ---------- */
-  let schedule = null; // object with arrays per day index 0-6
-  let currentDay = new Date().getDay(); // index 0-6 (Sun-Sat)
-  let showWeek = false;
+  const getInitialSchedule = (): Schedule => ({
+    0: [
+      { id: 1, type: 'lesson', title: 'Novakid', time: '10:00 – 10:30', recurring: true, editable: true },
+      { id: 2, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    1: [
+      { id: 3, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
+      { id: 4, type: 'music', title: 'Musikunterricht', time: '15:30 – 16:30', recurring: true, editable: true },
+      { id: 5, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    2: [
+      { id: 6, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
+      { id: 7, type: 'work', title: 'Kaufland', time: '16:00 – 18:30', recurring: true, editable: true },
+      { id: 8, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    3: [
+      { id: 9, type: 'school', title: 'Schule', time: '08:00 – 13:10', recurring: true, editable: true },
+      { id: 10, type: 'sport', title: 'Tischtennis', time: '17:00 – 18:30', recurring: true, editable: true },
+      { id: 11, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    4: [
+      { id: 12, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
+      { id: 13, type: 'work', title: 'Kaufland', time: '16:30 – 19:00', recurring: true, editable: true },
+      { id: 14, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    5: [
+      { id: 15, type: 'school', title: 'Schule', time: '08:00 – 13:10', recurring: true, editable: true },
+      { id: 16, type: 'sport', title: 'Schwimmen', time: '16:30 – 17:15', recurring: true, editable: true },
+      { id: 17, type: 'study', title: 'Schulnachbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    6: [
+      { id: 18, type: 'sport', title: 'Gym', time: '08:30 – 10:00', recurring: true, editable: true },
+      { id: 19, type: 'work', title: 'Kaufland', time: '10:30 – 13:30', recurring: true, editable: true }
+    ]
+  });
 
-  /* ---------- DOM Elements ---------- */
-  const pwModal = document.getElementById('pw-modal');
-  const pwInput = document.getElementById('pw-input');
-  const pwSubmit = document.getElementById('pw-submit');
-  const pwCancel = document.getElementById('pw-cancel');
-  const pwBox = document.getElementById('pw-box');
-  const pwError = document.getElementById('pw-error');
+  // Initialize
+  useEffect(() => {
+    const auth = localStorage.getItem('authenticated');
+    if (auth === 'true') {
+      setAuthenticated(true);
+    }
+    
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode) {
+      setDarkMode(JSON.parse(savedDarkMode));
+    }
+    
+    setSchedule(loadSchedule());
+  }, [loadSchedule]);
 
-  const appEl = document.getElementById('app');
-  const currentTitle = document.getElementById('current-day-title');
-  const dayTasksEl = document.getElementById('day-tasks');
-  const dayTaskCount = document.getElementById('day-task-count');
-  const prevDayBtn = document.getElementById('prev-day');
-  const nextDayBtn = document.getElementById('next-day');
-  const toggleViewBtn = document.getElementById('toggle-view');
-  const weekViewEl = document.getElementById('week-view');
-  const dayViewEl = document.getElementById('day-view');
-  const weekColumnsContainer = weekViewEl.querySelector('.flex');
+  // Save to localStorage whenever schedule changes
+  useEffect(() => {
+    localStorage.setItem('weeklyPlannerSchedule', JSON.stringify(schedule));
+  }, [schedule]);
 
-  const addTaskOpen = document.getElementById('add-task-open');
-  const taskModal = document.getElementById('task-modal');
-  const taskModalTitle = document.getElementById('task-modal-title');
-  const taskTitleInput = document.getElementById('task-title');
-  const taskTimeInput = document.getElementById('task-time');
-  const taskTypeInput = document.getElementById('task-type');
-  const taskRecurringInput = document.getElementById('task-recurring');
-  const taskNotifyInput = document.getElementById('task-notify');
-  const taskSaveBtn = document.getElementById('task-save');
-  const taskCancelBtn = document.getElementById('task-cancel');
-
-  const searchInput = document.getElementById('search');
-  const statWork = document.getElementById('stat-work');
-  const statStudy = document.getElementById('stat-study');
-  const statSport = document.getElementById('stat-sport');
-
-  const exportIcsBtn = document.getElementById('export-ical');
-  const clearAllBtn = document.getElementById('clear-all');
-
-  const toggleViewText = toggleViewBtn;
-
-  const openReportBtn = document.getElementById('open-report');
-  const reportEl = document.getElementById('report');
-
-  /* ---------- Init / Load ---------- */
-  function init() {
-    // password handlers
-    pwSubmit.addEventListener('click', tryPassword);
-    pwInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') tryPassword(); });
-    pwCancel.addEventListener('click', () => { window.close?.(); }); // best-effort
-
-    // app handlers (after auth)
-    prevDayBtn.addEventListener('click', () => { currentDay = (currentDay === 0 ? 6 : currentDay - 1); render(); });
-    nextDayBtn.addEventListener('click', () => { currentDay = (currentDay === 6 ? 0 : currentDay + 1); render(); });
-    toggleViewBtn.addEventListener('click', () => { showWeek = !showWeek; renderView(); });
-    addTaskOpen.addEventListener('click', () => openTaskModal());
-    taskCancelBtn.addEventListener('click', closeTaskModal);
-    taskSaveBtn.addEventListener('click', onSaveTask);
-    searchInput.addEventListener('input', render);
-    exportIcsBtn.addEventListener('click', exportToICal);
-    clearAllBtn.addEventListener('click', clearAllConfirm);
-    openReportBtn.addEventListener('click', toggleReport);
-
-    // Initialize schedule with weekly reset logic
-    loadSchedule();
-
-    // Start periodic check for notifications (if enabled on tasks)
-    setInterval(checkReminders, 60 * 1000); // every minute
-  }
-
-  function tryPassword() {
-    const val = pwInput.value.trim();
-    if (val === PASSWORD) {
-      pwModal.classList.add('hidden');
-      appEl.classList.remove('hidden');
-      // focus search for convenience
-      setTimeout(() => { searchInput.focus(); }, 350);
-      render();
+  // Save dark mode preference
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
     } else {
-      pwError.classList.remove('hidden');
-      pwBox.classList.remove('fade-in');
-      pwBox.classList.add('shake');
-      setTimeout(() => { pwBox.classList.remove('shake'); }, 360);
+      document.documentElement.classList.remove('dark');
     }
-  }
+  }, [darkMode]);
 
-  function loadSchedule() {
-    const saved = safeGetItem(STORAGE_KEY);
-    const lastWeek = safeGetItem(WEEK_KEY);
-    const currentWeek = weekNumber(new Date()).toString();
-
-    const base = getBaseSchedule();
-
-    if (!saved || !lastWeek || lastWeek !== currentWeek) {
-      // New week -> merge recurring user tasks if any
-      const old = saved ? safeParse(saved) : null;
-      schedule = mergeRecurring(base, old);
-      safeSetItem(WEEK_KEY, currentWeek);
-      safeSetItem(STORAGE_KEY, schedule);
-      return;
+  // Initialize Notifications
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
     }
+  }, []);
 
-    const parsed = safeParse(saved);
-    if (parsed) {
-      schedule = parsed;
-    } else {
-      schedule = base;
-      safeSetItem(STORAGE_KEY, schedule);
-    }
-  }
-
-  function saveSchedule() {
-    safeSetItem(STORAGE_KEY, schedule);
-    updateStats();
-  }
-
-  /* ---------- Rendering ---------- */
-  function render() {
-    if (showWeek) {
-      renderWeek();
-      return;
-    }
-    // day view rendering
-    currentTitle.textContent = `${dayEmojis[currentDay]} ${days[currentDay]}`;
-    const tasks = getFilteredTasksForDay(currentDay);
-    dayTaskCount.textContent = `${tasks.length} Aufgaben`;
-    dayTasksEl.innerHTML = '';
-    if (!tasks.length) {
-      dayTasksEl.innerHTML = `<div class="text-center py-12 text-slate-500">
-        <div class="text-lg font-medium">Keine Aufgaben</div>
-        <div class="text-sm mt-2">Füge eine Aufgabe hinzu oder ändere den Filter.</div>
-      </div>`;
-    } else {
-      tasks.forEach(t => {
-        const el = taskCardElement(t);
-        dayTasksEl.appendChild(el);
-      });
-    }
-    // make day list sortable
-    makeSortableForContainer(dayTasksEl, currentDay);
-    updateStats();
-  }
-
-  function renderView() {
-    if (showWeek) {
-      dayViewEl.classList.add('hidden');
-      weekViewEl.classList.remove('hidden');
-      renderWeek();
-    } else {
-      weekViewEl.classList.add('hidden');
-      dayViewEl.classList.remove('hidden');
-      render();
-    }
-  }
-
-  function renderWeek() {
-    // fill week columns
-    const query = searchInput.value.trim().toLowerCase();
-    weekColumnsContainer.innerHTML = '';
-    for (let i = 0; i < 7; i++) {
-      const column = document.createElement('div');
-      column.className = 'day-column min-w-[260px] bg-white p-3 rounded-lg border shadow-sm no-select';
-      column.innerHTML = `
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="text-xl">${dayEmojis[i]}</div>
-            <div class="font-semibold">${days[i]}</div>
-            <div class="text-xs text-slate-500">(${(schedule[i]||[]).length})</div>
-          </div>
-          <button class="text-xs px-2 py-1 bg-indigo-50 rounded text-indigo-700" data-goto="${i}">Zu Tag</button>
-        </div>
-        <div class="day-list space-y-2 min-h-[60px]"></div>
-      `;
-      // append tasks
-      const list = column.querySelector('.day-list');
-      const tasks = (schedule[i] || []).filter(t => filterBySearch(t, query));
-      tasks.forEach(t => list.appendChild(taskCardElement(t)));
-      weekColumnsContainer.appendChild(column);
-
-      // goto button handler
-      column.querySelector('[data-goto]').addEventListener('click', (e) => {
-        currentDay = parseInt(e.target.getAttribute('data-goto'),10);
-        showWeek = false;
-        renderView();
-      });
-
-      // make sortable
-      makeSortableForContainer(list, i);
-    }
-  }
-
-  function taskCardElement(task) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'task-card p-3 bg-slate-50 border rounded-lg flex justify-between items-start gap-3 transition hover:shadow-md';
-    wrapper.setAttribute('data-id', task.id);
-    wrapper.setAttribute('data-day', findTaskDay(task.id));
-    wrapper.innerHTML = `
-      <div class="flex items-start gap-3">
-        <div class="text-2xl">${typeEmoji(task.type)}</div>
-        <div>
-          <div class="font-semibold">${escapeHtml(task.title || '')} ${task.recurring ? '<span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded ml-2">wöchentlich</span>' : ''} ${task.notification ? '<span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded ml-2">🔔</span>' : ''}</div>
-          ${task.time ? `<div class="text-xs text-slate-500 mt-1">${escapeHtml(task.time)}</div>` : ''}
-        </div>
-      </div>
-      <div class="flex gap-2 items-start">
-        <button class="edit-btn text-slate-600 hover:text-indigo-600" title="Bearbeiten">✏️</button>
-        <button class="del-btn text-slate-600 hover:text-red-600" title="Löschen">🗑️</button>
-      </div>
-    `;
-    // edit & delete handlers
-    wrapper.querySelector('.edit-btn').addEventListener('click', () => openTaskModal(task));
-    wrapper.querySelector('.del-btn').addEventListener('click', () => {
-      if (confirm('Aufgabe endgültig löschen?')) {
-        deleteTaskById(task.id);
-        render();
+  // Check for notification time and daily reminders
+  useEffect(() => {
+    const checkNotificationTime = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      
+      // Show morning notification at 6:00 AM
+      if (hours === notificationTime && minutes === 0) {
+        setShowNotification(true);
+        sendDailyNotification();
       }
-    });
-    return wrapper;
-  }
 
-  function escapeHtml(s) {
-    return (s+'').replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-  }
-
-  function typeEmoji(type) {
-    const map = {
-      school: '🏫', work: '🛒', study: '🧠', sport: '🏊', music:'🎼', lesson:'📘', free:'🎯', sleep:'😴', test:'📝', appointment:'📅', hobby:'🎨'
-    };
-    return map[type] || '📋';
-  }
-
-  /* ---------- Task Operations ---------- */
-  function addTaskToDay(day, partial) {
-    const newTask = {
-      id: idGen(),
-      type: partial.type || 'study',
-      title: partial.title || '',
-      time: partial.time || '',
-      recurring: !!partial.recurring,
-      editable: true,
-      notification: !!partial.notification
-    };
-    schedule[day] = schedule[day] || [];
-    schedule[day].push(newTask);
-    saveSchedule();
-    render();
-    return newTask;
-  }
-
-  function updateTaskInSchedule(taskId, updates) {
-    for (let d = 0; d < 7; d++) {
-      const list = schedule[d] || [];
-      const idx = list.findIndex(t=>t.id===taskId);
-      if (idx !== -1) {
-        schedule[d][idx] = { ...schedule[d][idx], ...updates };
-        saveSchedule();
-        return schedule[d][idx];
-      }
-    }
-    return null;
-  }
-
-  function deleteTaskById(taskId) {
-    for (let d=0; d<7; d++) {
-      schedule[d] = (schedule[d]||[]).filter(t=>t.id!==taskId);
-    }
-    saveSchedule();
-  }
-
-  function findTaskDay(taskId) {
-    for (let d=0; d<7; d++) {
-      const idx = (schedule[d]||[]).findIndex(t=>t.id===taskId);
-      if (idx !== -1) return d;
-    }
-    return -1;
-  }
-
-  /* ---------- Search & Filter ---------- */
-  function filterBySearch(task, query) {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (task.title || '').toLowerCase().includes(q) || (task.time||'').toLowerCase().includes(q) || (task.type||'').toLowerCase().includes(q);
-  }
-
-  function getFilteredTasksForDay(day) {
-    const arr = schedule[day] || [];
-    const q = searchInput.value.trim().toLowerCase();
-    return arr.filter(t => filterBySearch(t, q));
-  }
-
-  /* ---------- Task Modal ---------- */
-  let editingTask = null;
-  function openTaskModal(task = null) {
-    editingTask = task;
-    taskModal.classList.remove('hidden');
-    // fill fields
-    taskModalTitle.textContent = task ? 'Aufgabe bearbeiten' : 'Aufgabe hinzufügen';
-    taskTitleInput.value = task?.title || '';
-    taskTimeInput.value = task?.time || '';
-    taskTypeInput.value = task?.type || 'study';
-    taskRecurringInput.checked = !!task?.recurring;
-    taskNotifyInput.checked = !!task?.notification;
-  }
-  function closeTaskModal() {
-    editingTask = null;
-    taskModal.classList.add('hidden');
-  }
-  function onSaveTask() {
-    const title = taskTitleInput.value.trim();
-    if (!title) return alert('Titel eingeben.');
-    const data = {
-      title,
-      time: taskTimeInput.value.trim(),
-      type: taskTypeInput.value,
-      recurring: taskRecurringInput.checked,
-      notification: taskNotifyInput.checked
-    };
-    if (editingTask) {
-      updateTaskInSchedule(editingTask.id, data);
-    } else {
-      addTaskToDay(currentDay, data);
-    }
-    closeTaskModal();
-  }
-
-  /* ---------- Drag & Drop (SortableJS) ---------- */
-  const sortableMap = new Map();
-  function makeSortableForContainer(containerEl, dayIndex) {
-    // Destroy existing Sortable on this container if any
-    const key = containerEl;
-    if (sortableMap.has(key)) {
-      try { sortableMap.get(key).destroy(); } catch(e) {}
-      sortableMap.delete(key);
-    }
-    // store items order by nodes currently in container => ensure underlying schedule matches
-    const options = {
-      group: 'week-tasks',
-      animation: 150,
-      ghostClass: 'task-dragging',
-      onAdd: function (evt) {
-        // moved from another list to this dayIndex
-        const id = parseInt(evt.item.getAttribute('data-id'),10);
-        const fromDay = parseInt(evt.from.closest('.day-column')?.querySelector('[data-goto]')?.getAttribute('data-goto') || evt.from.parentElement?.getAttribute('data-day'), 10);
-        // If cannot detect fromDay, fallback to findTaskDay
-        const detectedFrom = findTaskDay(id);
-        // remove from old day
-        for (let d=0; d<7; d++) schedule[d] = (schedule[d]||[]).filter(t=>t.id!==id);
-        // insert at new position
-        const insertIndex = Array.from(evt.to.children).indexOf(evt.item);
-        schedule[dayIndex] = schedule[dayIndex] || [];
-        schedule[dayIndex].splice(insertIndex, 0, getTaskByIdOrCreate(id, evt.item));
-        saveSchedule();
-        render();
-      },
-      onUpdate: function (evt) {
-        // reorder within same list
-        const id = parseInt(evt.item.getAttribute('data-id'),10);
-        const list = schedule[dayIndex] = schedule[dayIndex] || [];
-        const ids = Array.from(evt.to.children).map(c => parseInt(c.getAttribute('data-id'),10));
-        schedule[dayIndex] = ids.map(i => list.find(t=>t.id===i) || getTaskByIdOrCreate(i));
-        saveSchedule();
-        render();
-      },
-      onStart: function (evt) {
-        evt.item.classList.add('task-dragging');
-      },
-      onEnd: function (evt) {
-        evt.item.classList.remove('task-dragging');
+      // Check for task reminders every 15 minutes
+      if (minutes % 15 === 0) {
+        checkTaskReminders();
       }
     };
-    // attach 'data-day' to container for fallback detection
-    containerEl.setAttribute('data-day', dayIndex);
-    const s = new Sortable(containerEl, options);
-    sortableMap.set(key, s);
-  }
 
-  function getTaskByIdOrCreate(id, el) {
-    // find in schedule (previous weeks merge could have new copies)
-    for (let d=0; d<7; d++) {
-      const t = (schedule[d]||[]).find(tt=>tt.id===id);
-      if (t) return t;
-    }
-    // fallback: construct from DOM
-    if (el) {
-      const title = el.querySelector('.font-semibold')?.textContent || 'Aufgabe';
-      const time = el.querySelector('.text-slate-500')?.textContent || '';
-      return { id, title, time, type:'study', recurring:false, editable:true, notification:false };
-    }
-    return { id, title:'Aufgabe', type:'study', recurring:false, editable:true, notification:false };
-  }
+    checkNotificationTime();
+    const interval = setInterval(checkNotificationTime, 60000);
+    
+    return () => clearInterval(interval);
+  }, [notificationTime, schedule, currentDay]);
 
-  function getTaskById(id) {
-    for (let d=0; d<7; d++) {
-      const t = (schedule[d]||[]).find(tt=>tt.id===id);
-      if (t) return t;
-    }
-    return null;
-  }
+  // Drag and drop handlers
+  const handleDragStart = (day: number, index: number) => {
+    setDragItem({ day, index });
+  };
 
-  /* ---------- Notifications (basic) ---------- */
-  function checkReminders() {
-    if (!('Notification' in window)) return;
-    const now = new Date();
-    const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    for (let d = 0; d < 7; d++) {
-      const tasks = schedule[d] || [];
-      tasks.forEach(t => {
-        if (t.notification && t.time && t.time.includes(hhmm)) {
-          // check permission
-          if (Notification.permission === 'granted') {
-            new Notification(`Erinnerung: ${t.title}`, { body: `${t.time} (${days[d]})` });
-          } else if (Notification.permission === 'default') {
-            Notification.requestPermission().then(p => { if (p === 'granted') new Notification(`Erinnerung: ${t.title}`, { body: `${t.time} (${days[d]})` }); });
+  const handleDragOver = (e: React.DragEvent, day: number, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetDay: number, targetIndex: number) => {
+    e.preventDefault();
+    if (!dragItem) return;
+
+    const sourceDay = dragItem.day;
+    const sourceIndex = dragItem.index;
+
+    if (sourceDay === targetDay && sourceIndex === targetIndex) return;
+
+    const newSchedule = { ...schedule };
+    const [movedTask] = newSchedule[sourceDay].splice(sourceIndex, 1);
+    
+    // If dropped in empty area, append to end
+    if (targetIndex === -1) {
+      newSchedule[targetDay] = [...(newSchedule[targetDay] || []), movedTask];
+    } else {
+      newSchedule[targetDay].splice(targetIndex, 0, movedTask);
+    }
+
+    // Mark as custom if it was a base task moved to new position
+    if (!movedTask.isCustom && isBaseTask(movedTask, sourceDay)) {
+      movedTask.isCustom = true;
+      movedTask.recurring = false; // Moving breaks recurrence
+    }
+
+    setSchedule(newSchedule);
+    setDragItem(null);
+    showSuccessMessage();
+  };
+
+  const getUpcomingTests = useCallback(() => {
+    const tests: Array<Task & { day: number; dayName: string; daysUntil: number }> = [];
+    Object.entries(schedule).forEach(([day, tasks]) => {
+      tasks.forEach(task => {
+        if (task.type === 'test' && task.date) {
+          const testDate = new Date(task.date);
+          const today = new Date();
+          const daysUntil = Math.ceil((testDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntil >= 0) {
+            tests.push({
+              ...task,
+              day: parseInt(day),
+              dayName: days[parseInt(day)],
+              daysUntil
+            });
           }
         }
       });
-    }
-  }
-
-  /* ---------- Export iCal (rudimentär) ---------- */
-  function exportToICal() {
-    const ical = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//WeeklyPlanner//DE'];
-    const today = new Date();
-    Object.entries(schedule).forEach(([dayIndex,tasks]) => {
-      tasks.forEach(task => {
-        if (!task.time) return;
-        const parts = task.time.split('–').map(p=>p.trim());
-        const start = parts[0] || '';
-        const end = parts[1] || start;
-        // naive date: next occurrence of this weekday
-        const dindex = parseInt(dayIndex,10);
-        const date = nextDateForWeekday(dindex);
-        const yyyy = date.toISOString().split('T')[0].replace(/-/g,'');
-        const startClean = start.replace(':','') + '00';
-        const endClean = end.replace(':','') + '00';
-        ical.push('BEGIN:VEVENT');
-        ical.push(`SUMMARY:${task.title}`);
-        ical.push(`DTSTART:${yyyy}T${startClean}`);
-        ical.push(`DTEND:${yyyy}T${endClean}`);
-        ical.push('END:VEVENT');
-      });
     });
-    ical.push('END:VCALENDAR');
-    const blob = new Blob([ical.join('\n')], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'wochenplan.ics'; document.body.appendChild(a); a.click();
-    a.remove(); URL.revokeObjectURL(url);
-  }
+    return tests.sort((a, b) => a.daysUntil - b.daysUntil);
+  }, [schedule, days]);
 
-  function nextDateForWeekday(weekday) {
-    const today = new Date();
-    const todayIdx = today.getDay();
-    let diff = weekday - todayIdx;
-    if (diff < 0) diff += 7;
-    const res = new Date(today);
-    res.setDate(today.getDate() + diff);
-    return res;
-  }
-
-  /* ---------- Utils / Stats ---------- */
-  function updateStats() {
-    const all = Object.values(schedule).flat();
-    // naive work hours calc based on known times from base schedule
-    const workHours = all.filter(t=>t.type==='work').reduce((s,t)=>{
-      if (t.time.includes('16:00') && t.time.includes('18:30')) return s + 2.5;
-      if (t.time.includes('16:30') && t.time.includes('19:00')) return s + 2.5;
-      if (t.time.includes('10:30') && t.time.includes('13:30')) return s + 3;
-      return s;
-    }, 0);
-    statWork.textContent = `${workHours}h`;
-    statStudy.textContent = `${all.filter(t=>t.type==='study').length}`;
-    statSport.textContent = `${all.filter(t=>t.type==='sport').length}`;
-  }
-
-  function clearAllConfirm() {
-    if (!confirm('Alle Aufgaben unwiderruflich löschen? (Basis-Woche wird neu geladen)')) return;
-    schedule = getBaseSchedule();
-    safeSetItem(WEEK_KEY, weekNumber(new Date()).toString());
-    saveSchedule();
-    render();
-  }
-
-  /* ---------- Helpers ---------- */
-  function deleteAllEmptyDays() {
-    for (let i=0;i<7;i++) schedule[i] = schedule[i] || [];
-  }
-
-  /* ---------- simple HTML helpers ---------- */
-  function makeEl(tag, cls, html) {
-    const e = document.createElement(tag);
-    e.className = cls || '';
-    if (html) e.innerHTML = html;
-    return e;
-  }
-
-  /* ---------- Report ---------- */
-  function toggleReport() {
-    if (reportEl.classList.contains('hidden')) {
-      reportEl.classList.remove('hidden');
-      reportEl.innerHTML = `
-        <strong>Kurzer Entwicklungsbericht</strong>
-        <ul class="list-disc pl-5 mt-2">
-          <li>Clientseitiger Passwortschutz: <code>${PASSWORD}</code> (einfacher Schutz, rein clientseitig).</li>
-          <li>Speicherung lokal in <code>localStorage</code>. Keine Cloud, keine Datenweitergabe.</li>
-          <li>Wöchentlicher Reset mit Beibehaltung als 'wiederkehrend' markierter Aufgaben.</li>
-          <li>Drag & Drop mit SortableJS: Aufgaben lassen sich zwischen Tagen verschieben und innerhalb eines Tages sortieren.</li>
-          <li>Sonntag enthält automatisch <em>Schulvorbereitung 20:30–21:00</em>.</li>
-        </ul>
-        <div class="mt-3">
-          <strong>Was noch verbessert werden könnte</strong>
-          <ol class="pl-5 list-decimal mt-2">
-            <li>Serverseitiger Schutz / Authentifizierung (falls nötig).</li>
-            <li>Persistente Push-Benachrichtigungen (Service Worker) für zuverlässigere Erinnerungen.</li>
-            <li>Unit-Tests & E2E-Tests (z. B. Vitest / Playwright) — schwer in Single-File bereitzustellen.</li>
-            <li>Bessere Konfliktbehandlung bei mehreren Geräten (aktuell nur lokal).</li>
-            <li>Feinschliff bei Drag & Drop Animationen / Barrierefreiheit.</li>
-          </ol>
-        </div>
-        <div class="mt-3 text-xs text-slate-500">Kein Tracking. Kein Promo. Nur privat für dich.</div>
-      `;
-    } else {
-      reportEl.classList.add('hidden');
-    }
-  }
-
-  /* ---------- Utilities for saving/loading tasks after DnD ---------- */
-  function rebuildScheduleFromDOM() {
-    // optional, not used now
-  }
-
-  /* ---------- find-or-create helper ---------- */
-  function getTaskByIdOrCreate(id) { return getTaskById(id) || { id, title:'Aufgabe', time:'', type:'study', recurring:false, editable:true, notification:false }; }
-
-  /* ---------- delete empty lists / normalization ---------- */
-  function normalizeSchedule() {
-    for (let i=0;i<7;i++) schedule[i] = schedule[i] || [];
-  }
-
-  /* ---------- init and run ---------- */
-  init();
-
-  // Expose some functions for dev console if needed
-  window._planner = {
-    get schedule() { return schedule; },
-    set schedule(v) { schedule = v; saveSchedule(); render(); },
-    resetToBase: () => { schedule = getBaseSchedule(); saveSchedule(); render(); },
-    exportICal: exportToICal,
-    password: PASSWORD
+  const getTypeEmoji = (type: string) => {
+    const emojis: { [key: string]: string } = {
+      school: '🏫',
+      work: '🛒',
+      study: '🧠',
+      sport: '🏊',
+      music: '🎼',
+      lesson: '📘',
+      free: '🎯',
+      sleep: '😴',
+      test: '📝',
+      appointment: '📅',
+      hobby: '🎨'
+    };
+    return emojis[type] || '📋';
   };
 
-})();
-</script>
-</body>
-</html>
+  const getTaskColor = (type: string) => {
+    const colors: { [key: string]: string } = {
+      school: 'bg-task-school/10 border-task-school/30 text-task-school',
+      work: 'bg-task-work/10 border-task-work/30 text-task-work',
+      study: 'bg-task-study/10 border-task-study/30 text-task-study',
+      sport: 'bg-task-sport/10 border-task-sport/30 text-task-sport',
+      music: 'bg-task-music/10 border-task-music/30 text-task-music',
+      lesson: 'bg-task-lesson/10 border-task-lesson/30 text-task-lesson',
+      free: 'bg-task-free/10 border-task-free/30 text-task-free',
+      sleep: 'bg-muted border-border text-muted-foreground',
+      test: 'bg-task-test/10 border-task-test/30 text-task-test',
+      appointment: 'bg-task-appointment/10 border-task-appointment/30 text-task-appointment',
+      hobby: 'bg-task-hobby/10 border-task-hobby/30 text-task-hobby'
+    };
+    return colors[type] || 'bg-muted border-border text-muted-foreground';
+  };
+
+  const addNewTask = useCallback((day: number, task: Partial<Task>) => {
+    const allTasks = Object.values(schedule).flat();
+    const newId = allTasks.length > 0 ? Math.max(...allTasks.map(item => item.id)) + 1 : 1;
+    const newTask: Task = {
+      id: newId,
+      type: task.type || 'study',
+      title: task.title || '',
+      time: task.time || '',
+      recurring: task.recurring || false,
+      editable: true,
+      date: task.date || '',
+      studyDays: task.type === 'test' ? (task.studyDays || 0) : 0,
+      notes: task.notes || '',
+      notification: task.notification || false,
+      isCustom: true
+    };
+    
+    setSchedule(prev => ({
+      ...prev,
+      [day]: [...(prev[day] || []), newTask]
+    }));
+    
+    showSuccessMessage();
+    
+    // Set notification if enabled
+    if (task.notification && task.time) {
+      setTaskNotification(newTask, day);
+    }
+  }, [schedule]);
+
+  const updateTask = useCallback((dayIndex: number, taskId: number, updates: Partial<Task>) => {
+    setSchedule(prev => ({
+      ...prev,
+      [dayIndex]: prev[dayIndex]?.map(task => 
+        task.id === taskId ? { ...task, ...updates, isCustom: true } : task
+      ) || []
+    }));
+    
+    showSuccessMessage();
+    
+    // Update notification if changed
+    if (updates.notification !== undefined || updates.time) {
+      const task = schedule[dayIndex]?.find(t => t.id === taskId);
+      if (task && (updates.notification || (task.notification && updates.time))) {
+        setTaskNotification({ ...task, ...updates }, dayIndex);
+      }
+    }
+  }, [schedule]);
+
+  const deleteTask = useCallback((dayIndex: number, taskId: number) => {
+    setSchedule(prev => ({
+      ...prev,
+      [dayIndex]: prev[dayIndex]?.filter(task => task.id !== taskId) || []
+    }));
+    
+    showSuccessMessage();
+  }, []);
+
+  const showSuccessMessage = useCallback(() => {
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  }, []);
+
+  const getTodaysTasks = useCallback(() => {
+    return schedule[currentDay] || [];
+  }, [schedule, currentDay]);
+
+  const getTasksForDay = useCallback((dayIndex: number) => {
+    return schedule[dayIndex] || [];
+  }, [schedule]);
+
+  const getFilteredTasks = useCallback((tasks: Task[]) => {
+    return tasks.filter(task => {
+      const matchesType = filters.type === 'all' || task.type === filters.type;
+      const matchesSearch = searchTerm === '' || 
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.time && task.time.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return matchesType && matchesSearch;
+    });
+  }, [filters.type, searchTerm]);
+
+  const calculateWeeklyStats = useCallback(() => {
+    const allTasks = Object.values(schedule).flat();
+    const workHours = allTasks
+      .filter(task => task.type === 'work')
+      .reduce((total, task) => {
+        if (task.time.includes('16:00 – 18:30')) return total + 2.5;
+        if (task.time.includes('16:30 – 19:00')) return total + 2.5;
+        if (task.time.includes('10:30 – 13:30')) return total + 3;
+        return total;
+      }, 0);
+
+    const studyTasks = allTasks.filter(task => task.type === 'study').length;
+    const sportTasks = allTasks.filter(task => task.type === 'sport').length;
+    const upcomingTests = getUpcomingTests().length;
+
+    return { workHours, studyTasks, sportTasks, upcomingTests };
+  }, [schedule, getUpcomingTests]);
+
+  // Send daily morning notification
+  const sendDailyNotification = useCallback(() => {
+    if (Notification.permission === 'granted') {
+      const todaysTasks = getTodaysTasks();
+      const taskCount = todaysTasks.length;
+      
+      new Notification('🌅 Guten Morgen!', {
+        body: `Heute ist ${days[currentDay]} - Du hast ${taskCount} Aufgaben geplant`,
+        icon: '/favicon.ico',
+        tag: 'daily-reminder'
+      });
+    }
+  }, [getTodaysTasks, days, currentDay]);
+
+  // Check for task reminders based on time
+  const checkTaskReminders = useCallback(() => {
+    if (Notification.permission !== 'granted') return;
+
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const todaysTasks = getTodaysTasks();
+    
+    todaysTasks.forEach(task => {
+      if (task.notification && task.time && task.time.includes(currentTime)) {
+        new Notification(`⏰ ${getTypeEmoji(task.type)} Erinnerung`, {
+          body: `${task.title} - ${task.time}`,
+          icon: '/favicon.ico',
+          tag: `task-${task.id}`,
+          requireInteraction: true
+        });
+      }
+    });
+  }, [getTodaysTasks, getTypeEmoji]);
+
+  const setTaskNotification = (task: Task, dayIndex: number) => {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          createNotification(task, dayIndex);
+        }
+      });
+    } else {
+      createNotification(task, dayIndex);
+    }
+  };
+
+  const createNotification = (task: Task, dayIndex: number) => {
+    toast({
+      title: "Erinnerung gesetzt",
+      description: `Du wirst an ${task.title} erinnert.`,
+    });
+  };
+
+  const exportToCalendar = () => {
+    let icalContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Weekly Planner//DE',
+      'CALSCALE:GREGORIAN'
+    ];
+
+    Object.entries(schedule).forEach(([dayIndex, tasks]) => {
+      tasks.forEach(task => {
+        if (task.time && task.time.includes(' – ')) {
+          const [startTime, endTime] = task.time.split(' – ');
+          if (startTime && endTime) {
+            icalContent.push(
+              'BEGIN:VEVENT',
+              `SUMMARY:${task.title}`,
+              `DESCRIPTION:${task.notes || ''}`,
+              `DTSTART:${new Date().toISOString().split('T')[0]}T${startTime.replace(':', '')}00`,
+              `DTEND:${new Date().toISOString().split('T')[0]}T${endTime.replace(':', '')}00`,
+              'END:VEVENT'
+            );
+          }
+        }
+      });
+    });
+
+    icalContent.push('END:VCALENDAR');
+
+    const blob = new Blob([icalContent.join('\n')], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'wochenplan.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const TaskForm: React.FC<{
+    task?: Partial<Task>;
+    onSave: (data: Partial<Task>) => void;
+    onCancel: () => void;
+  }> = ({ task, onSave, onCancel }) => {
+    const [formData, setFormData] = useState({
+      title: task?.title || '',
+      time: task?.time || '',
+      type: task?.type || 'study',
+      date: task?.date || '',
+      studyDays: task?.studyDays || 0,
+      notes: task?.notes || '',
+      recurring: task?.recurring || false,
+      notification: task?.notification || false
+    });
+
+    return (
+      <div className="p-4 md:p-6 rounded-xl border-2 border-primary/20 bg-card shadow-planner transition-all duration-300">
+        <div className="grid grid-cols-1 gap-3 md:gap-4">
+          <select
+            value={formData.type}
+            onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          >
+            <option value="study">🧠 Lernen</option>
+            <option value="test">📝 Test/Klausur</option>
+            <option value="work">🛒 Arbeit</option>
+            <option value="sport">🏊 Sport</option>
+            <option value="music">🎼 Musik</option>
+            <option value="lesson">📘 Unterricht</option>
+            <option value="free">🎯 Freizeit</option>
+            <option value="school">🏫 Schule</option>
+            <option value="appointment">📅 Termin</option>
+            <option value="hobby">🎨 Hobby</option>
+          </select>
+          
+          <input
+            type="text"
+            placeholder="Aufgabe/Termin"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+          
+          <input
+            type="text"
+            placeholder="Zeit (z.B. 14:00 – 15:30)"
+            value={formData.time}
+            onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+          />
+
+          <textarea
+            placeholder="Notizen (optional)"
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent h-20 resize-none transition-all duration-300"
+          />
+          
+          {formData.type === 'test' && (
+            <>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className="px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+              />
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-foreground">Lerntage vorher:</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="21"
+                  value={formData.studyDays}
+                  onChange={(e) => setFormData(prev => ({ ...prev, studyDays: parseInt(e.target.value) || 0 }))}
+                  className="px-3 py-2 border rounded-lg bg-background w-20 focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                />
+              </div>
+            </>
+          )}
+          
+          <div className="flex flex-wrap items-center gap-4 md:gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.recurring}
+                onChange={(e) => setFormData(prev => ({ ...prev, recurring: e.target.checked }))}
+                className="w-4 h-4 text-primary rounded focus:ring-primary"
+              />
+              <span className="text-sm text-foreground">Wöchentlich wiederkehrend</span>
+            </label>
+            
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.notification}
+                onChange={(e) => setFormData(prev => ({ ...prev, notification: e.target.checked }))}
+                className="w-4 h-4 text-primary rounded focus:ring-primary"
+              />
+              <span className="text-sm text-foreground">Erinnerung</span>
+            </label>
+          </div>
+          
+          <div className="flex gap-3">
+            <button
+              onClick={() => onSave(formData)}
+              disabled={!formData.title.trim()}
+              className="flex-1 bg-success text-success-foreground px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-success/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
+              <Save className="w-4 h-4" /> Speichern
+            </button>
+            <button
+              onClick={onCancel}
+              className="flex-1 bg-muted text-muted-foreground px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-muted/80 transition-all duration-300 shadow-md"
+            >
+              <X className="w-4 h-4" /> Abbrechen
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const upcomingTests = getUpcomingTests();
+  const weeklyStats = calculateWeeklyStats();
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-planner-gradient-subtle p-4">
+        <div className="w-full max-w-md bg-card p-8 rounded-xl shadow-planner-lg border border-border">
+          <h1 className="text-2xl font-bold text-center mb-6">Wochenplaner Login</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium mb-1">
+                Passwort
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Passwort eingeben"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/90 transition-all duration-300"
+            >
+              Anmelden
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-planner-gradient-subtle">
+      <div className="max-w-6xl mx-auto p-4 md:p-6">
+        <div className="rounded-2xl shadow-planner-lg overflow-hidden bg-card transition-all duration-300">
+          {/* Header */}
+          <div className="bg-planner-gradient text-white p-4 md:p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+              <div>
+                <h1 className="text-2xl md:text-4xl font-bold">📅 Mein Wochenplaner</h1>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="p-2 md:p-3 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300"
+                  title={darkMode ? 'Hellmodus' : 'Dunkelmodus'}
+                >
+                  {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={exportToCalendar}
+                  className="p-2 md:p-3 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300"
+                  title="Kalender exportieren"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setShowWeekView(!showWeekView)}
+                  className="px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-all duration-300"
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span className="hidden sm:inline">
+                    {showWeekView ? 'Tagesansicht' : 'Wochenansicht'}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Statistiken */}
+          <div className="p-4 md:p-6 border-b bg-muted/30">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-center">
+              <div className="p-3 md:p-4 rounded-xl shadow-sm bg-card border border-border transition-all hover:scale-105">
+                <div className="text-2xl md:text-3xl font-bold text-task-work">{weeklyStats.workHours}h</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Arbeitszeit</div>
+              </div>
+              <div className="p-3 md:p-4 rounded-xl shadow-sm bg-card border border-border transition-all hover:scale-105">
+                <div className="text-2xl md:text-3xl font-bold text-task-study">{weeklyStats.studyTasks}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Lernaufgaben</div>
+              </div>
+              <div className="p-3 md:p-4 rounded-xl shadow-sm bg-card border border-border transition-all hover:scale-105">
+                <div className="text-2xl md:text-3xl font-bold text-task-sport">{weeklyStats.sportTasks}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Sport-Termine</div>
+              </div>
+              <div className="p-3 md:p-4 rounded-xl shadow-sm bg-card border border-border transition-all hover:scale-105">
+                <div className="text-2xl md:text-3xl font-bold text-task-test">{weeklyStats.upcomingTests}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">Anstehende Tests</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Erfolgsmeldung */}
+          {showSuccess && (
+            <div className="border-l-4 border-success p-4 m-4 rounded-r-xl flex items-center gap-3 bg-success/10 animate-fade-in">
+              <Check className="w-5 h-5 text-success" />
+              <span className="font-medium text-success">Änderungen erfolgreich gespeichert!</span>
+            </div>
+          )}
+
+          {/* Anstehende Tests Warnung */}
+          {upcomingTests.length > 0 && (
+            <div className="border-l-4 border-warning p-4 m-4 rounded-r-xl bg-warning/10 animate-fade-in">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-warning mt-0.5" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-warning">
+                    📝 Anstehende Tests/Klausuren
+                  </h3>
+                  <div className="space-y-1">
+                    {upcomingTests.slice(0, 3).map(test => (
+                      <div key={test.id} className="text-warning/80 text-sm">
+                        <strong>{test.title}</strong> - {test.dayName} 
+                        {test.daysUntil === 0 ? ' (Heute!)' : 
+                         test.daysUntil === 1 ? ' (Morgen)' : 
+                         ` (in ${test.daysUntil} Tagen)`}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Heute Benachrichtigung */}
+          {showNotification && (
+            <div className="border-l-4 border-info p-4 m-4 rounded-r-xl bg-info/10 animate-fade-in">
+              <div className="flex justify-between items-start">
+                <div className="flex">
+                  <Bell className="w-5 h-5 text-info mt-0.5 mr-3" />
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-info">
+                      🌅 Guten Morgen! Heute ist {days[currentDay]}
+                    </h3>
+                    <div className="space-y-2">
+                      {getTodaysTasks().slice(0, 4).map(task => (
+                        <div key={task.id} className="flex items-center gap-2">
+                          <span className="text-lg">{getTypeEmoji(task.type)}</span>
+                          <span className="text-info/80">
+                            <strong>{task.title}</strong> 
+                            {task.time && <span className="text-info/60"> ({task.time})</span>}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNotification(false)}
+                  className="text-info/60 hover:text-info transition-all duration-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!showWeekView ? (
+            <>
+              {/* Wochentabs */}
+              <div className="flex overflow-x-auto p-2 bg-muted/20">
+                <button
+                  onClick={() => setCurrentDay(prev => (prev === 0 ? 6 : prev - 1))}
+                  className="p-2 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                {days.map((day, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentDay(index)}
+                    className={`flex-1 min-w-[90px] px-2 py-2 mx-1 rounded-xl text-sm font-medium transition-all duration-300 ${
+                      currentDay === index
+                        ? 'bg-planner-gradient text-white shadow-planner transform scale-105'
+                        : 'bg-card text-foreground hover:bg-muted hover:scale-105 border border-border'
+                    }`}
+                  >
+                    <div className="text-xl mb-1">{dayEmojis[index]}</div>
+                    <div className="truncate">{day.substring(0, 3)}</div>
+                    <div className={`text-xs ${currentDay === index ? 'opacity-90' : 'text-muted-foreground'}`}>
+                      {getTasksForDay(index).length} Aufgaben
+                    </div>
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentDay(prev => (prev === 6 ? 0 : prev + 1))}
+                  className="p-2 rounded-lg transition-all duration-300 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Filter und Suche */}
+              <div className="p-4 border-b bg-muted/10">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    placeholder="Aufgaben suchen..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1 min-w-0 px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                  />
+                  <select
+                    value={filters.type}
+                    onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                    className="px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
+                  >
+                    <option value="all">Alle Typen</option>
+                    <option value="school">Schule</option>
+                    <option value="work">Arbeit</option>
+                    <option value="study">Lernen</option>
+                    <option value="sport">Sport</option>
+                    <option value="test">Tests</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tagesansicht */}
+              <div className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <h2 className="text-xl md:text-3xl font-bold flex items-center gap-3 text-foreground">
+                    {dayEmojis[currentDay]} {days[currentDay]}
+                    <span className="text-sm md:text-base font-normal text-muted-foreground">
+                      ({getFilteredTasks(getTasksForDay(currentDay)).length} Aufgaben)
+                    </span>
+                  </h2>
+                  <button
+                    onClick={() => setNewTaskForm({ show: true, day: currentDay })}
+                    className="bg-planner-gradient text-white px-4 py-3 rounded-xl flex items-center gap-2 hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-planner whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" /> Aufgabe hinzufügen
+                  </button>
+                </div>
+
+                {/* Neue Aufgabe Form */}
+                {newTaskForm.show && newTaskForm.day === currentDay && (
+                  <div className="mb-6 animate-fade-in">
+                    <TaskForm
+                      task={{}}
+                      onSave={(taskData) => {
+                        addNewTask(currentDay, taskData);
+                        setNewTaskForm({ show: false, day: 0 });
+                      }}
+                      onCancel={() => setNewTaskForm({ show: false, day: 0 })}
+                    />
+                  </div>
+                )}
+
+                {/* Aufgabenliste */}
+                <div className="space-y-3 md:space-y-4">
+                  {getFilteredTasks(getTasksForDay(currentDay)).length > 0 ? (
+                    getFilteredTasks(getTasksForDay(currentDay)).map((task, index) => (
+                      <div
+                        key={task.id}
+                        className={`p-4 md:p-5 rounded-xl border-2 transition-all duration-300 hover:shadow-lg transform hover:scale-[1.02] ${getTaskColor(task.type)} ${
+                          dragItem?.day === currentDay && dragItem.index === index ? 'opacity-50' : ''
+                        }`}
+                        draggable={task.editable}
+                        onDragStart={() => handleDragStart(currentDay, index)}
+                        onDragOver={(e) => handleDragOver(e, currentDay, index)}
+                        onDrop={(e) => handleDrop(e, currentDay, index)}
+                      >
+                        {editingItem === task.id ? (
+                          <TaskForm
+                            task={task}
+                            onSave={(updates) => {
+                              updateTask(currentDay, task.id, updates);
+                              setEditingItem(null);
+                            }}
+                            onCancel={() => setEditingItem(null)}
+                          />
+                        ) : (
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-start gap-3 md:gap-4 flex-1">
+                              <span className="text-2xl md:text-3xl">{getTypeEmoji(task.type)}</span>
+                              <div className="flex-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-base md:text-lg">{task.title}</h3>
+                                  {task.recurring && (
+                                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full flex items-center gap-1">
+                                      <Repeat className="w-3 h-3" /> Wiederkehrend
+                                    </span>
+                                  )}
+                                  {task.notification && (
+                                    <span className="text-xs bg-success/10 text-success px-2 py-1 rounded-full">
+                                      🔔 Erinnerung
+                                    </span>
+                                  )}
+                                </div>
+                                {task.time && (
+                                  <p className="text-sm flex items-center gap-1 mb-1 text-muted-foreground">
+                                    <Clock className="w-3 h-3" /> {task.time}
+                                  </p>
+                                )}
+                                {task.notes && (
+                                  <p className="text-sm italic text-muted-foreground">{task.notes}</p>
+                                )}
+                                {task.type === 'test' && task.date && (
+                                  <p className="text-xs mt-2 px-3 py-1 rounded-lg flex items-center gap-1 bg-info/10 text-info">
+                                    <Calendar className="w-3 h-3" />
+                                    {new Date(task.date).toLocaleDateString('de-DE')}
+                                    {task.studyDays && task.studyDays > 0 && ` | ${task.studyDays} Lerntage eingeplant`}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            {task.editable && (
+                              <div className="flex gap-1 md:gap-2 ml-2">
+                                <button
+                                  onClick={() => setEditingItem(task.id)}
+                                  className="p-1 md:p-2 rounded-full transition-all duration-300 text-primary hover:bg-primary/10"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteTask(currentDay, task.id)}
+                                  className="p-1 md:p-2 rounded-full transition-all duration-300 text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 md:py-12 text-muted-foreground">
+                      <Target className="w-12 md:w-16 h-12 md:h-16 mx-auto mb-3 md:mb-4 opacity-50" />
+                      <p className="text-lg md:text-xl mb-2">Keine Aufgaben gefunden</p>
+                      <p className="text-xs md:text-sm">Füge eine neue Aufgabe hinzu oder ändere deine Filter</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Drop area for empty days */}
+                {getFilteredTasks(getTasksForDay(currentDay)).length > 0 && (
+                  <div
+                    className="mt-4 p-8 rounded-xl border-2 border-dashed border-muted text-center text-muted-foreground hover:bg-muted/10 transition-all duration-300"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragItem) {
+                        handleDrop(e, currentDay, -1); // -1 indicates append to end
+                      }
+                    }}
+                  >
+                    Aufgabe hier ablegen, um sie an das Ende zu verschieben
+                  </div>
+                )}
+
+                {/* Kaufland Arbeitszeit Übersicht */}
+                {currentDay === 6 && (
+                  <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-xl shadow-sm bg-task-work/5 border border-task-work/20">
+                    <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2 text-task-work">
+                      <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
+                      📊 Kaufland Wochenarbeitszeit
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-sm">
+                      {getTasksForDay(2).filter(t => t.type === 'work').map(task => (
+                        <div key={task.id} className="p-3 md:p-4 rounded-xl border shadow-sm bg-card transition-all hover:scale-105">
+                          <div className="font-medium text-foreground">Dienstag</div>
+                          <div className="text-muted-foreground">{task.time}</div>
+                          <div className="font-semibold text-task-work">2,5 Stunden</div>
+                        </div>
+                      ))}
+                      {getTasksForDay(4).filter(t => t.type === 'work').map(task => (
+                        <div key={task.id} className="p-3 md:p-4 rounded-xl border shadow-sm bg-card transition-all hover:scale-105">
+                          <div className="font-medium text-foreground">Donnerstag</div>
+                          <div className="text-muted-foreground">{task.time}</div>
+                          <div className="font-semibold text-task-work">2,5 Stunden</div>
+                        </div>
+                      ))}
+                      {getTasksForDay(6).filter(t => t.type === 'work').map(task => (
+                        <div key={task.id} className="p-3 md:p-4 rounded-xl border shadow-sm bg-card transition-all hover:scale-105">
+                          <div className="font-medium text-foreground">Samstag</div>
+                          <div className="text-muted-foreground">{task.time}</div>
+                          <div className="font-semibold text-task-work">3 Stunden</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 md:mt-4 text-center p-3 md:p-4 rounded-xl font-bold shadow-md bg-planner-gradient text-white">
+                      Gesamt: 8 Stunden pro Woche
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            /* Wochenansicht */
+            <div className="p-4 md:p-6">
+              <h2 className="text-xl md:text-3xl font-bold mb-4 md:mb-6 flex items-center gap-2 text-foreground">
+                <Calendar className="w-5 h-5 md:w-6 md:h-6" />
+                Wochenübersicht
+              </h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                {days.map((day, dayIndex) => (
+                  <div 
+                    key={dayIndex} 
+                    className="rounded-xl p-3 md:p-4 min-h-48 bg-card border border-border shadow-sm transition-all hover:shadow-md"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragItem) {
+                        handleDrop(e, dayIndex, -1); // -1 indicates append to end
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-2 md:mb-3">
+                      <span className="text-xl">{dayEmojis[dayIndex]}</span>
+                      <h3 className="font-bold text-foreground">{day}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        ({getTasksForDay(dayIndex).length})
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {getTasksForDay(dayIndex).slice(0, 4).map((task, index) => (
+                        <div
+                          key={task.id}
+                          className={`p-2 rounded-lg text-xs border ${getTaskColor(task.type)} ${
+                            dragItem?.day === dayIndex && dragItem.index === index ? 'opacity-50' : ''
+                          }`}
+                          draggable={task.editable}
+                          onDragStart={() => handleDragStart(dayIndex, index)}
+                          onDragOver={(e) => handleDragOver(e, dayIndex, index)}
+                          onDrop={(e) => handleDrop(e, dayIndex, index)}
+                        >
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm">{getTypeEmoji(task.type)}</span>
+                            <span className="font-medium truncate">{task.title}</span>
+                          </div>
+                          {task.time && (
+                            <div className="text-xs mt-1 text-muted-foreground">{task.time}</div>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {getTasksForDay(dayIndex).length > 4 && (
+                        <div className="text-xs text-center py-2 text-muted-foreground">
+                          +{getTasksForDay(dayIndex).length - 4} weitere...
+                        </div>
+                      )}
+                      
+                      {getTasksForDay(dayIndex).length === 0 && (
+                        <div className="text-xs text-center py-4 italic text-muted-foreground">
+                          Keine Aufgaben
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        setCurrentDay(dayIndex);
+                        setShowWeekView(false);
+                      }}
+                      className="w-full mt-2 md:mt-3 text-xs py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                    >
+                      Zu {day}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WeeklyPlanner;
