@@ -1,510 +1,530 @@
-=== FILE: package.json ===
-{
-  "name": "weekly-planner",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "framer-motion": "^10.12.5",
-    "lucide-react": "^0.259.0",
-    "next": "14.3.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.24",
-    "tailwindcss": "^4.4.3",
-    "typescript": "^5.3.3"
-  }
-}
-=== END FILE ===
+import React, { useState, useEffect, useCallback } from 'react';
+import { Moon, Sun, Calendar, ChevronLeft, ChevronRight, Plus, Edit2, Trash2, X, Save, Check, Bell, AlertTriangle, Target, BookOpen, Download, Repeat, Clock } from 'lucide-react';
 
-=== FILE: tailwind.config.js ===
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './pages/**/*.{js,ts,jsx,tsx}'
-  ],
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        // Apple-like semantic palette
-        accent: {
-          DEFAULT: '#0ea5e9',
-          50: '#f6fbff',
-          100: '#e8f7ff'
-        },
-        neutral: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          300: '#cbd5e1',
-          700: '#334155',
-          900: '#0f172a'
-        },
-        sem: {
-          school: '#60a5fa',    // blue-ish
-          work: '#f97316',      // orange
-          study: '#7c3aed',     // purple
-          sport: '#10b981',     // green
-          test: '#ef4444',      // red
-          music: '#f59e0b',     // amber
-          free: '#06b6d4'       // teal
-        }
-      },
-      fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
-      },
-      borderRadius: {
-        lg2: '16px'
-      },
-      boxShadow: {
-        'soft': '0 6px 18px rgba(15,23,42,0.06)',
-        'soft-dark': '0 6px 18px rgba(2,6,23,0.6)'
-      }
-    }
-  },
-  plugins: []
-};
-=== END FILE ===
-
-=== FILE: postcss.config.js ===
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-=== END FILE ===
-
-=== FILE: src/styles/globals.css ===
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Global variables for Apple-like look */
-:root {
-  --card-bg: rgba(255,255,255,0.72);
-  --card-bg-dark: rgba(15,23,42,0.56);
-  --muted: #6b7280;
-  --accent: #0ea5e9;
-  --radius-lg: 14px;
-}
-
-/* Basic input/button utilities used in components */
-.input {
-  @apply px-3 py-2 rounded-lg border bg-white/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-accent/20;
-}
-.btn-primary {
-  @apply inline-flex items-center gap-2 bg-accent text-white px-3 py-2 rounded-lg shadow-soft hover:brightness-95 transition;
-}
-.btn-muted {
-  @apply inline-flex items-center gap-2 bg-white/70 dark:bg-slate-800/60 px-3 py-2 rounded-lg border;
-}
-.icon-btn {
-  @apply inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/70 dark:bg-slate-700/60 border;
-}
-.icon-mini {
-  @apply inline-flex items-center justify-center w-8 h-8 rounded-md bg-white/30 border;
-}
-.stat-card {
-  @apply p-3 rounded-lg bg-white/40 dark:bg-slate-800/40 border text-center;
-}
-.task-row {
-  @apply p-3 rounded-xl border bg-white/40 dark:bg-slate-800/40;
-}
-.text-xxs { font-size: 11px; }
-
-/* subtle hover for task rows (will be combined with Framer Motion) */
-.task-row:hover { transform: translateY(-3px); }
-
-/* category color chips */
-.chip {
-  @apply inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium;
-}
-.chip-school { background-color: rgba(96,165,250,0.12); color: #2563EB; }
-.chip-work { background-color: rgba(249,115,22,0.10); color: #C2410C; }
-.chip-study { background-color: rgba(124,58,237,0.10); color: #5B21B6; }
-.chip-sport { background-color: rgba(16,185,129,0.10); color: #059669; }
-.chip-test { background-color: rgba(239,68,68,0.10); color: #DC2626; }
-.chip-music { background-color: rgba(245,158,11,0.10); color: #B45309; }
-.chip-free { background-color: rgba(6,182,212,0.10); color: #0891B2; }
-
-body { font-family: theme('fontFamily.sans'); background: linear-gradient(180deg, #fbfdff 0%, #ffffff 100%); }
-
-/* dark */
-.dark body { background: linear-gradient(180deg, #071126 0%, #071226 100%); color: #e6eef8; }
-=== END FILE ===
-
-=== FILE: README.md ===
-# Weekly Planner (Apple-style)
-
-This repo contains a single Next.js page (`src/app/page.tsx`) implementing a weekly planner with:
-- Drag & drop (safe)
-- Recurring tasks merge
-- Notifications
-- ICS export
-- Framer Motion hover/appear animations
-- Semantic category colors (school, work, study, sport, test, music, free)
-- Tailwind CSS theme tuned to an Apple-like look
-
-## Quick start
-1. `npm install`  
-2. `npm run dev`  
-3. Open `http://localhost:3000`
-
-Make sure Tailwind is configured (provided `tailwind.config.js`) and PostCSS is present.
-
-=== END FILE ===
-
-=== FILE: src/app/page.tsx ===
-/* Main page component - complete and ready to paste into src/app/page.tsx */
-import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Moon, Sun, Calendar, ChevronLeft, ChevronRight, Plus, Edit2, Trash2, X, Save, Check,
-  Bell, AlertTriangle, Target, BookOpen, Download, Repeat, Clock
-} from 'lucide-react';
-
-/* -------------------------
-  Types
---------------------------*/
-type ID = number;
 interface Task {
-  id: ID;
+  id: number;
   type: string;
   title: string;
-  time?: string;
-  recurring?: boolean;
-  editable?: boolean;
+  time: string;
+  recurring: boolean;
+  editable: boolean;
   date?: string;
   studyDays?: number;
   notes?: string;
   notification?: boolean;
   isCustom?: boolean;
 }
-type Schedule = { [day: number]: Task[] };
 
-/* -------------------------
-  Constants & helpers
---------------------------*/
-const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
-const dayEmojis = ['☀️','🏫','🏫','🏫','🏫','🏫','🏋️‍♂️'];
+interface Schedule {
+  [key: number]: Task[];
+}
 
-const getWeekNumber = (date: Date) => {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-};
-
-const getInitialSchedule = (): Schedule => ({
-  0: [
-    { id: 1, type: 'lesson', title: 'Novakid', time: '10:00 – 10:30', recurring: true, editable: true },
-    { id: 2, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
-  ],
-  1: [
-    { id: 3, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
-    { id: 4, type: 'music', title: 'Musikunterricht', time: '15:30 – 16:30', recurring: true, editable: true },
-    { id: 5, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
-  ],
-  2: [
-    { id: 6, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
-    { id: 7, type: 'work', title: 'Kaufland', time: '16:00 – 18:30', recurring: true, editable: true },
-    { id: 8, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
-  ],
-  3: [
-    { id: 9, type: 'school', title: 'Schule', time: '08:00 – 13:10', recurring: true, editable: true },
-    { id: 10, type: 'sport', title: 'Tischtennis', time: '17:00 – 18:30', recurring: true, editable: true },
-    { id: 11, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
-  ],
-  4: [
-    { id: 12, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
-    { id: 13, type: 'work', title: 'Kaufland', time: '16:30 – 19:00', recurring: true, editable: true },
-    { id: 14, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
-  ],
-  5: [
-    { id: 15, type: 'school', title: 'Schule', time: '08:00 – 13:10', recurring: true, editable: true },
-    { id: 16, type: 'sport', title: 'Schwimmen', time: '16:30 – 17:15', recurring: true, editable: true },
-    { id: 17, type: 'study', title: 'Schulnachbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
-  ],
-  6: [
-    { id: 18, type: 'sport', title: 'Gym', time: '08:30 – 10:00', recurring: true, editable: true },
-    { id: 19, type: 'work', title: 'Kaufland', time: '10:30 – 13:30', recurring: true, editable: true }
-  ]
-});
-
-const safeParse = (raw: string | null) => {
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-};
-
-const isBaseTask = (task: Task, day: number) => {
-  const base = getInitialSchedule()[day] || [];
-  return base.some(b => b.title === task.title && b.type === task.type && b.time === task.time);
-};
-
-const getDateFromWeekdayIso = (weekday: number) => {
-  const now = new Date();
-  const diff = weekday - now.getDay();
-  const target = new Date(now);
-  target.setDate(now.getDate() + diff);
-  target.setHours(0,0,0,0);
-  return target.toISOString().split('T')[0];
-};
-
-const getTypeEmoji = (type: string) => {
-  const map: Record<string,string> = {
-    school: '🏫', work: '🛒', study: '🧠', sport: '🏊', music: '🎼', lesson: '📘',
-    free: '🎯', sleep: '😴', test: '📝', appointment: '📅', hobby: '🎨'
+// Toast Hook (vereinfacht)
+const useToast = () => {
+  const toast = ({ title, description, variant }: { title: string; description: string; variant?: string }) => {
+    alert(`${title}: ${description}`);
   };
-  return map[type] || '📋';
+  return { toast };
 };
 
-/* -------------------------
-  Component
---------------------------*/
-export default function WeeklyPlanner() {
+const WeeklyPlanner = () => {
+  const { toast } = useToast();
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
-  const [currentDay, setCurrentDay] = useState<number>(new Date().getDay());
+  const [currentDay, setCurrentDay] = useState(new Date().getDay());
+  const [showNotification, setShowNotification] = useState(false);
+  const [editingItem, setEditingItem] = useState<number | null>(null);
+  const [newTaskForm, setNewTaskForm] = useState<{ show: boolean; day: number }>({ show: false, day: 0 });
   const [schedule, setSchedule] = useState<Schedule>({});
-  const [darkMode, setDarkMode] = useState(false);
-  const [dragItem, setDragItem] = useState<{day:number,index:number}|null>(null);
-  const [newTaskForm, setNewTaskForm] = useState<{show:boolean,day:number}>({show:false,day:0});
-  const [editingItem, setEditingItem] = useState<ID|null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showWeekView, setShowWeekView] = useState(false);
-  const [filters, setFilters] = useState<{type:string}>({type:'all'});
+  const [filters, setFilters] = useState<{ type: string }>({ type: 'all' });
   const [searchTerm, setSearchTerm] = useState('');
-  const [notificationTime] = useState(6);
+  const [darkMode, setDarkMode] = useState(false);
+  const [dragItem, setDragItem] = useState<{ day: number; index: number } | null>(null);
+  const [notificationTime] = useState(6); // Notification at 6 AM
 
-  /* Load schedule */
-  const loadSchedule = useCallback((): Schedule => {
-    const savedRaw = localStorage.getItem('weeklyPlannerSchedule');
-    const lastWeekRaw = localStorage.getItem('currentWeekNumber');
-    const now = new Date();
-    const currentWeekNumber = getWeekNumber(now);
+  const days = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+  const dayEmojis = ['😴', '🏫', '🏫', '🏫', '🏫', '🏫', '🏋️'];
 
-    const saved = safeParse(savedRaw);
-    const lastWeek = safeParse(lastWeekRaw);
-
-    if (!saved || !lastWeek || parseInt(String(lastWeek)) !== currentWeekNumber) {
-      localStorage.setItem('currentWeekNumber', String(currentWeekNumber));
-      const base = getInitialSchedule();
-      if (saved) {
-        // merge recurring user tasks
-        const newSchedule: Schedule = { ...base };
-        Object.keys(saved).forEach(k => {
-          const day = parseInt(k);
-          const tasks: Task[] = saved[day] || [];
-          const recurring = tasks.filter(t => t.recurring && t.editable && (t.isCustom || !isBaseTask(t, day)));
-          if (recurring.length) newSchedule[day] = [...(newSchedule[day]||[]), ...recurring.map(t=>({...t}))];
-        });
-        return newSchedule;
-      }
-      return base;
+  // Password protection
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'Timon1605') {
+      setAuthenticated(true);
+      localStorage.setItem('authenticated', 'true');
+    } else {
+      toast({
+        title: "Falsches Passwort",
+        description: "Bitte versuche es erneut.",
+        variant: "destructive",
+      });
     }
-    return saved || getInitialSchedule();
+  };
+
+  // Load schedule with proper weekly reset and recurring tasks
+  const loadSchedule = useCallback((): Schedule => {
+    const saved = localStorage.getItem('weeklyPlannerSchedule');
+    const lastWeek = localStorage.getItem('currentWeekNumber');
+    const now = new Date();
+    
+    // Get proper week number (Monday = start of week)
+    const currentWeekNumber = getWeekNumber(now);
+    
+    // If new week, restore base schedule but keep user modifications for recurring tasks
+    if (!saved || !lastWeek || parseInt(lastWeek) !== currentWeekNumber) {
+      localStorage.setItem('currentWeekNumber', currentWeekNumber.toString());
+      const baseSchedule = getInitialSchedule();
+      
+      // If we have saved data, merge recurring user tasks with base schedule
+      if (saved) {
+        const oldSchedule = JSON.parse(saved);
+        return mergeRecurringTasks(baseSchedule, oldSchedule);
+      }
+      
+      return baseSchedule;
+    }
+    
+    return saved ? JSON.parse(saved) : getInitialSchedule();
   }, []);
 
+  // Get ISO week number (Monday as first day)
+  const getWeekNumber = (date: Date): number => {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  };
+
+  // Merge recurring tasks with base schedule for new week
+  const mergeRecurringTasks = (baseSchedule: Schedule, oldSchedule: Schedule): Schedule => {
+    const newSchedule = { ...baseSchedule };
+    
+    Object.keys(oldSchedule).forEach(dayKey => {
+      const day = parseInt(dayKey);
+      const oldTasks = oldSchedule[day] || [];
+      
+      // Find user-added recurring tasks
+      const userRecurringTasks = oldTasks.filter(task => 
+        task.recurring && task.editable && (task.isCustom || !isBaseTask(task, day))
+      );
+      
+      // Add user recurring tasks to new week
+      if (userRecurringTasks.length > 0) {
+        newSchedule[day] = [...(newSchedule[day] || []), ...userRecurringTasks];
+      }
+    });
+    
+    return newSchedule;
+  };
+
+  // Check if task is from base schedule
+  const isBaseTask = (task: Task, day: number): boolean => {
+    const baseTasks = getInitialSchedule()[day] || [];
+    return baseTasks.some(baseTask => 
+      baseTask.title === task.title && baseTask.type === task.type
+    );
+  };
+
+  const getInitialSchedule = (): Schedule => ({
+    0: [
+      { id: 1, type: 'lesson', title: 'Novakid', time: '10:00 – 10:30', recurring: true, editable: true },
+      { id: 2, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    1: [
+      { id: 3, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
+      { id: 4, type: 'music', title: 'Musikunterricht', time: '15:30 – 16:30', recurring: true, editable: true },
+      { id: 5, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    2: [
+      { id: 6, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
+      { id: 7, type: 'work', title: 'Kaufland', time: '16:00 – 18:30', recurring: true, editable: true },
+      { id: 8, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    3: [
+      { id: 9, type: 'school', title: 'Schule', time: '08:00 – 13:10', recurring: true, editable: true },
+      { id: 10, type: 'sport', title: 'Tischtennis', time: '17:00 – 18:30', recurring: true, editable: true },
+      { id: 11, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    4: [
+      { id: 12, type: 'school', title: 'Schule', time: '08:00 – 15:15', recurring: true, editable: true },
+      { id: 13, type: 'work', title: 'Kaufland', time: '16:30 – 19:00', recurring: true, editable: true },
+      { id: 14, type: 'study', title: 'Schulvorbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    5: [
+      { id: 15, type: 'school', title: 'Schule', time: '08:00 – 13:10', recurring: true, editable: true },
+      { id: 16, type: 'sport', title: 'Schwimmen', time: '16:30 – 17:15', recurring: true, editable: true },
+      { id: 17, type: 'study', title: 'Schulnachbereitung', time: '20:30 – 21:00', recurring: true, editable: true }
+    ],
+    6: [
+      { id: 18, type: 'sport', title: 'Gym', time: '08:30 – 10:00', recurring: true, editable: true },
+      { id: 19, type: 'work', title: 'Kaufland', time: '10:30 – 13:30', recurring: true, editable: true }
+    ]
+  });
+
+  // Initialize
   useEffect(() => {
     const auth = localStorage.getItem('authenticated');
-    if (auth === 'true') setAuthenticated(true);
-    const savedDark = safeParse(localStorage.getItem('darkMode')||'false');
-    if (savedDark !== null) setDarkMode(Boolean(savedDark));
+    if (auth === 'true') {
+      setAuthenticated(true);
+    }
+    
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode) {
+      setDarkMode(JSON.parse(savedDarkMode));
+    }
+    
     setSchedule(loadSchedule());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadSchedule]);
 
+  // Save to localStorage whenever schedule changes
   useEffect(() => {
-    try { localStorage.setItem('weeklyPlannerSchedule', JSON.stringify(schedule)); } catch {}
+    localStorage.setItem('weeklyPlannerSchedule', JSON.stringify(schedule));
   }, [schedule]);
 
-  useEffect(() => { try { localStorage.setItem('darkMode', JSON.stringify(darkMode)); } catch {} }, [darkMode]);
-  useLayoutEffect(() => { if (darkMode) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); }, [darkMode]);
+  // Save dark mode preference
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
-  /* Notifications */
-  useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission().catch(()=>{}); }, []);
+  // Initialize Notifications
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
+  // Check for notification time and daily reminders
   useEffect(() => {
     const checkNotificationTime = () => {
       const now = new Date();
-      const hours = now.getHours(), minutes = now.getMinutes();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      
+      // Show morning notification at 6:00 AM
       if (hours === notificationTime && minutes === 0) {
-        // show daily toast (best-effort)
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('🌅 Guten Morgen!', { body: `Heute ist ${days[new Date().getDay()]}` });
-        }
+        setShowNotification(true);
+        sendDailyNotification();
       }
-      if (minutes % 5 === 0) checkTaskReminders();
+
+      // Check for task reminders every 15 minutes
+      if (minutes % 15 === 0) {
+        checkTaskReminders();
+      }
     };
+
     checkNotificationTime();
-    const id = setInterval(checkNotificationTime, 60000);
-    return () => clearInterval(id);
-  }, [schedule, notificationTime]);
+    const interval = setInterval(checkNotificationTime, 60000);
+    
+    return () => clearInterval(interval);
+  }, [notificationTime, schedule, currentDay]);
 
-  const checkTaskReminders = useCallback(() => {
-    if (Notification.permission !== 'granted') return;
-    const now = new Date();
-    const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    const todays = schedule[new Date().getDay()] || [];
-    todays.forEach(task => {
-      if (!task.notification || !task.time) return;
-      let start = task.time.split('–')[0] || task.time.split('-')[0] || task.time;
-      start = start.trim();
-      if (start === hhmm) {
-        new Notification(`${getTypeEmoji(task.type)} ${task.title}`, { body: task.time || '' });
-      }
-    });
-  }, [schedule]);
-
-  /* Drag & Drop */
-  const handleDragStart = (day:number,index:number) => setDragItem({day,index});
-  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
-
-  const handleDrop = (e: React.DragEvent, targetDay:number, targetIndex:number) => {
-    e.preventDefault();
-    if (!dragItem) return;
-    const sourceDay = dragItem.day, sourceIndex = dragItem.index;
-    if (!schedule[sourceDay] || sourceIndex >= schedule[sourceDay].length) { setDragItem(null); return; }
-    if (sourceDay === targetDay && sourceIndex === targetIndex) { setDragItem(null); return; }
-
-    setSchedule(prev => {
-      const newSchedule: Schedule = {};
-      Object.keys(prev).forEach(k => newSchedule[parseInt(k)] = prev[parseInt(k)].map(t => ({...t})));
-      const movedTask = { ...newSchedule[sourceDay][sourceIndex] };
-      newSchedule[sourceDay].splice(sourceIndex,1);
-      if (!movedTask.isCustom && isBaseTask(movedTask, sourceDay)) { movedTask.isCustom = true; movedTask.recurring = false; }
-      if (!newSchedule[targetDay]) newSchedule[targetDay] = [];
-      if (targetIndex === -1 || targetIndex > newSchedule[targetDay].length) newSchedule[targetDay].push(movedTask);
-      else newSchedule[targetDay].splice(targetIndex,0,movedTask);
-      return newSchedule;
-    });
-    setDragItem(null);
-    setShowSuccess(true); setTimeout(()=>setShowSuccess(false),2400);
+  // Drag and drop handlers
+  const handleDragStart = (day: number, index: number) => {
+    setDragItem({ day, index });
   };
 
-  /* Tasks CRUD */
-  const addNewTask = useCallback((day:number, task: Partial<Task>) => {
-    setSchedule(prev => {
-      const flat = Object.values(prev).flat();
-      const newId = flat.length ? Math.max(...flat.map(t=>t.id)) + 1 : 1;
-      const newTask: Task = {
-        id: newId,
-        type: task.type || 'study',
-        title: task.title || '',
-        time: task.time || '',
-        recurring: Boolean(task.recurring),
-        editable: true,
-        date: task.date || '',
-        studyDays: task.type === 'test' ? (task.studyDays || 0) : 0,
-        notes: task.notes || '',
-        notification: Boolean(task.notification),
-        isCustom: true
-      };
-      const next = { ...prev, [day]: [...(prev[day]||[]), newTask] };
-      return next;
+  const handleDragOver = (e: React.DragEvent, day: number, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetDay: number, targetIndex: number) => {
+    e.preventDefault();
+    if (!dragItem) return;
+
+    const sourceDay = dragItem.day;
+    const sourceIndex = dragItem.index;
+
+    if (sourceDay === targetDay && sourceIndex === targetIndex) return;
+
+    const newSchedule = { ...schedule };
+    const [movedTask] = newSchedule[sourceDay].splice(sourceIndex, 1);
+    
+    // If dropped in empty area, append to end
+    if (targetIndex === -1) {
+      newSchedule[targetDay] = [...(newSchedule[targetDay] || []), movedTask];
+    } else {
+      newSchedule[targetDay].splice(targetIndex, 0, movedTask);
+    }
+
+    // Mark as custom if it was a base task moved to new position
+    if (!movedTask.isCustom && isBaseTask(movedTask, sourceDay)) {
+      movedTask.isCustom = true;
+      movedTask.recurring = false; // Moving breaks recurrence
+    }
+
+    setSchedule(newSchedule);
+    setDragItem(null);
+    showSuccessMessage();
+  };
+
+  const getUpcomingTests = useCallback(() => {
+    const tests: Array<Task & { day: number; dayName: string; daysUntil: number }> = [];
+    Object.entries(schedule).forEach(([day, tasks]) => {
+      tasks.forEach(task => {
+        if (task.type === 'test' && task.date) {
+          const testDate = new Date(task.date);
+          const today = new Date();
+          const daysUntil = Math.ceil((testDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntil >= 0) {
+            tests.push({
+              ...task,
+              day: parseInt(day),
+              dayName: days[parseInt(day)],
+              daysUntil
+            });
+          }
+        }
+      });
     });
-    setShowSuccess(true); setTimeout(()=>setShowSuccess(false),2400);
+    return tests.sort((a, b) => a.daysUntil - b.daysUntil);
+  }, [schedule, days]);
+
+  const getTypeEmoji = (type: string) => {
+    const emojis: { [key: string]: string } = {
+      school: '🏫',
+      work: '🛒',
+      study: '🧠',
+      sport: '🏊',
+      music: '🎼',
+      lesson: '📘',
+      free: '🎯',
+      sleep: '😴',
+      test: '📝',
+      appointment: '📅',
+      hobby: '🎨'
+    };
+    return emojis[type] || '📋';
+  };
+
+  const getTaskColor = (type: string) => {
+    const colors: { [key: string]: string } = {
+      school: 'bg-blue-50 border-blue-200 text-blue-800',
+      work: 'bg-green-50 border-green-200 text-green-800',
+      study: 'bg-purple-50 border-purple-200 text-purple-800',
+      sport: 'bg-orange-50 border-orange-200 text-orange-800',
+      music: 'bg-pink-50 border-pink-200 text-pink-800',
+      lesson: 'bg-indigo-50 border-indigo-200 text-indigo-800',
+      free: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+      sleep: 'bg-gray-50 border-gray-200 text-gray-600',
+      test: 'bg-red-50 border-red-200 text-red-800',
+      appointment: 'bg-cyan-50 border-cyan-200 text-cyan-800',
+      hobby: 'bg-teal-50 border-teal-200 text-teal-800'
+    };
+    return colors[type] || 'bg-gray-50 border-gray-200 text-gray-600';
+  };
+
+  const addNewTask = useCallback((day: number, task: Partial<Task>) => {
+    const allTasks = Object.values(schedule).flat();
+    const newId = allTasks.length > 0 ? Math.max(...allTasks.map(item => item.id)) + 1 : 1;
+    const newTask: Task = {
+      id: newId,
+      type: task.type || 'study',
+      title: task.title || '',
+      time: task.time || '',
+      recurring: task.recurring || false,
+      editable: true,
+      date: task.date || '',
+      studyDays: task.type === 'test' ? (task.studyDays || 0) : 0,
+      notes: task.notes || '',
+      notification: task.notification || false,
+      isCustom: true
+    };
+    
+    setSchedule(prev => ({
+      ...prev,
+      [day]: [...(prev[day] || []), newTask]
+    }));
+    
+    showSuccessMessage();
+    
+    // Set notification if enabled
+    if (task.notification && task.time) {
+      setTaskNotification(newTask, day);
+    }
+  }, [schedule]);
+
+  const updateTask = useCallback((dayIndex: number, taskId: number, updates: Partial<Task>) => {
+    setSchedule(prev => ({
+      ...prev,
+      [dayIndex]: prev[dayIndex]?.map(task => 
+        task.id === taskId ? { ...task, ...updates, isCustom: true } : task
+      ) || []
+    }));
+    
+    showSuccessMessage();
+    
+    // Update notification if changed
+    if (updates.notification !== undefined || updates.time) {
+      const task = schedule[dayIndex]?.find(t => t.id === taskId);
+      if (task && (updates.notification || (task.notification && updates.time))) {
+        setTaskNotification({ ...task, ...updates }, dayIndex);
+      }
+    }
+  }, [schedule]);
+
+  const deleteTask = useCallback((dayIndex: number, taskId: number) => {
+    setSchedule(prev => ({
+      ...prev,
+      [dayIndex]: prev[dayIndex]?.filter(task => task.id !== taskId) || []
+    }));
+    
+    showSuccessMessage();
   }, []);
 
-  const updateTask = useCallback((dayIndex:number, taskId:ID, updates:Partial<Task>) => {
-    setSchedule(prev => {
-      const next = { ...prev };
-      next[dayIndex] = (next[dayIndex]||[]).map(t => t.id === taskId ? { ...t, ...updates, isCustom: true } : t);
-      return next;
-    });
-    setShowSuccess(true); setTimeout(()=>setShowSuccess(false),2400);
+  const showSuccessMessage = useCallback(() => {
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
   }, []);
 
-  const deleteTask = useCallback((dayIndex:number, taskId:ID) => {
-    setSchedule(prev => {
-      const next = { ...prev };
-      next[dayIndex] = (next[dayIndex]||[]).filter(t => t.id !== taskId);
-      return next;
-    });
-    setShowSuccess(true); setTimeout(()=>setShowSuccess(false),2400);
-  }, []);
+  const getTodaysTasks = useCallback(() => {
+    return schedule[currentDay] || [];
+  }, [schedule, currentDay]);
 
-  /* Filters / helpers */
-  const getTasksForDay = useCallback((day:number)=> schedule[day] || [], [schedule]);
-  const getFilteredTasks = useCallback((tasks:Task[]) => {
+  const getTasksForDay = useCallback((dayIndex: number) => {
+    return schedule[dayIndex] || [];
+  }, [schedule]);
+
+  const getFilteredTasks = useCallback((tasks: Task[]) => {
     return tasks.filter(task => {
       const matchesType = filters.type === 'all' || task.type === filters.type;
-      const matchesSearch = searchTerm.trim() === '' || task.title.toLowerCase().includes(searchTerm.toLowerCase()) || (task.time && task.time.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = searchTerm === '' || 
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.time && task.time.toLowerCase().includes(searchTerm.toLowerCase()));
+      
       return matchesType && matchesSearch;
     });
   }, [filters.type, searchTerm]);
 
-  /* Stats & upcoming tests */
-  const getUpcomingTests = useCallback(() => {
-    const tests: Array<Task & { day:number; dayName:string; daysUntil:number }> = [];
-    Object.entries(schedule).forEach(([dayStr, tasks]) => {
+  const calculateWeeklyStats = useCallback(() => {
+    const allTasks = Object.values(schedule).flat();
+    const workHours = allTasks
+      .filter(task => task.type === 'work')
+      .reduce((total, task) => {
+        if (task.time.includes('16:00 – 18:30')) return total + 2.5;
+        if (task.time.includes('16:30 – 19:00')) return total + 2.5;
+        if (task.time.includes('10:30 – 13:30')) return total + 3;
+        return total;
+      }, 0);
+
+    const studyTasks = allTasks.filter(task => task.type === 'study').length;
+    const sportTasks = allTasks.filter(task => task.type === 'sport').length;
+    const upcomingTests = getUpcomingTests().length;
+
+    return { workHours, studyTasks, sportTasks, upcomingTests };
+  }, [schedule, getUpcomingTests]);
+
+  // Send daily morning notification
+  const sendDailyNotification = useCallback(() => {
+    if (Notification.permission === 'granted') {
+      const todaysTasks = getTodaysTasks();
+      const taskCount = todaysTasks.length;
+      
+      new Notification('🌅 Guten Morgen!', {
+        body: `Heute ist ${days[currentDay]} - Du hast ${taskCount} Aufgaben geplant`,
+        icon: '/favicon.ico',
+        tag: 'daily-reminder'
+      });
+    }
+  }, [getTodaysTasks, days, currentDay]);
+
+  // Check for task reminders based on time
+  const checkTaskReminders = useCallback(() => {
+    if (Notification.permission !== 'granted') return;
+
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const todaysTasks = getTodaysTasks();
+    
+    todaysTasks.forEach(task => {
+      if (task.notification && task.time && task.time.includes(currentTime)) {
+        new Notification(`⏰ ${getTypeEmoji(task.type)} Erinnerung`, {
+          body: `${task.title} - ${task.time}`,
+          icon: '/favicon.ico',
+          tag: `task-${task.id}`,
+          requireInteraction: true
+        });
+      }
+    });
+  }, [getTodaysTasks, getTypeEmoji]);
+
+  const setTaskNotification = (task: Task, dayIndex: number) => {
+    if (!('Notification' in window)) {
+      console.log('This browser does not support notifications');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          createNotification(task, dayIndex);
+        }
+      });
+    } else {
+      createNotification(task, dayIndex);
+    }
+  };
+
+  const createNotification = (task: Task, dayIndex: number) => {
+    toast({
+      title: "Erinnerung gesetzt",
+      description: `Du wirst an ${task.title} erinnert.`,
+    });
+  };
+
+  const exportToCalendar = () => {
+    let icalContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Weekly Planner//DE',
+      'CALSCALE:GREGORIAN'
+    ];
+
+    Object.entries(schedule).forEach(([dayIndex, tasks]) => {
       tasks.forEach(task => {
-        if (task.type === 'test' && task.date) {
-          const testDate = new Date(task.date); testDate.setHours(0,0,0,0);
-          const today = new Date(); today.setHours(0,0,0,0);
-          const daysUntil = Math.ceil((testDate.getTime() - today.getTime())/(1000*60*60*24));
-          if (daysUntil >= 0) tests.push({...task, day: parseInt(dayStr), dayName: days[parseInt(dayStr)], daysUntil});
+        if (task.time && task.time.includes(' – ')) {
+          const [startTime, endTime] = task.time.split(' – ');
+          if (startTime && endTime) {
+            icalContent.push(
+              'BEGIN:VEVENT',
+              `SUMMARY:${task.title}`,
+              `DESCRIPTION:${task.notes || ''}`,
+              `DTSTART:${new Date().toISOString().split('T')[0]}T${startTime.replace(':', '')}00`,
+              `DTEND:${new Date().toISOString().split('T')[0]}T${endTime.replace(':', '')}00`,
+              'END:VEVENT'
+            );
+          }
         }
       });
     });
-    return tests.sort((a,b)=>a.daysUntil-b.daysUntil);
-  }, [schedule]);
 
-  const calculateWeeklyStats = useCallback(() => {
-    const flat = Object.values(schedule).flat();
-    const workHours = flat.filter(t=>t.type==='work').reduce((acc,t)=>{
-      const time = t.time || '';
-      if (time.includes('16:00') && time.includes('18:30')) return acc + 2.5;
-      if (time.includes('16:30') && time.includes('19:00')) return acc + 2.5;
-      if (time.includes('10:30') && time.includes('13:30')) return acc + 3;
-      return acc;
-    },0);
-    return { workHours, studyTasks: flat.filter(t=>t.type==='study').length, sportTasks: flat.filter(t=>t.type==='sport').length, upcomingTests: getUpcomingTests().length };
-  }, [schedule, getUpcomingTests]);
+    icalContent.push('END:VCALENDAR');
 
-  const exportToCalendar = () => {
-    const ical = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Weekly Planner//DE','CALSCALE:GREGORIAN'];
-    Object.entries(schedule).forEach(([dayIndexStr,tasks])=>{
-      const dayIndex = parseInt(dayIndexStr);
-      tasks.forEach(task=>{
-        const dateIso = task.date ? task.date : getDateFromWeekdayIso(dayIndex);
-        if (!task.time) return;
-        const parts = task.time.split('–').map(s=>s.trim());
-        if (parts.length < 2) return;
-        const start = parts[0].replace(':',''), end = parts[1].replace(':','');
-        ical.push('BEGIN:VEVENT');
-        ical.push(`SUMMARY:${(task.title||'')}`);
-        ical.push(`DESCRIPTION:${(task.notes||'')}`);
-        ical.push(`DTSTART:${dateIso.replace(/-/g,'')}T${start}00`);
-        ical.push(`DTEND:${dateIso.replace(/-/g,'')}T${end}00`);
-        ical.push('END:VEVENT');
-      });
-    });
-    ical.push('END:VCALENDAR');
-    const blob = new Blob([ical.join('\n')], { type: 'text/calendar' });
+    const blob = new Blob([icalContent.join('\n')], { type: 'text/calendar' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'wochenplan.ics'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    setShowSuccess(true); setTimeout(()=>setShowSuccess(false),2400);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'wochenplan.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
-  const upcomingTests = getUpcomingTests();
-  const weeklyStats = calculateWeeklyStats();
-
-  /* ---- TaskForm subcomponent ---- */
-  function TaskForm({ task, onSave, onCancel }: { task?: Partial<Task>, onSave: (d:Partial<Task>)=>void, onCancel: ()=>void }) {
-    const [form, setForm] = useState({
+  const TaskForm: React.FC<{
+    task?: Partial<Task>;
+    onSave: (data: Partial<Task>) => void;
+    onCancel: () => void;
+  }> = ({ task, onSave, onCancel }) => {
+    const [formData, setFormData] = useState({
       title: task?.title || '',
       time: task?.time || '',
       type: task?.type || 'study',
@@ -516,9 +536,13 @@ export default function WeeklyPlanner() {
     });
 
     return (
-      <div className="p-4 rounded-xl border bg-white/60 dark:bg-slate-800/60 shadow-sm">
-        <div className="grid gap-3">
-          <select value={form.type} onChange={e=>setForm({...form,type:e.target.value})} className="input">
+      <div className="p-4 md:p-6 rounded-xl border-2 border-blue-200 bg-white shadow-lg transition-all duration-300">
+        <div className="grid grid-cols-1 gap-3 md:gap-4">
+          <select
+            value={formData.type}
+            onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+          >
             <option value="study">🧠 Lernen</option>
             <option value="test">📝 Test/Klausur</option>
             <option value="work">🛒 Arbeit</option>
@@ -530,96 +554,311 @@ export default function WeeklyPlanner() {
             <option value="appointment">📅 Termin</option>
             <option value="hobby">🎨 Hobby</option>
           </select>
-          <input className="input" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Aufgabe/Termin" />
-          <input className="input" value={form.time} onChange={e=>setForm({...form,time:e.target.value})} placeholder="Zeit (z.B. 14:00 – 15:30)" />
-          <textarea className="input h-20" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Notizen (optional)"></textarea>
-          {form.type==='test' && <>
-            <input className="input" type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} />
-            <div className="flex items-center gap-3">
-              <label className="text-sm">Lerntage vorher:</label>
-              <input className="input w-20" type="number" min={0} max={21} value={form.studyDays} onChange={e=>setForm({...form,studyDays:parseInt(e.target.value||'0')})} />
-            </div>
-          </>}
-          <div className="flex gap-4 items-center">
-            <label className="flex items-center gap-2"><input type="checkbox" checked={form.recurring} onChange={e=>setForm({...form,recurring:e.target.checked})} /> <span className="text-sm">Wöchentlich wiederkehrend</span></label>
-            <label className="flex items-center gap-2"><input type="checkbox" checked={form.notification} onChange={e=>setForm({...form,notification:e.target.checked})} /> <span className="text-sm">Erinnerung</span></label>
+          
+          <input
+            type="text"
+            placeholder="Aufgabe/Termin"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+          />
+          
+          <input
+            type="text"
+            placeholder="Zeit (z.B. 14:00 – 15:30)"
+            value={formData.time}
+            onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+          />
+
+          <textarea
+            placeholder="Notizen (optional)"
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            className="px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent h-20 resize-none transition-all duration-300"
+          />
+          
+          {formData.type === 'test' && (
+            <>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className="px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              />
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-700">Lerntage vorher:</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="21"
+                  value={formData.studyDays}
+                  onChange={(e) => setFormData(prev => ({ ...prev, studyDays: parseInt(e.target.value) || 0 }))}
+                  className="px-3 py-2 border rounded-lg bg-white w-20 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                />
+              </div>
+            </>
+          )}
+          
+          <div className="flex flex-wrap items-center gap-4 md:gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.recurring}
+                onChange={(e) => setFormData(prev => ({ ...prev, recurring: e.target.checked }))}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Wöchentlich wiederkehrend</span>
+            </label>
+            
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.notification}
+                onChange={(e) => setFormData(prev => ({ ...prev, notification: e.target.checked }))}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">Erinnerung</span>
+            </label>
           </div>
+          
           <div className="flex gap-3">
-            <motion.button whileHover={{ scale: 1.03 }} className="btn-primary" onClick={()=>onSave(form)} disabled={!form.title.trim()}>
+            <button
+              onClick={() => onSave(formData)}
+              disabled={!formData.title.trim()}
+              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            >
               <Save className="w-4 h-4" /> Speichern
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.03 }} className="btn-muted" onClick={onCancel}><X className="w-4 h-4" /> Abbrechen</motion.button>
+            </button>
+            <button
+              onClick={onCancel}
+              className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-600 transition-all duration-300 shadow-md"
+            >
+              <X className="w-4 h-4" /> Abbrechen
+            </button>
           </div>
+        </div>
+      </div>
+    );
+  };
+
+  const upcomingTests = getUpcomingTests();
+  const weeklyStats = calculateWeeklyStats();
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-xl border">
+          <h1 className="text-2xl font-bold text-center mb-6">Wochenplaner Login</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium mb-1">
+                Passwort
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Passwort eingeben"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all duration-300"
+            >
+              Anmelden
+            </button>
+          </form>
         </div>
       </div>
     );
   }
 
-  /* -------------------------
-    Render
-  --------------------------*/
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="w-full max-w-md bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-2xl p-8 border">
-          <h1 className="text-2xl font-semibold mb-6">🔒 Wochenplaner Login</h1>
-          <form onSubmit={(e)=>{ e.preventDefault(); if (password==='Timon1605') { setAuthenticated(true); localStorage.setItem('authenticated','true'); } else { alert('Falsches Passwort'); } }}>
-            <label className="block text-sm mb-2">Passwort</label>
-            <input className="input w-full mb-4" value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Passwort eingeben" />
-            <motion.button whileHover={{ scale: 1.02 }} className="btn-primary w-full" type="submit">Anmelden</motion.button>
-          </form>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 p-6">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-semibold">📅 Mein Wochenplaner</h1>
-            <p className="text-sm text-slate-500">Apple-like — klar & minimal</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <motion.button whileHover={{ scale: 1.02 }} className="icon-btn" onClick={()=>setDarkMode(d=>!d)}>{ darkMode ? <Sun/> : <Moon/> }</motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} className="icon-btn" onClick={exportToCalendar}><Download/></motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} className="btn-muted px-4 py-2" onClick={()=>setShowWeekView(v=>!v)}>{ showWeekView ? 'Tagesansicht' : 'Wochenansicht' }</motion.button>
-          </div>
-        </header>
-
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="col-span-2 bg-white/60 dark:bg-slate-800/60 p-4 rounded-2xl border">
-            <div className="grid grid-cols-4 gap-3 mb-4">
-              <div className="stat-card"><div className="text-lg font-semibold">{weeklyStats.workHours}h</div><div className="text-xs text-slate-500">Arbeitszeit</div></div>
-              <div className="stat-card"><div className="text-lg font-semibold">{weeklyStats.studyTasks}</div><div className="text-xs text-slate-500">Lernaufgaben</div></div>
-              <div className="stat-card"><div className="text-lg font-semibold">{weeklyStats.sportTasks}</div><div className="text-xs text-slate-500">Sport</div></div>
-              <div className="stat-card"><div className="text-lg font-semibold">{weeklyStats.upcomingTests}</div><div className="text-xs text-slate-500">Anstehende Tests</div></div>
+    <div className={`min-h-screen transition-all duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100'}`}>
+      <div className="max-w-6xl mx-auto p-4 md:p-6">
+        <div className={`rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 md:p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+              <div>
+                <h1 className="text-2xl md:text-4xl font-bold">📅 Mein Wochenplaner</h1>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="p-2 md:p-3 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300"
+                  title={darkMode ? 'Hellmodus' : 'Dunkelmodus'}
+                >
+                  {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                </button>
+                <button
+                  onClick={exportToCalendar}
+                  className="p-2 md:p-3 rounded-xl bg-white/20 hover:bg-white/30 transition-all duration-300"
+                  title="Kalender exportieren"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setShowWeekView(!showWeekView)}
+                  className="px-3 py-2 md:px-4 md:py-3 rounded-xl flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-all duration-300"
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span className="hidden sm:inline">
+                    {showWeekView ? 'Tagesansicht' : 'Wochenansicht'}
+                  </span>
+                </button>
+              </div>
             </div>
+          </div>
 
-            {showSuccess && <motion.div initial={{opacity:0}} animate={{opacity:1}} className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 mb-4 flex items-center gap-3"><Check/> Änderungen gespeichert</motion.div>}
+          {/* Statistiken */}
+          <div className={`p-4 md:p-6 border-b ${darkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-center">
+              <div className={`p-3 md:p-4 rounded-xl shadow-sm border transition-all hover:scale-105 ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
+                <div className="text-2xl md:text-3xl font-bold text-green-600">{weeklyStats.workHours}h</div>
+                <div className={`text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Arbeitszeit</div>
+              </div>
+              <div className={`p-3 md:p-4 rounded-xl shadow-sm border transition-all hover:scale-105 ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
+                <div className="text-2xl md:text-3xl font-bold text-purple-600">{weeklyStats.studyTasks}</div>
+                <div className={`text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Lernaufgaben</div>
+              </div>
+              <div className={`p-3 md:p-4 rounded-xl shadow-sm border transition-all hover:scale-105 ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
+                <div className="text-2xl md:text-3xl font-bold text-orange-600">{weeklyStats.sportTasks}</div>
+                <div className={`text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Sport-Termine</div>
+              </div>
+              <div className={`p-3 md:p-4 rounded-xl shadow-sm border transition-all hover:scale-105 ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
+                <div className="text-2xl md:text-3xl font-bold text-red-600">{weeklyStats.upcomingTests}</div>
+                <div className={`text-xs md:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Anstehende Tests</div>
+              </div>
+            </div>
+          </div>
 
-            {upcomingTests.length>0 && <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-100 mb-4">
-              <div className="flex items-start gap-3"><AlertTriangle className="w-5 h-5 text-yellow-600"/><div><div className="font-semibold">📝 Anstehende Tests</div><div className="text-sm text-slate-600">{ upcomingTests.slice(0,3).map(t=> <div key={t.id}>{t.title} — {t.dayName} {t.daysUntil===0? '(Heute)' : t.daysUntil===1? '(Morgen)' : `(in ${t.daysUntil} Tagen)`}</div>) }</div></div></div>
-            </div>}
+          {/* Erfolgsmeldung */}
+          {showSuccess && (
+            <div className="border-l-4 border-green-500 p-4 m-4 rounded-r-xl flex items-center gap-3 bg-green-50 animate-pulse">
+              <Check className="w-5 h-5 text-green-600" />
+              <span className="font-medium text-green-700">Änderungen erfolgreich gespeichert!</span>
+            </div>
+          )}
 
-            {!showWeekView ? (
-              <>
-                <div className="flex items-center gap-2 overflow-x-auto mb-4">
-                  <motion.button whileHover={{scale:1.02}} className="icon-btn" onClick={()=>setCurrentDay(d=>d===0?6:d-1)}><ChevronLeft/></motion.button>
-                  {days.map((d,i)=>(
-                    <motion.button key={i} whileHover={{scale:1.02}} onClick={()=>setCurrentDay(i)} className={`flex-1 min-w-[90px] px-2 py-2 mx-1 rounded-xl text-sm font-medium transition-all ${currentDay===i? 'bg-accent text-white shadow-soft transform scale-105' : 'bg-white/60 dark:bg-slate-800/60 border'}`}>
-                      <div className="text-xl mb-1">{dayEmojis[i]}</div>
-                      <div className="truncate">{d}</div>
-                      <div className="text-xs text-slate-400">{getTasksForDay(i).length} Aufgaben</div>
-                    </motion.button>
-                  ))}
-                  <motion.button whileHover={{scale:1.02}} className="icon-btn" onClick={()=>setCurrentDay(d=>d===6?0:d+1)}><ChevronRight/></motion.button>
+          {/* Anstehende Tests Warnung */}
+          {upcomingTests.length > 0 && (
+            <div className="border-l-4 border-yellow-500 p-4 m-4 rounded-r-xl bg-yellow-50">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-yellow-700">
+                    📝 Anstehende Tests/Klausuren
+                  </h3>
+                  <div className="space-y-1">
+                    {upcomingTests.slice(0, 3).map(test => (
+                      <div key={test.id} className="text-yellow-700 text-sm">
+                        <strong>{test.title}</strong> - {test.dayName} 
+                        {test.daysUntil === 0 ? ' (Heute!)' : 
+                         test.daysUntil === 1 ? ' (Morgen)' : 
+                         ` (in ${test.daysUntil} Tagen)`}
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </div>
+            </div>
+          )}
 
-                <div className="flex gap-3 items-center mb-4">
-                  <input className="input flex-1" placeholder="Aufgaben suchen..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
-                  <select className="input w-44" value={filters.type} onChange={e=>setFilters({type:e.target.value})}>
+          {/* Heute Benachrichtigung */}
+          {showNotification && (
+            <div className="border-l-4 border-blue-500 p-4 m-4 rounded-r-xl bg-blue-50">
+              <div className="flex justify-between items-start">
+                <div className="flex">
+                  <Bell className="w-5 h-5 text-blue-600 mt-0.5 mr-3" />
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-blue-700">
+                      🌅 Guten Morgen! Heute ist {days[currentDay]}
+                    </h3>
+                    <div className="space-y-2">
+                      {getTodaysTasks().slice(0, 4).map(task => (
+                        <div key={task.id} className="flex items-center gap-2">
+                          <span className="text-lg">{getTypeEmoji(task.type)}</span>
+                          <span className="text-blue-700">
+                            <strong>{task.title}</strong> 
+                            {task.time && <span className="text-blue-600"> ({task.time})</span>}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNotification(false)}
+                  className="text-blue-600 hover:text-blue-800 transition-all duration-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!showWeekView ? (
+            <>
+              {/* Wochentabs */}
+              <div className={`flex overflow-x-auto p-2 ${darkMode ? 'bg-gray-700/20' : 'bg-gray-50'}`}>
+                <button
+                  onClick={() => setCurrentDay(prev => (prev === 0 ? 6 : prev - 1))}
+                  className={`p-2 rounded-lg transition-all duration-300 ${darkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'}`}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                {days.map((day, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentDay(index)}
+                    className={`flex-1 min-w-[90px] px-2 py-2 mx-1 rounded-xl text-sm font-medium transition-all duration-300 ${
+                      currentDay === index
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105'
+                        : darkMode 
+                          ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105 border border-gray-600'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 hover:scale-105 border border-gray-200'
+                    }`}
+                  >
+                    <div className="text-xl mb-1">{dayEmojis[index]}</div>
+                    <div className="truncate">{day.substring(0, 3)}</div>
+                    <div className={`text-xs ${currentDay === index ? 'opacity-90' : darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {getTasksForDay(index).length} Aufgaben
+                    </div>
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentDay(prev => (prev === 6 ? 0 : prev + 1))}
+                  className={`p-2 rounded-lg transition-all duration-300 ${darkMode ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'}`}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Filter und Suche */}
+              <div className={`p-4 border-b ${darkMode ? 'bg-gray-800/50' : 'bg-gray-50/50'}`}>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    placeholder="Aufgaben suchen..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={`flex-1 min-w-0 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                  />
+                  <select
+                    value={filters.type}
+                    onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                  >
                     <option value="all">Alle Typen</option>
                     <option value="school">Schule</option>
                     <option value="work">Arbeit</option>
@@ -628,92 +867,279 @@ export default function WeeklyPlanner() {
                     <option value="test">Tests</option>
                   </select>
                 </div>
+              </div>
 
-                <div className="bg-white/40 dark:bg-slate-800/40 p-4 rounded-2xl border">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold">{dayEmojis[currentDay]} {days[currentDay]}</h2>
-                    <div><motion.button whileHover={{scale:1.03}} className="btn-primary" onClick={()=>setNewTaskForm({show:true,day:currentDay})}><Plus/> Aufgabe</motion.button></div>
+              {/* Tagesansicht */}
+              <div className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <h2 className={`text-xl md:text-3xl font-bold flex items-center gap-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {dayEmojis[currentDay]} {days[currentDay]}
+                    <span className={`text-sm md:text-base font-normal ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      ({getFilteredTasks(getTasksForDay(currentDay)).length} Aufgaben)
+                    </span>
+                  </h2>
+                  <button
+                    onClick={() => setNewTaskForm({ show: true, day: currentDay })}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl flex items-center gap-2 hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-lg whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4" /> Aufgabe hinzufügen
+                  </button>
+                </div>
+
+                {/* Neue Aufgabe Form */}
+                {newTaskForm.show && newTaskForm.day === currentDay && (
+                  <div className="mb-6 animate-pulse">
+                    <TaskForm
+                      task={{}}
+                      onSave={(taskData) => {
+                        addNewTask(currentDay, taskData);
+                        setNewTaskForm({ show: false, day: 0 });
+                      }}
+                      onCancel={() => setNewTaskForm({ show: false, day: 0 })}
+                    />
                   </div>
+                )}
 
-                  {newTaskForm.show && newTaskForm.day===currentDay && <div className="mb-4"><TaskForm task={{}} onSave={(d)=>{ addNewTask(currentDay,d); setNewTaskForm({show:false,day:0}); }} onCancel={()=>setNewTaskForm({show:false,day:0})} /></div>}
-
-                  <div className="space-y-3">
-                    { getFilteredTasks(getTasksForDay(currentDay)).length>0 ? getFilteredTasks(getTasksForDay(currentDay)).map((task,idx)=>(
-                      <motion.div initial={{opacity:0, y:6}} animate={{opacity:1,y:0}} whileHover={{y:-4}} key={task.id} draggable={task.editable} onDragStart={()=>handleDragStart(currentDay, idx)} onDragOver={handleDragOver} onDrop={(e)=>handleDrop(e, currentDay, idx)} className="task-row">
-                        <div className="flex items-start gap-3 w-full">
-                          <div className="text-2xl">{getTypeEmoji(task.type)}</div>
-                          <div className="flex-1">
-                            <div className="flex justify-between">
-                              <div>
-                                <div className="font-medium">{task.title} {task.recurring && <span className="text-xs px-2 py-1 rounded-full bg-white/20 text-slate-600 ml-2"><Repeat className="inline-block w-3 h-3 mr-1"/>wöchentlich</span>}</div>
-                                <div className="text-xs text-slate-500">{task.notes}</div>
-                                {task.type==='test' && task.date && <div className="text-xxs mt-1 text-slate-500">📅 {new Date(task.date).toLocaleDateString('de-DE')}</div>}
-                              </div>
-                              <div className="text-right">
-                                {task.time && <div className="text-sm"><Clock className="inline mr-1"/> {task.time}</div>}
-                                <div className="flex gap-2 mt-2">
-                                  <motion.button whileHover={{scale:1.06}} onClick={()=>setEditingItem(task.id)} className="icon-mini"><Edit2/></motion.button>
-                                  <motion.button whileHover={{scale:1.06}} onClick={()=>deleteTask(currentDay, task.id)} className="icon-mini destructive"><Trash2/></motion.button>
+                {/* Aufgabenliste */}
+                <div className="space-y-3 md:space-y-4">
+                  {getFilteredTasks(getTasksForDay(currentDay)).length > 0 ? (
+                    getFilteredTasks(getTasksForDay(currentDay)).map((task, index) => (
+                      <div
+                        key={task.id}
+                        className={`p-4 md:p-5 rounded-xl border-2 transition-all duration-300 hover:shadow-lg transform hover:scale-[1.02] ${getTaskColor(task.type)} ${
+                          dragItem?.day === currentDay && dragItem.index === index ? 'opacity-50' : ''
+                        }`}
+                        draggable={task.editable}
+                        onDragStart={() => handleDragStart(currentDay, index)}
+                        onDragOver={(e) => handleDragOver(e, currentDay, index)}
+                        onDrop={(e) => handleDrop(e, currentDay, index)}
+                      >
+                        {editingItem === task.id ? (
+                          <TaskForm
+                            task={task}
+                            onSave={(updates) => {
+                              updateTask(currentDay, task.id, updates);
+                              setEditingItem(null);
+                            }}
+                            onCancel={() => setEditingItem(null)}
+                          />
+                        ) : (
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-start gap-3 md:gap-4 flex-1">
+                              <span className="text-2xl md:text-3xl">{getTypeEmoji(task.type)}</span>
+                              <div className="flex-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-base md:text-lg">{task.title}</h3>
+                                  {task.recurring && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                      <Repeat className="w-3 h-3" /> Wiederkehrend
+                                    </span>
+                                  )}
+                                  {task.notification && (
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                                      🔔 Erinnerung
+                                    </span>
+                                  )}
                                 </div>
+                                {task.time && (
+                                  <p className={`text-sm flex items-center gap-1 mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    <Clock className="w-3 h-3" /> {task.time}
+                                  </p>
+                                )}
+                                {task.notes && (
+                                  <p className={`text-sm italic ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{task.notes}</p>
+                                )}
+                                {task.type === 'test' && task.date && (
+                                  <p className="text-xs mt-2 px-3 py-1 rounded-lg flex items-center gap-1 bg-blue-100 text-blue-700">
+                                    <Calendar className="w-3 h-3" />
+                                    {new Date(task.date).toLocaleDateString('de-DE')}
+                                    {task.studyDays && task.studyDays > 0 && ` | ${task.studyDays} Lerntage eingeplant`}
+                                  </p>
+                                )}
                               </div>
                             </div>
+                            {task.editable && (
+                              <div className="flex gap-1 md:gap-2 ml-2">
+                                <button
+                                  onClick={() => setEditingItem(task.id)}
+                                  className="p-1 md:p-2 rounded-full transition-all duration-300 text-blue-600 hover:bg-blue-100"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteTask(currentDay, task.id)}
+                                  className="p-1 md:p-2 rounded-full transition-all duration-300 text-red-600 hover:bg-red-100"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                        { editingItem === task.id && <div className="mt-3"><TaskForm task={task} onSave={(upd)=>{ updateTask(currentDay, task.id, upd); setEditingItem(null); }} onCancel={()=>setEditingItem(null)} /></div> }
-                      </motion.div>
-                    )) : (
-                      <div className="text-center py-8 text-slate-400">
-                        <Target className="mx-auto mb-3" /> Keine Aufgaben — füge eine neue hinzu.
+                        )}
                       </div>
-                    )}
-                  </div>
-
-                  <div onDragOver={handleDragOver} onDrop={(e)=>{ e.preventDefault(); if (dragItem) handleDrop(e, currentDay, -1); }} className="mt-4 p-4 border-dashed border rounded-lg text-center text-slate-400">Aufgabe hier ablegen, um ans Ende zu verschieben</div>
+                    ))
+                  ) : (
+                    <div className={`text-center py-8 md:py-12 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <Target className="w-12 md:w-16 h-12 md:h-16 mx-auto mb-3 md:mb-4 opacity-50" />
+                      <p className="text-lg md:text-xl mb-2">Keine Aufgaben gefunden</p>
+                      <p className="text-xs md:text-sm">Füge eine neue Aufgabe hinzu oder ändere deine Filter</p>
+                    </div>
+                  )}
                 </div>
-              </>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {days.map((d,di)=>(
-                  <div key={di} className="bg-white/40 dark:bg-slate-800/40 p-3 rounded-xl border" onDragOver={handleDragOver} onDrop={(e)=>{ e.preventDefault(); if (dragItem) handleDrop(e, di, -1); }}>
-                    <div className="flex items-center justify-between mb-3"><div className="font-semibold">{d}</div><div className="text-xs text-slate-400">({getTasksForDay(di).length})</div></div>
-                    <div className="space-y-2">{ getTasksForDay(di).slice(0,6).map((t, idx)=>(
-                      <motion.div key={t.id} draggable={t.editable} onDragStart={()=>handleDragStart(di, idx)} onDragOver={handleDragOver} onDrop={(e)=>handleDrop(e, di, idx)} className="p-2 rounded-md border">
-                        <div className="flex justify-between items-center"><div className="flex items-center gap-2"><div className="text-sm">{getTypeEmoji(t.type)}</div><div className="text-sm truncate">{t.title}</div></div><div className="text-xxs text-slate-400">{t.time}</div></div>
-                      </motion.div>
-                    )) } { getTasksForDay(di).length === 0 && <div className="text-xs italic text-slate-400">Keine Aufgaben</div> }</div>
-                    <button className="mt-3 btn-muted w-full" onClick={()=>{ setCurrentDay(di); setShowWeekView(false); }}>Zu {d}</button>
+
+                {/* Drop area for empty days */}
+                {getFilteredTasks(getTasksForDay(currentDay)).length > 0 && (
+                  <div
+                    className={`mt-4 p-8 rounded-xl border-2 border-dashed text-center hover:bg-gray-50 transition-all duration-300 ${
+                      darkMode ? 'border-gray-600 text-gray-400 hover:bg-gray-700' : 'border-gray-300 text-gray-500'
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragItem) {
+                        handleDrop(e, currentDay, -1); // -1 indicates append to end
+                      }
+                    }}
+                  >
+                    Aufgabe hier ablegen, um sie an das Ende zu verschieben
+                  </div>
+                )}
+
+                {/* Kaufland Arbeitszeit Übersicht */}
+                {currentDay === 6 && (
+                  <div className={`mt-6 md:mt-8 p-4 md:p-6 rounded-xl shadow-sm border ${
+                    darkMode ? 'bg-gray-700/50 border-gray-600' : 'bg-green-50 border-green-200'
+                  }`}>
+                    <h3 className={`text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2 ${
+                      darkMode ? 'text-green-400' : 'text-green-700'
+                    }`}>
+                      <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
+                      📊 Kaufland Wochenarbeitszeit
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-sm">
+                      {getTasksForDay(2).filter(t => t.type === 'work').map(task => (
+                        <div key={task.id} className={`p-3 md:p-4 rounded-xl border shadow-sm transition-all hover:scale-105 ${
+                          darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                        }`}>
+                          <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dienstag</div>
+                          <div className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{task.time}</div>
+                          <div className={`font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>2,5 Stunden</div>
+                        </div>
+                      ))}
+                      {getTasksForDay(4).filter(t => t.type === 'work').map(task => (
+                        <div key={task.id} className={`p-3 md:p-4 rounded-xl border shadow-sm transition-all hover:scale-105 ${
+                          darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                        }`}>
+                          <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Donnerstag</div>
+                          <div className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{task.time}</div>
+                          <div className={`font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>2,5 Stunden</div>
+                        </div>
+                      ))}
+                      {getTasksForDay(6).filter(t => t.type === 'work').map(task => (
+                        <div key={task.id} className={`p-3 md:p-4 rounded-xl border shadow-sm transition-all hover:scale-105 ${
+                          darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                        }`}>
+                          <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Samstag</div>
+                          <div className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{task.time}</div>
+                          <div className={`font-semibold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>3 Stunden</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 md:mt-4 text-center p-3 md:p-4 rounded-xl font-bold shadow-md bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                      Gesamt: 8 Stunden pro Woche
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            /* Wochenansicht */
+            <div className="p-4 md:p-6">
+              <h2 className={`text-xl md:text-3xl font-bold mb-4 md:mb-6 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <Calendar className="w-5 h-5 md:w-6 md:h-6" />
+                Wochenübersicht
+              </h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
+                {days.map((day, dayIndex) => (
+                  <div 
+                    key={dayIndex} 
+                    className={`rounded-xl p-3 md:p-4 min-h-48 border shadow-sm transition-all hover:shadow-md ${
+                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                    }`}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (dragItem) {
+                        handleDrop(e, dayIndex, -1); // -1 indicates append to end
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-2 md:mb-3">
+                      <span className="text-xl">{dayEmojis[dayIndex]}</span>
+                      <h3 className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{day}</h3>
+                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        ({getTasksForDay(dayIndex).length})
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {getTasksForDay(dayIndex).slice(0, 4).map((task, index) => (
+                        <div
+                          key={task.id}
+                          className={`p-2 rounded-lg text-xs border ${getTaskColor(task.type)} ${
+                            dragItem?.day === dayIndex && dragItem.index === index ? 'opacity-50' : ''
+                          }`}
+                          draggable={task.editable}
+                          onDragStart={() => handleDragStart(dayIndex, index)}
+                          onDragOver={(e) => handleDragOver(e, dayIndex, index)}
+                          onDrop={(e) => handleDrop(e, dayIndex, index)}
+                        >
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm">{getTypeEmoji(task.type)}</span>
+                            <span className="font-medium truncate">{task.title}</span>
+                          </div>
+                          {task.time && (
+                            <div className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{task.time}</div>
+                          )}
+                        </div>
+                      ))}
+                      
+                      {getTasksForDay(dayIndex).length > 4 && (
+                        <div className={`text-xs text-center py-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          +{getTasksForDay(dayIndex).length - 4} weitere...
+                        </div>
+                      )}
+                      
+                      {getTasksForDay(dayIndex).length === 0 && (
+                        <div className={`text-xs text-center py-4 italic ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          Keine Aufgaben
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        setCurrentDay(dayIndex);
+                        setShowWeekView(false);
+                      }}
+                      className="w-full mt-2 md:mt-3 text-xs py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300"
+                    >
+                      Zu {day}
+                    </button>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-
-          <aside className="bg-white/60 dark:bg-slate-800/60 p-4 rounded-2xl border">
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Heute</h3>
-                <button className="icon-btn"><Bell/></button>
-              </div>
-              <div className="mt-3 space-y-2">
-                { getTasksForDay(new Date().getDay()).slice(0,6).map(t=>(
-                  <div key={t.id} className="flex items-center justify-between"><div className="flex items-center gap-2"><div>{getTypeEmoji(t.type)}</div><div className="text-sm">{t.title}</div></div><div className="text-xs text-slate-400">{t.time}</div></div>
-                )) }
-              </div>
             </div>
-
-            <div>
-              <h4 className="font-semibold mb-2">Kaufland Übersicht</h4>
-              <div className="space-y-2">
-                { getTasksForDay(2).filter(t=>t.type==='work').map(t=>(<div key={t.id} className="p-2 rounded-md border"><div className="text-sm">{t.time}</div><div className="text-xxs text-slate-500">Dienstag</div></div>)) }
-                { getTasksForDay(4).filter(t=>t.type==='work').map(t=>(<div key={t.id} className="p-2 rounded-md border"><div className="text-sm">{t.time}</div><div className="text-xxs text-slate-500">Donnerstag</div></div>)) }
-                { getTasksForDay(6).filter(t=>t.type==='work').map(t=>(<div key={t.id} className="p-2 rounded-md border"><div className="text-sm">{t.time}</div><div className="text-xxs text-slate-500">Samstag</div></div>)) }
-              </div>
-              <div className="mt-3 text-center font-semibold p-2 rounded-md bg-sky-500 text-white">Gesamt: 8h / Woche</div>
-            </div>
-          </aside>
-        </section>
+          )}
+        </div>
       </div>
     </div>
   );
-}
-=== END FILE ===
+};
+
+export default WeeklyPlanner;
